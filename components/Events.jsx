@@ -1,71 +1,71 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, Text, View, Pressable, Image } from 'react-native';
 import { global } from './global'
-import {styles} from './styles'
+import { styles } from './styles'
 import { useNavigation, StackActions } from '@react-navigation/native';
 import { getDatabase, ref as dRef, child, onValue, get } from "firebase/database";
 import { Loading, LoadImage } from './Components'
 
-export const Search = ({ navigation, route }) => {
+export const Events = ({ navigation, route }) => {
     const { key } = route.params;
-    
+
     console.log(key);
     const [array, setArray] = React.useState([]);
 
     useEffect(() => {
-        getData(route.params.key,setArray)
+        getData(route.params.key, setArray)
         //setArray(getData(route.params.key))
     }, [route.params.key])
 
-    return(<View>{
-            array
-            ?   (array.length == 0 
-                    ? <Text>Nem volt találat!</Text>
-                    : <View>{array}</View>)
+    return (<View>{
+        array
+            ? (array.length == 0
+                ? <Text>Nem volt találat!</Text>
+                : <View>{array}</View>)
             : <Loading color="#f5d142" />
-                
-        }</View>
+
+    }</View>
     )
 }
 
-function getData(key,setArray){
+function getData(key, setArray) {
     const newArray = [];
-    const dbRef = dRef(global.database,'/users');
+    const dbRef = dRef(global.database, '/users');
     onValue(dbRef, (snapshot) => {
         if (snapshot.exists())
-        snapshot.forEach((childSnapshot) => {
-            const childKey = childSnapshot.key;
-            const childData = childSnapshot.val();
-            
-            if (childData.name && childData.name.toLowerCase().includes(key.toLowerCase()) ||
-            childData.username && childData.username.toLowerCase().includes(key.toLowerCase())) {
+            snapshot.forEach((childSnapshot) => {
+                const childKey = childSnapshot.key;
+                const childData = childSnapshot.val();
+
+                if (childData.name && childData.name.toLowerCase().includes(key.toLowerCase()) ||
+                    childData.username && childData.username.toLowerCase().includes(key.toLowerCase())) {
                     newArray.push(<Item key={childKey} title={childData.name} text={childData.username} uid={childKey} />);
-                
-            }
-        });
+
+                }
+            });
         setArray(newArray)
     });
     //return newArray
 }
 
-function Item({title,text,uid}) {
+function Item({ title, text, uid }) {
     const navigation = useNavigation();
     const onPress = () => {
-        navigation.navigate("Profilom", {uid});
+        navigation.navigate("Profilom", { uid });
     }
 
     return (
-        <Pressable onPress={onPress} style={[styles.list, {flexDirection: "row"}]}>
-            <LoadImage style={styles.listIcon} uid={uid}/>
-            <View style={{marginLeft: 5}}>
-              <Text style={{ fontWeight: 'bold',flex: 1, }}>{title}</Text>
-              <Text style={{ flex:2, }}>{text}</Text>
+        <Pressable onPress={onPress} style={[styles.list, { flexDirection: "row" }]}>
+            <LoadImage style={styles.listIcon} uid={uid} />
+            <View style={{ marginLeft: 5 }}>
+                <Text style={{ fontWeight: 'bold', flex: 1, }}>{title}</Text>
+                <Text style={{ flex: 2, }}>{text}</Text>
             </View>
-  
+
         </Pressable>
     );
-    
-  }
+
+}
 
 /*
 

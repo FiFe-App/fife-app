@@ -3,6 +3,7 @@
     "name": "fife-app",
     "slug": "fife-app",
     "version": "1.0.0",
+    "scheme": "fife-app",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
