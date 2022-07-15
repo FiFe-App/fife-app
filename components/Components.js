@@ -1,6 +1,8 @@
 import React, { useRef, useEffect } from 'react';
-import { Animated, View, Image, Easing } from 'react-native';
+import { Text, Animated, StyleSheet, View, Image, Easing, TouchableOpacity } from 'react-native';
 import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
+import Icon from 'react-native-vector-icons/Ionicons'
+import { LinearGradient } from "expo-linear-gradient";
 
 const Loading = (props) => {
   const sweepAnim = useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
@@ -76,9 +78,128 @@ function Col(props) {
   );
 }
 
+function FAB(props){
+  const {onPress, color='blue', color2='white', icon, size=50} = props
+  
+  return (
+    <TouchableOpacity activeOpacity={0.7} onPress={onPress} style={styles.touchableOpacityStyle}>
+      <LinearGradient colors={[color, color2]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} 
+        style={[styles.floatingButtonStyle,{width: size, height: size, borderRadius: size}]}>
+        <View >
+          <Icon name={icon} size={size} color="#fff" />
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  )
+}
+
+
+function NewEventModal(params) {
+  const [modalVisible, setModalVisible] = useState(false)
+
+  const modalStyles = {
+      centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+      },
+      modalView: {
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 4,
+        padding: 10,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+      },
+      button: {
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+      },
+      buttonOpen: {
+        backgroundColor: '#F194FF',
+      },
+      buttonClose: {
+        backgroundColor: '#2196F3',
+      },
+      textStyle: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+      },
+      modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
+      },
+    }
+  useEffect(()=>{
+      setModalVisible(params.modalVisible)
+  },[params])
+
+  return (
+  <Modal
+      animationType="fade"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => {
+          setModalVisible(!modalVisible);
+      }}>
+      <View style={modalStyles.centeredView}>
+          <View style={modalStyles.modalView}>
+              <Text style={modalStyles.modalText}>Hello World!</Text>
+              <Pressable
+              style={[modalStyles.button, modalStyles.buttonClose]}
+              onPress={() => setModalVisible(!modalVisible)}>
+              <Text style={modalStyles.textStyle}>Hide Modal</Text>
+              </Pressable>
+          </View>
+      </View>
+  </Modal>)
+
+}
+
 export {
   LoadImage,
   Loading,
   Row,
-  Col
+  Col,
+  FAB
 }
+
+const styles = StyleSheet.create({
+  titleStyle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 10,
+  },
+  textStyle: {
+    fontSize: 16,
+    textAlign: 'center',
+    padding: 10,
+  },
+  touchableOpacityStyle: {
+    position: 'absolute',
+    alignItems: 'center',
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    right: 30,
+    bottom: 30,
+  },
+  floatingButtonStyle: {
+    resizeMode: 'contain',
+    borderRadius: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor:'crimson'
+  },
+});

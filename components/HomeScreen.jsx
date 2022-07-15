@@ -79,8 +79,7 @@ const SearchBar = () => {
       global.searchList.splice(global.searchList.indexOf(data.text), 1);
     global.searchList.push(data.text);
     setShowHistory(false);
-    const pushAction = StackActions.push("search", { key: data.text });
-    navigation.dispatch(pushAction);
+    navigation.push("search", { key: data.text });
   };
   const [showHistory,setShowHistory] = React.useState(false);
   const listItems = global.searchList.reverse().map((element) =>
@@ -133,8 +132,9 @@ const Menu = ({ navigation, route }) => {
     <View style={styles.modules}>
         <Module title="Profilom" text="" color="#9bde7c" to={"profile"} icon="person-outline" />
         <Module title="Üzeneteim" color="#0052ff" icon="mail-outline" />
-        <Module title="Események" color="#f7316a" icon="today-outline" />
+        <Module title="Események" color="#f7316a" icon="today-outline" to={"events"}/>
         <Module title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
+        <Module title="Unatkozom" text="" color="#135c46" to={"new"} icon="bulb" />
         <Module title="Kijelentkezés" text="" color="black" to="login" with={{ logout: true }} icon="exit-outline" />
     </View>
     </>

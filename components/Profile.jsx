@@ -30,7 +30,7 @@ export const Profile = ({ navigation, route }) => {
 
   const mapOptions = {
     center: {
-      lat: 0,
+      lat: 10,
       lng: 0
     },
     zoom: 4

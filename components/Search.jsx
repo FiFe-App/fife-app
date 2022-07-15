@@ -17,7 +17,9 @@ export const Search = ({ navigation, route }) => {
         //setArray(getData(route.params.key))
     }, [route.params.key])
 
-    return(<View>{
+    return(<View>
+            <Text>Kereség a következőre: {key}</Text>
+            {
             array
             ?   (array.length == 0 
                     ? <Text>Nem volt találat!</Text>
@@ -51,7 +53,7 @@ function getData(key,setArray){
 function Item({title,text,uid}) {
     const navigation = useNavigation();
     const onPress = () => {
-        navigation.navigate("Profilom", {uid});
+        navigation.navigate("profile", {uid});
     }
 
     return (

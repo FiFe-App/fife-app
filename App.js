@@ -16,6 +16,9 @@ import { Search } from './components/Search';
 import { Profile } from "./components/Profile";
 import { Edit } from "./components/Edit";
 import { Events } from "./components/Events";
+import { Event } from "./components/Event";
+import { NewEvent } from "./components/NewEvent";
+import { New } from "./components/New";
 
 // fonts
 import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
@@ -105,15 +108,18 @@ export default class App extends Component {
 
     return (
       <NavigationContainer linking={this.state.linking} config={this.state.config} fallback={<Text>Loading...</Text>}>
-        {"loggen in:" + this.state.isLoggedIn}
+        {false && "loggen in:" + this.state.isLoggedIn}
         <Stack.Navigator initialRouteName="login">
           {true ? (
             <>
               <Stack.Screen name="profile" component={Profile} options={{ title: "profil" }} />
+              <Stack.Screen name="event" component={Event} />
               <Stack.Screen name="search" component={Search} />
-              <Stack.Screen name="events" component={Events} />
+              <Stack.Screen name="events" component={Events} options={{ title: "Események" }} />
+              <Stack.Screen name="new-event" component={NewEvent} options={{ title: "Új esemény" }} />
               <Stack.Screen name="edit-profile" component={Edit} />
               <Stack.Screen name="home" component={HomeScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="new" component={New} options={{ headerShown: false }} />
               <Stack.Screen name="login" component={LoginScreen} options={{ headerShown: false }} />
             </>
           ) : (

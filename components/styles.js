@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         flexWrap: 'wrap',
-        alignItems: 'flex-start', // if you want to fill rows left to right
+        alignItems: 'stretch', // if you want to fill rows left to right
         justifyContent: 'space-around'
     },
     title: {
@@ -76,10 +76,10 @@ export const styles = StyleSheet.create({
     },
     list: {
         alignItems: "center",
-        borderColor: "grey",
-        borderBottomWidth: 1,
+        borderColor: "rgb(240,240,240)",
+        borderBottomWidth: 2,
         borderTopWidth: 1,
-        padding: 8,
+        padding: 12,
         marginTop: -1,
     },
     searchList: {
