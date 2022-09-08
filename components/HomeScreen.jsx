@@ -1,11 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
-import { Text, View, TextInput, ScrollView, Pressable, Button} from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+
+import { useHover } from 'react-native-web-hooks';
+
+import { Text, View, TextInput, ScrollView, Pressable, Button, TouchableOpacity, Dimensions} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { widthPercentageToDP,  heightPercentageToDP} from 'react-native-responsive-screen';
+
 import { styles } from './styles';
-import { NavigationContainer, useNavigation, StackActions } from '@react-navigation/native';
+import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useForm, Controller } from "react-hook-form";
-import AppLoading from 'expo-app-loading';
 import { useFonts, AmaticSC_700Bold  } from '@expo-google-fonts/amatic-sc';
 import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
 import {Profile} from './Profile'
@@ -17,164 +21,125 @@ import { global } from './global';
 import { Row, Col } from './Components'
 import Icon from 'react-native-vector-icons/Ionicons'
 
-
-import { Search } from "./Search"
+import { SearchBar } from "./Components"
+import {  } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
-export const HomeScreen = () => {
+export const HomeScreen = ({ navigation, route }) => {
   const [showHeader, setShowHeader] = useState(true);
+
   let [fontsLoaded] = useFonts({
     AmaticSC_700Bold,Poppins_200ExtraLight
   });
 
   if (!fontsLoaded) {
-    return <AppLoading />;
+    return <View />;
   }
 
   return (
-    <View>
-      <Menu />
-    </View>
-
+  <Menu/>
   );
 };
 
-
-function LogoTitle() {
+export function LogoTitle() {
   const [header,setHeader] = React.useState("block");
   const navigation = useNavigation();
   const onPress = () => navigation.navigate("Menu");
+  const width = Dimensions.get('window').width
 
   useEffect(() => {
     if (global.showHeader) setHeader("block")
     else setHeader("none");
   }, [global.showHeader]);
 //
+
   return (
     <LinearGradient colors={['#f5d142', "rgba(255,175,0,0.7)"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
-      <Pressable onPress={onPress} >
-        <Text  style={[styles.title,styles.body,{display:{header}}]}>
-        FiFe. a közösség
-        </Text>
-      </Pressable>
-      <View style={styles.body} >
+      <View style={{flexDirection:'row',justifyContent:'space-between'}}>
+        <Text  style={[styles.title]}>FiFe. a közösség</Text>
+        { width >  950 &&
+        <View style={{flexDirection:'row',marginRight:20}}>
+          <MenuLink title="Profilom" text="" color="#509955" link={"profile"} icon="person-outline" />
+          <MenuLink title="Üzeneteim" color="#0052ff" icon="mail-outline" link={"messages"}/>
+          <MenuLink title="Térképek" color="#f4e6d4" icon="map" link={"maps"}/>
+          <MenuLink title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
+          <MenuLink title="Unatkozom" text="" color="#b51d1d" link={"new"} icon="bulb" />
+          <MenuLink title="Kijelentkezés" text="" color="black" link="login" with={{ logout: true }} icon="exit-outline" />
+        </View>}
+      </View>
+      <View >
         <SearchBar/>
       </View>
-    </LinearGradient>
-  );
+    </LinearGradient>)
 }
 
-const SearchBar = () => {
-  const allMethods = useForm();
-  const { setFocus } = allMethods;
-  const navigation = useNavigation();
-  const { control, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: {
-      text: ''
-    }
-  });
-  const onSubmit = data => {
-    if (global.searchList.includes(data.text))
-      global.searchList.splice(global.searchList.indexOf(data.text), 1);
-    global.searchList.push(data.text);
-    setShowHistory(false);
-    navigation.push("search", { key: data.text });
-  };
-  const [showHistory,setShowHistory] = React.useState(false);
-  const listItems = global.searchList.reverse().map((element) =>
-    <Row key={element.toString()} style={styles.searchList}>
-      <Icon name="time-outline" size={25} color="black" style={{ marginHorizontal: 5 }} />
-      <Text>{element}</Text>
-    </Row>
-  );
-  return (
-    <View>
-      <View style={{flexDirection: 'row',alignItems: 'center'}}>
-        <Controller control={control} rules={{ required: true, }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              style={[styles.searchInput,{flex:7}]}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              placeholder="Keress valamire..."
-              onSubmitEditing={handleSubmit}
-              value={value}
-              onClick={()=>setShowHistory(true)}
-            />
-          )}
-          name="text"
-        />
-
-        <Pressable style={{ flex: 1, width: '100px' }} onPress={handleSubmit(onSubmit)} >
-          <Icon name="search-outline" size={25} color="black" />
-        </Pressable>
-      </View>
-      {(showHistory && global.searchList.length > 0) && listItems}
-    </View>
-  );
-
-}
-
-
-function open(screen) {
-  if (screen == undefined)
-  global.screen = null;
-  else
-  global.screen = screen;
-  console.log(global.screen)
-}
-  
 const Menu = ({ navigation, route }) => {
   return(
-    <>
+    <SafeAreaView >
       <LogoTitle />
     <View style={styles.modules}>
-        <Module title="Profilom" text="" color="#9bde7c" to={"profile"} icon="person-outline" />
-        <Module title="Üzeneteim" color="#0052ff" icon="mail-outline" />
-        <Module title="Események" color="#f7316a" icon="today-outline" to={"events"}/>
+        <Module title="Profilom" text="" color="#509955" to={"profile"} icon="person-outline" />
+        <Module title="Üzeneteim" color="#0052ff" icon="mail-outline" to={"messages"}/>
+        <Module title="Térképek" color="#f4e6d4" icon="map" to={"maps"}/>
         <Module title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
-        <Module title="Unatkozom" text="" color="#135c46" to={"new"} icon="bulb" />
+        <Module title="Unatkozom" text="" color="#b51d1d" to={"new"} icon="bulb" />
         <Module title="Kijelentkezés" text="" color="black" to="login" with={{ logout: true }} icon="exit-outline" />
     </View>
-    </>
+    </SafeAreaView>
   );
+}
+
+const MenuLink = ({title,link}) => {
+  const ref = useRef(null);
+
+  const isHovered = useHover(ref);
+  const navigation = useNavigation()
+  const route = useRoute()
+  return (
+    <Pressable ref={ref}
+      style={!isHovered && route.name != link ? styles.menuLink : [styles.menuLink,styles.menuLinkHover]}
+      onPress={()=>navigation.navigate(link)}>
+      <Text>{title}</Text>
+    </Pressable>
+  )
 }
 
 
 function Module(props) {
   const navigation = useNavigation();
   const onPress = (to) => {
-    navigation.push(to, props['with']);
+    navigation.push(to, props.with);
   }
   return (
     <LinearGradient colors={[props.color, "rgba(255,175,0,0.7)"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={moduleStyle(props.color)}>
-      <Pressable onPress={() => onPress(props.to)}>
-        <Row>
+      <TouchableOpacity onPress={() => onPress(props.to)} style={{height:100}}>
+        <Row style={{height:'100%'}}>
           <Text style={{ textAlignVertical: 'center', marginHorizontal: 12 }}><Icon name={props.icon} size={25} color="#fff" /></Text>
           <Col>
             <Text style={{ fontWeight: 'bold', color: isBright(props.color) }}>{props.title}</Text>
             <Text style={{ color: isBright(props.color) }}>{props.text}</Text>
           </Col>
         </Row>
-        </Pressable>
-      </LinearGradient>
+      </TouchableOpacity>
+    </LinearGradient>
   );
   
 }
 
 var moduleStyle = function(color) {
   return {
+    width: widthPercentageToDP(47),
+    height: heightPercentageToDP(17),
     marginVertical: 3,
     backgroundColor: color,
     borderWidth: 0,
     borderRadius: 10,
     padding: 10,
-    width: '47%'
   }
 }
 
-var isBright = function(color) {
+var isBright = function(color) { // #FF00FF
   var textCol = "black";
   var c = color.substring(1);      // strip #
   var rgb = parseInt(c, 16);   // convert rrggbb to decimal
@@ -184,7 +149,7 @@ var isBright = function(color) {
 
   var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
 
-  if (luma < 100) {
+  if (luma < 150) {
       textCol = "white";
   }
 

@@ -1,35 +1,41 @@
 import { LoadImage, Loading } from './Components'
 import { getDatabase, ref, child, push, get, set, onValue } from "firebase/database";
 import { getAuth } from "firebase/auth";
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Text, View, Button, Pressable, TextInput } from 'react-native';
 import { styles } from './styles'
-//import { MapView } from 'react-native-maps';
+
 import { global } from './global'
+import { useSelector } from 'react-redux'
 import Icon from 'react-native-vector-icons'
-
-import DateTimePicker from '@react-native-community/datetimepicker';
-
+import { FirebaseContext } from '../firebase/firebase';
+//import { DatePicker } from './date/DatePicker';
 
 export const NewEvent = ({ navigation, route }) => {
-  const auth = getAuth();
+  const uid = useSelector((state) => state.user.uid)
+  const {app, auth}  = useContext(FirebaseContext);
   const [data, setData] = React.useState({
     title: '',
     description: ''
   });
   function save() {
-    if (auth?.currentUser) { 
+    if (uid) { 
         console.log('save');
-        console.log(auth.currentUser.uid);
+        console.log(uid);
         const db = getDatabase();
-        const postListRef = ref(db, 'events');
+        const postListRef = ref(db, 'events' );
         const newPostRef = push(postListRef)
-        data.uid = auth.currentUser.uid
-        //set(newPostRef, data)
+        data.uid = uid
+        set(newPostRef, data)
         console.log(data);
+        console.log('real uid',auth);
         console.log(newPostRef.key);
     }
+    else {
+      console.log('not logged in');
+    }
   }
+
   return (
     <View>
       <Text>Esemény neve</Text>
@@ -44,13 +50,9 @@ export const NewEvent = ({ navigation, route }) => {
         style={styles.searchInput}
         onChangeText={(e)=>setData({...data,description: e})}
         editable
-        secureTextEntry
         placeholder="Leírás"
       />
-      <RNDateTimePicker display="spinner" />
-      <Button style={styles.headline} title="Mentés" color="black" onPress={() =>
-        save()
-      } />
+      <Button style={styles.headline} title="Mentés" color="black" onPress={save} />
     </View>
   )
 }

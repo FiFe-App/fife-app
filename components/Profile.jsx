@@ -1,58 +1,39 @@
-import { LoadImage, Loading, Row, Col } from './Components'
+import { LoadImage, Loading, Row } from './Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
-import { getAuth } from "firebase/auth";
 
-import React, { useEffect } from 'react';
-import { Text, Platform, View, Button, Pressable } from 'react-native';
+import React, { useEffect, useContext } from 'react';
+import { Text, Platform, View, Pressable } from 'react-native';
 import {styles} from './styles'
-import { global } from './global'
 import { Animated, Image, Easing } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons'
-//import MapView from 'react-native-maps';
-import { Dimensions } from 'react-native';
-import { Loader } from '@googlemaps/js-api-loader';
 
+import { useSelector } from 'react-redux'
+import { FirebaseContext } from '../firebase/firebase';
+
+import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
 
 export const Profile = ({ navigation, route }) => {
   const [profile, setProfile] = React.useState(null);
+  const {database, app, auth} = useContext(FirebaseContext);
+  const uid = route?.params?.uid || useSelector((state) => state.user.uid)
+
   const [followButtonText, setFollowButtonText] = React.useState("Ajánlom");
   const [followers, setFollowers] = React.useState(null);
   const [myProfile, setMyProfile] = React.useState(true);
-
-  navigation = useNavigation()
-  const loader = new Loader({
-    apiKey: "AIzaSyDqjygaNZxE3FU0aJbQ9v6EOzOdV2waxSo",
-    version: "weekly",
-    libraries: ["places"]
-  });
-
-  const mapOptions = {
+  const [mapOptions,setMapOptions] = React.useState({
     center: {
       lat: 10,
       lng: 0
     },
     zoom: 4
-  };
+  })
 
-  loader
-    .load()
-    .then((google) => {
-      new google.maps.Map(document.getElementById("map"), mapOptions);
-    })
-    .catch(e => {
-      // do something
-    });
+  navigation = useNavigation()
 
-  const auth = getAuth();
-  console.log(auth);
-  var finalUid = auth.currentUser.uid;
-  if (route.params != undefined) finalUid = route.params.uid;
   function follow(){
-    const dbRef = ref(global.database, 'users/' + finalUid + "/likes/" + auth.currentUser.uid);
-    console.log(auth.currentUser.uid)
-      if (followButtonText == "Ajánlottam") {
+    const dbRef = ref(database, 'users/' + uid + "/likes/" + auth.currentUser.uid);
+    if (followButtonText == "Ajánlottam") {
           set(dbRef,{"owner":null});
           setFollowButtonText('Ajánlom');
       } else {
@@ -64,7 +45,7 @@ export const Profile = ({ navigation, route }) => {
   }
   
   function getRecList(){
-    const dbRef = ref(global.database,'users/' + finalUid + "/likes");
+    const dbRef = ref(database,'users/' + uid + "/likes");
     onValue(dbRef, (snapshot) => {
       if (snapshot.exists()) {
         var size = snapshot.size;
@@ -80,67 +61,77 @@ export const Profile = ({ navigation, route }) => {
   }
   
   useEffect(() => {
-    setMyProfile(auth.currentUser.uid == finalUid);
-    getRecList();
-    const dbRef = ref(global.database);
-    get(child(dbRef, `users/${finalUid}`)).then((snapshot) => {
-      if (snapshot.exists()) {
-        var data = snapshot.val();
-        var allProfAb = [];
-        var prof = data.profession.split('$$');
-        prof.forEach(element => {
-            var newprof = element.split('$');
-            if (newprof[0].trim() != ''){
-                allProfAb.push({title:newprof[0],description:newprof[1]});
-            }
-        });
-        console.log(allProfAb)
-        data.profession = allProfAb;
-        setProfile(data);
-      } else {
-      }
-    }).catch((error) => {
-      console.error(error);
-    });
-  }, [route]);
+    if (database) {
+      setMyProfile(!route?.params?.uid);
+      getRecList();
+      const dbRef = ref(database);
+      get(child(dbRef, `users/${uid}/data`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          var data = snapshot.val();
+          setProfile(snapshot.val());
+          /*if (data.location)
+          setMapOptions({
+            center: {
+              lat: data.location.vlat,
+              lng: data.location.vlng
+            },
+            zoom: data.location.vzoom
+          })*/
+        } else {
+          navigation.push('edit-profile')
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
+    }
+  }, [database]);
   if (profile)
   return(
     <View>
-      <Row style={{alignItems: 'center',justifyContent: "center"}}>
-        <Row style={{flex:1,justifyContent: "center",alignItems: 'center'}}>
-          <LoadImage  uid={finalUid} size={50}/>
-          <Text style={[styles.subTitle]}>{profile.name}</Text>
-        </Row>
+      <Row style={{justifyContent: "center",alignItems: 'center',margin:10}}>
+        <LoadImage uid={uid} size={50}/>
+        <AutoSizeText
+          fontSize={32}
+          numberOfLines={1}
+          mode={ResizeTextMode.max_lines}>
+          {profile.name}
+        </AutoSizeText>
       </Row>
-      <Row style={{flex:1,justifyContent: 'center'}}>
+      <Row style={{justifyContent: 'center'}}>
         <Text style={localStyles.text}>{profile.username}</Text>
         <View style={localStyles.verticleLine}/>
         <Text style={localStyles.text}>Ajánlók: {followers}</Text>
       </Row>
       <View style={{justifyContent: "center"}}>
-          { !myProfile &&
+          { !myProfile && <>
           <NewButton title={followButtonText} onPress={follow}/>
+          <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('chat',{uid:uid})}/>
+          </>
           }
         {myProfile &&
           <NewButton title={"Módosítás"} onPress={() => navigation.navigate('edit-profile')} />
           }
-          <NewButton title="Üzenetküldés"/>
       </View>
 
-      {(Platform.OS !== 'web') && <MapView style={localStyles.map} />}
-      {(Platform.OS === 'web') && <div id='map' style={localStyles.map} />}
+      {profile.location ? (
+      (Platform.OS !== 'web') ? <MapView style={localStyles.map} />
+      : <div id='map' style={localStyles.map} />)
+      : <Text style={localStyles.subText}>Nincs megadva helyzeted</Text>
+      }
+      <Text style={localStyles.subText}>Rólam: {profile.bio}</Text>
       <Section title="Elérhetőségeim">
-        <Text style={[styles.label,{flex:1}]} >
-            <li>Rólam: {profile.bio}</li>
-            <li>Elérhetőségeim: @{profile.ig_username}</li>
-
-        </Text>
+        <View style={[styles.label,{flex:1}]} >
+            <Text style={localStyles.subText}>Elérhetőségeim: @{profile.ig_username}</Text>
+        </View>
       </Section>
-      <Section title="Ehhez értek">
-        <Text style={[styles.label,{flex:1}]} >
-          {profile.profession.map((prof) =><li key={prof.title}>{prof.title}, ezen belül: {prof.description}</li>)}
-        </Text>
-      </Section>
+      {profile.profession && <Section title="Ehhez értek">
+        <View style={[styles.label,{flex:1}]} >
+          {profile.profession.map((prof,index) =>
+          <View key={"prof"+index}>
+            <Text>{prof.name}, ezen belül: {prof.description}</Text>
+          </View>)}
+        </View>
+      </Section>}
 
     </View>
   )
@@ -148,11 +139,11 @@ export const Profile = ({ navigation, route }) => {
 }
 
   function NewButton(props) {
-    const [color, setColor] = React.useState("rgb(245, 209, 66)");
+    const color = props?.color || "rgb(245, 209, 66)";
     return (
-      <Pressable style={[localStyles.newButton, { background: color }]} onPress={props.onPress}>
+      <Pressable style={[localStyles.newButton, { backgroundColor: color }]} onPress={props.onPress}>
             <Text style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{props.title}</Text>
-        </Pressable>
+      </Pressable>
     );
   }
 
@@ -193,9 +184,13 @@ export const Profile = ({ navigation, route }) => {
       fontSize:18,
       paddingHorizontal: 16,
     },
+    subText: {
+      color: "black",
+      fontSize:16,
+      padding: 16,
+    },
     newButton:{
       borderRadius: 20,
-      flex:1,
       margin:10,
       marginHorizontal: 20,
       paddingVertical:10,

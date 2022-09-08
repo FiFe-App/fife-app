@@ -1,8 +1,12 @@
 import React, { useRef, useEffect } from 'react';
-import { Text, Animated, StyleSheet, View, Image, Easing, TouchableOpacity } from 'react-native';
+import { Text, Animated, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
 import Icon from 'react-native-vector-icons/Ionicons'
 import { LinearGradient } from "expo-linear-gradient";
+import { useForm, Controller } from "react-hook-form";
+import { useNavigation } from '@react-navigation/native';
+import { global } from './global';
+import { styles as newStyles } from './styles';
 
 const Loading = (props) => {
   const sweepAnim = useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
@@ -39,26 +43,29 @@ const Loading = (props) => {
 }
 
 const LoadImage = (props) => {
-  const [url, setUrl] = React.useState(require('../assets/profile.jpeg'));
+  const defaultUrl = require('../assets/profile.jpeg');
+  const [url, setUrl] = React.useState(null);
   const storage = getStorage();
-  const starsRef = sRef(storage, 'profiles/' + props.uid + '/profile.jpg');
+  const starsRef = sRef(storage, `profiles/${props.uid}/profile.jpg`);
 
-  getDownloadURL(starsRef)
-    .then((url) => {
-      console.log("success");
-      setUrl(url);
-    })
-    .catch((error) => {
-      console.error(error);
-
-    });
+  useEffect(() => {
+    if (starsRef)
+      getDownloadURL(starsRef)
+      .then((url) => {
+        setUrl(url);
+      })
+      .catch((error) => {
+      });
+  }, [props.url]);
 
   var size = 40;
   if (props.size) size = props.size;
 
   return <Image
     style={[{ margin: 5, width: size, height: size, borderRadius: size }, props.style]}
-    source={{ uri: url }} />;
+    source={{ uri: url }} 
+    defaultUrl={defaultUrl}/>;
+    
 }
 
 
@@ -166,12 +173,74 @@ function NewEventModal(params) {
 
 }
 
+
+const SearchBar = (props) => {
+  const allMethods = useForm();
+  const { setFocus } = allMethods;
+  const navigation = useNavigation();
+  const { control, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      text: props?.search || ''
+    }
+  });
+  const onSubmit = data => {
+    if (global.searchList.includes(data.text))
+      global.searchList.splice(global.searchList.indexOf(data.text), 1);
+    global.searchList.push(data.text);
+    setShowHistory(false);
+    navigation.push("search", { key: data.text });
+  };
+  const onBlur = () => {
+    console.log('blur');
+  } 
+  const [showHistory,setShowHistory] = React.useState(false);
+  const listItems = global.searchList.reverse().map((element) =>
+    <Pressable key={element.toString()} onPress={() => navigation.push("search", { key: element })} >
+      <Row style={newStyles.searchList}>
+        <Icon name="time-outline" size={25} color="black" style={{ marginHorizontal: 5 }} />
+        <Text>{element}</Text>
+      </Row>
+    </Pressable>
+  );
+  return (
+    <View>
+      <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
+        <Controller control={control} rules={{ required: true, }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              style={[newStyles.searchInput,{flex:7}]}
+              onBlur={onBlur}
+              
+              onChangeText={onChange}
+              placeholder="Keress valamire..."
+              placeholderTextColor="gray"
+              onSubmitEditing={handleSubmit}
+              value={value}
+              onClick={()=>setShowHistory(true)}
+            />
+          )}
+          name="text"
+        />
+
+        <Pressable onPress={handleSubmit(onSubmit)} >
+          <Icon name="search-outline" size={25} color="black" />
+        </Pressable>
+      </View>
+      <ScrollView>
+        {(showHistory && global.searchList.length > 0) && listItems}
+      </ScrollView>
+    </View>
+  );
+
+}
+
 export {
   LoadImage,
   Loading,
   Row,
   Col,
-  FAB
+  FAB,
+  SearchBar
 }
 
 const styles = StyleSheet.create({

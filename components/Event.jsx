@@ -12,7 +12,6 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons'
 //import MapView from 'react-native-maps';
 import { Dimensions } from 'react-native';
-import { Loader } from '@googlemaps/js-api-loader';
 
 
 export const Event = ({ navigation, route }) => {

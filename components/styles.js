@@ -25,7 +25,8 @@ export const styles = StyleSheet.create({
     subTitle: {
         fontSize: 40,
         fontWeight: "bold",
-        margin: 10
+        margin: 10,
+        textAlign: 'left'
     },
     label: {
         margin: 5,
@@ -42,11 +43,11 @@ export const styles = StyleSheet.create({
     searchInput: {
         margin: 5,
         borderColor: "black",
-        borderWidth: 2,
+        borderWidth: 1,
         borderRadius: 10,
         backgroundColor: "white",
         padding: 10,
-        fontWeight: "bold",
+        fontWeight: "400",
         maxWidth: 500,
     },
     fixToText: {
@@ -65,7 +66,8 @@ export const styles = StyleSheet.create({
         textAlign: 'center', // <-- the magic
         fontWeight: 'bold',
         fontSize: 18,
-        marginTop: 0
+        marginTop: 0,
+        marginBottom: 5
     },
     error: {
         textAlign: 'center', // <-- the magic
@@ -77,6 +79,7 @@ export const styles = StyleSheet.create({
     list: {
         alignItems: "center",
         borderColor: "rgb(240,240,240)",
+        backgroundColor: 'white',
         borderBottomWidth: 2,
         borderTopWidth: 1,
         padding: 12,
@@ -88,5 +91,19 @@ export const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: 0,
         alignItems: "center",
+    },
+    menuLink: {
+        justifyContent:'center',
+        padding:10,
+        paddingRight:15,
+        marginLeft:15,
+        transform: 'skew(-20deg)'
+    },
+    menuLinkHover: {
+        backgroundColor:'white',
+        borderWidth: 2,
+        borderTopWidth:0,
+        borderRadius: 0,
+        marginLeft:11,
     }
 });

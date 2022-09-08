@@ -1,29 +1,28 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { Component, } from 'react';
-import { Image, Text, View, Button, TextInput } from 'react-native';
-
-//firebase
-import { initializeApp } from 'firebase/app';
-import { getDatabase } from "firebase/database";
-import { getAuth, signOut, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, onAuthStateChanged } from "firebase/auth";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import React, { Component, useState, useContext } from 'react';
+//import { Image, Text, View, Button, TextInput } from 'react-native';
+import { Text, View, Button, TextInput } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // routes
-import { HomeScreen } from './components/HomeScreen';
+import { HomeScreen, LogoTitle } from './components/HomeScreen';
 
 import { styles } from './components/styles'
+import LoginScreen from './components/Login/Login';
 import { Search } from './components/Search';
 import { Profile } from "./components/Profile";
 import { Edit } from "./components/Edit";
+import { Messages } from "./components/Messages";
+import { Chat } from "./components/Chat";
 import { Events } from "./components/Events";
 import { Event } from "./components/Event";
 import { NewEvent } from "./components/NewEvent";
 import { New } from "./components/New";
+import { Maps } from "./components/Maps/Maps";
 
 // fonts
 import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
 import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
-
 
 import { Loading } from './components/Components'
 import { LinearGradient } from "expo-linear-gradient";
@@ -35,181 +34,95 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 import { NavigationContainer, useNavigation, StackActions } from '@react-navigation/native';
 
+import { Provider } from 'react-redux'
+import FirebaseProvider from './firebase/firebase'
+import { FirebaseContext } from './firebase/firebase';
+
+import {store,persistor} from './components/store'
+import { PersistGate } from 'redux-persist/integration/react'
+
+
+import { useDispatch } from 'react-redux'
+import { login, logout } from './userReducer'
+import { useSelector } from 'react-redux'
+import { authIsReady } from 'react-redux-firebase';
+
+import { getAuth, signOut, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, onAuthStateChanged } from "firebase/auth";
+
+
 SplashScreen.preventAutoHideAsync();
-setTimeout(SplashScreen.hideAsync, 5000);
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDtxKGHmZsnpg2R7CKdkLl8oNSag9lHykI",
-  authDomain: "fife-app.firebaseapp.com",
-  databaseURL: "https://fife-app-default-rtdb.firebaseio.com",
-  projectId: "fife-app",
-  storageBucket: "fife-app.appspot.com",
-  messagingSenderId: "235592798960",
-  appId: "1:235592798960:web:39d151f49b45c29ef82835",
-  measurementId: "G-10X8R8XT3L"
-};
-
-const app = initializeApp(firebaseConfig);
-global.database = getDatabase(app);
-const auth = getAuth();
+setTimeout(SplashScreen.hideAsync, 1);
 
 const Stack = createNativeStackNavigator();
 const prefix = Linking.createURL('/');
 
-
-const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('6LcSls0bAAAAAKWFaKLih15y7dPDqp9qMqFU1rgG'),
-  isTokenAutoRefreshEnabled: true
-});
-
-function updateState(isLoggedIn) {
-  this.setState({ isLoggedIn })
-}
-
-export default class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isLoggedIn: null,
-      linking: {
-        prefixes: [prefix],
-      },
-      config: {
-        screens: {
-          Chat: 'feed/:sort',
-          Profile: 'user',
-        },
-      }
-
-    };
-    updateState = updateState.bind(this)
-
-    setPersistence(auth, browserSessionPersistence)
-      .then(() => {
-        //
-        return signInWithEmailAndPassword(auth, email, password);
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-      });
-
-    auth.onAuthStateChanged(function (user) {
-      if (user) {
-        updateState(true)
-      } else {
-        //updateState(false)
-      }
-      console.log("user", user ? true : false);
-    });
-  }
-
-  render() {
-
-    return (
-      <NavigationContainer linking={this.state.linking} config={this.state.config} fallback={<Text>Loading...</Text>}>
-        {false && "loggen in:" + this.state.isLoggedIn}
-        <Stack.Navigator initialRouteName="login">
-          {true ? (
-            <>
-              <Stack.Screen name="profile" component={Profile} options={{ title: "profil" }} />
-              <Stack.Screen name="event" component={Event} />
-              <Stack.Screen name="search" component={Search} />
-              <Stack.Screen name="events" component={Events} options={{ title: "Események" }} />
-              <Stack.Screen name="new-event" component={NewEvent} options={{ title: "Új esemény" }} />
-              <Stack.Screen name="edit-profile" component={Edit} />
-              <Stack.Screen name="home" component={HomeScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="new" component={New} options={{ headerShown: false }} />
-              <Stack.Screen name="login" component={LoginScreen} options={{ headerShown: false }} />
-            </>
-          ) : (
-            <>
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    );
-  }
-}
-
-const LoginScreen = ({ navigation, route }) => {
-  const [username, onChangeUsername] = React.useState("");
-  const [password, onChangePassword] = React.useState("");
-  const [loginError, onChangeLoginError] = React.useState("");
-  const [canLogin, setCanLogin] = React.useState(route.params?.logout ? route.params.logout : false);
-
-
-  React.useEffect(() => {
-    console.log(route);
-    auth.onAuthStateChanged(function (user) {
-      if (user && !canLogin) {
-        navigation.push('home')
-      } else {
-        setCanLogin(true)
-        signOut(auth).then(() => {
-          console.log('signed Out');
-        }).catch((error) => {
-          // An error happened.
-        })
-      }
-    });
-  }, [auth, route]);
-
+export default function App(props) {
+  const linking = useState({prefixes: [prefix]})
+  const config = useState({
+    screens: {
+      Chat: 'feed/:sort',
+      Profile: 'user',
+    }
+  })
 
   let [fontsLoaded] = useFonts({
-    AmaticSC_700Bold, Poppins_200ExtraLight
+    AmaticSC_700Bold,Poppins_200ExtraLight
   });
-  return (
-    
-    (canLogin) &&
-    <LinearGradient colors={["rgba(255,196,0,1)", "rgba(255,242,207,1)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.container}>
-      <Text style={styles.title} >FiFe. a közösség</Text>
-      <TextInput
-        style={styles.searchInput}
-        onChangeText={onChangeUsername}
-        editable
-        placeholder="Felhasználónév"
-        />
-        <TextInput
-        style={styles.searchInput}
-        onChangeText={onChangePassword}
-        editable
-          textContentType="password"
-          secureTextEntry
-          placeholder="Jelszó"
-        />
-        <Text style={styles.error} >{loginError}</Text>
-        <Button style={styles.headline} title="Bejelentkezés" color="black" onPress={() =>
-          signIn(username, password, onChangeLoginError)
-        } />
-        <Loading color="yellow" />
-      </LinearGradient>
 
-  );
-};
+    return (
+          <Provider store={store}>
+            <PersistGate loading={<Text>Loading...</Text>} persistor={persistor}>
+              <FirebaseProvider>
+                <SafeAreaProvider>
+                  <NavigationContainer linking={linking} config={config} fallback={<Text>Loading...</Text>}>
+                    {fontsLoaded ? (
+                      <Stack.Navigator initialRouteName="login" screenOptions={{ header: () => <LogoTitle />}}>
+                          <>
+                            <Stack.Screen name="login" component={LoginScreen} options={{ headerShown: false }} />
+                            <Stack.Screen name="home" component={HomeScreen} options={{ headerShown: false }} />
+                            <Stack.Screen name="search" component={Search} />
 
-function signIn(email, password, printMessage) {
-  console.log(auth);
-  signInWithEmailAndPassword(auth, "macos.acos@gmail.com", "LEGOlego2000")
-    .then((userCredential) => {
-      console.log(auth);
-  // Signed in
-      navigation.navigate('home')
-      // ...
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      if (errorCode == "auth/invalid-email")
-        printMessage("Nem működik ez az email cím :(");
-      else if (errorCode == "auth/internal-error")
-        printMessage("Valami hiba történt");
-      else if (errorCode == "auth/wrong-password")
-        printMessage("Rossz jelszavat adtál meg :/");
-      else
-        printMessage("error: " + errorCode + " - " + errorMessage);
-    });
+                            <Stack.Screen name="profile" component={Profile} options={{ title: "Profil" }} />
+                            <Stack.Screen name="edit-profile" component={Edit} options={{ title: "Profil szerkesztése" }} />
+                            <Stack.Screen name="messages" component={Messages} options={{ title: "Beszélgetések" }} />
+                            <Stack.Screen name="chat" component={Chat} options={{ title: "Beszélgetés" }} />
+
+                            <Stack.Screen name="events" component={Events} options={{ title: "Események" }} />
+                            <Stack.Screen name="event" component={Event} />
+                            <Stack.Screen name="new-event" component={NewEvent} options={{ title: "Új esemény" }} />
+
+                            <Stack.Screen name="new" component={New} options={{ title: "Unatkozom" }} />
+
+                            <Stack.Screen name="maps" component={Maps} options={{ headerShown: false }} />
+                          </>
+                        
+                      </Stack.Navigator>) : (
+                          <>
+                          </>
+                    )}
+                  </NavigationContainer>
+                </SafeAreaProvider>
+              </FirebaseProvider>
+            </PersistGate>
+        </Provider>
+    );
 }
+
+const Show = (props) => {
+  const {user} = useContext(FirebaseContext);
+
+  React.useEffect(() => {
+    console.log('userShow',user);
+  }, [user]);
+
+  return (
+    <Text>
+      {'user:' + user?.uid}
+    </Text>
+  )
+} 
+
+
 
 
 
