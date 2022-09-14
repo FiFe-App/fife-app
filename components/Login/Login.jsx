@@ -96,7 +96,7 @@ const  LoginForm = () => {
 
   const signIn = (email, password, printMessage) => {
     console.log('sign in');
-    api.login().then((res) => {
+    api.login(email,password).then((res) => {
       if (res?.success) {
         navigation.push('home') 
       } else {
@@ -134,32 +134,47 @@ const  LoginForm = () => {
 }
 const RegisterForm = () => {
   const navigation = useNavigation()
-  const [username, onChangeUsername] = React.useState("");
+  const [email, onChangeEmail] = React.useState("");
   const [password, onChangePassword] = React.useState("");
+  const [passwordAgain, onChangePasswordAgain] = React.useState("");
   const [loginError, onChangeLoginError] = React.useState("");
   const {app, auth, user, api}  = useContext(FirebaseContext);
 
-  const signIn = (email, password, printMessage) => {
+  const signUp = (email, password, printMessage) => {
     console.log('sign in');
-    api.register().then((res) => {
+
+    api.register(email,password).then((res) => {
+      console.log('res',res);
       if (res?.success) {
         navigation.push('home') 
       } else {
         onChangeLoginError(res?.error)
       }
     }).catch((error) => {
-      console.error(error);
+      console.error('error',error);
     })
     
+  }
+  const fbLogin = () => {
+    api.facebookLogin().then((res) => {
+      console.log('res',res);
+      if (res?.success) {
+        navigation.push('home') 
+      } else {
+        onChangeLoginError(res?.error)
+      }
+    }).catch((error) => {
+      console.error('error',error);
+    })
   }
   return (
     <View style={{justifyContent:'center',alignSelf:'center',flex:1}}>
       <View style={{flexWrap:'wrap'}}>
         <TextInput
           style={styles.searchInput}
-          onChangeText={onChangeUsername}
+          onChangeText={onChangeEmail}
           editable
-          placeholder="Felhasználónév"
+          placeholder="Email-cím"
         />
         <TextInput
           style={styles.searchInput}
@@ -169,12 +184,20 @@ const RegisterForm = () => {
             secureTextEntry
             placeholder="Jelszó"
         />
+        <TextInput
+          style={styles.searchInput}
+          onChangeText={onChangePasswordAgain}
+          editable
+            textContentType="password"
+            secureTextEntry
+            placeholder="Jelszó újra"
+        />
       </View>
       <Text style={styles.error} >{loginError}</Text>
-      <Button style={styles.headline} title="Bejelentkezés" color="black" onPress={() =>
-        signIn(username, password, onChangeLoginError)
+      <Button style={styles.headline} title="Regisztráció" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
+        signUp(email, password, onChangeLoginError)
       } />
-      <Button title="Facebook Bejelentkezés" color="#4267B2"/>
+      <Button title="Facebook Bejelentkezés"  onPress={fbLogin} color="#4267B2"/>
     </View>
   )
 }

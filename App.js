@@ -11,6 +11,7 @@ import { styles } from './components/styles'
 import LoginScreen from './components/Login/Login';
 import { Search } from './components/Search';
 import { Profile } from "./components/Profile";
+import First from "./components/First/First";
 import { Edit } from "./components/Edit";
 import { Messages } from "./components/Messages";
 import { Chat } from "./components/Chat";
@@ -83,6 +84,7 @@ export default function App(props) {
                             <Stack.Screen name="search" component={Search} />
 
                             <Stack.Screen name="profile" component={Profile} options={{ title: "Profil" }} />
+                            <Stack.Screen name="about" component={First} options={{ title: "A FiFe Appról" }} />
                             <Stack.Screen name="edit-profile" component={Edit} options={{ title: "Profil szerkesztése" }} />
                             <Stack.Screen name="messages" component={Messages} options={{ title: "Beszélgetések" }} />
                             <Stack.Screen name="chat" component={Chat} options={{ title: "Beszélgetés" }} />
