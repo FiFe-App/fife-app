@@ -14,6 +14,8 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'fire
 import { Loading } from './Components';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 
+const themeColor = 'rgba(255,196,0,1)';
+
 export const Edit = ({ navigation, route }) => {
   const uid = useSelector((state) => state.user.uid)
   const Dpath = 'users/'+uid+'/pro_file'
@@ -215,6 +217,10 @@ export const Edit = ({ navigation, route }) => {
         <Professions data={newData} setData={setNewData}/>
         <Links data={newData} setData={setNewData}/>
       </View>
+
+      <TouchableOpacity onPress={save} style={{margin:20}}>
+            <Text><Icon name="save" color="black" size={25}/></Text>
+          </TouchableOpacity>
     </ScrollView>
   )
 
@@ -253,7 +259,7 @@ const Professions = (props) => {
           <View style={{flexDirection:'row'}}>
             <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
               <Pressable onPress={()=>remove(i)}>
-                <Text><Icon name="trash" color="#61a8c2" size={25}/></Text>
+                <Text><Icon name="trash" color={themeColor} size={25}/></Text>
               </Pressable>
             </View>
             <View style={{flex:4}}>
@@ -313,7 +319,7 @@ const Links = (props) => {
           <View style={{flexDirection:'row'}}>
             <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
               <Pressable onPress={()=>remove(i)}>
-                <Text><Icon name="trash" color="#61a8c2" size={25}/></Text>
+                <Text><Icon name="trash" color={themeColor} size={25}/></Text>
               </Pressable>
             </View>
             <View style={{flex:4}}>
@@ -335,7 +341,7 @@ const Links = (props) => {
 
 const Header = (props) => {
   const {icon,title} = props
-  const color = "#61a8c2"
+  const color = themeColor
   return (
     <View style={[localStyle.adder,{flexDirection:'row',backgroundColor:color}]}>
       <View style={[localStyle.plusContainer,{color: color}]}>
@@ -355,21 +361,21 @@ const localStyle = StyleSheet.create ({
     paddingLeft:20
   },
   image: {
-    resizeMode: 'contain',
+    resizeMode: 'cover',
     aspectRatio: 1,
     height:200,
     borderRadius: 200,
     backgroundColor:'white'
   },
   imageContainer: {
-    backgroundColor: "#61a8c2",
+    backgroundColor: themeColor,
     flexDirection: 'row'
   },
   imagePadding: {
     flex:1,
     backgroundColor: "white"
   },
-  color: "#61a8c2",
+  color: themeColor,
   input: {
     margin: 5,
     borderColor: "black",
@@ -379,7 +385,7 @@ const localStyle = StyleSheet.create ({
     padding: 10,
   },
   adder: {
-    backgroundColor: '#61a8c2',
+    backgroundColor: themeColor,
     borderRadius: 0,
     borderTopLeftRadius: 30,
     borderBottomLeftRadius: 30,

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Text, Animated, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { Text, Animated, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
 import Icon from 'react-native-vector-icons/Ionicons'
 import { LinearGradient } from "expo-linear-gradient";
@@ -45,26 +45,31 @@ const Loading = (props) => {
 const LoadImage = (props) => {
   const defaultUrl = require('../assets/profile.jpeg');
   const [url, setUrl] = React.useState(null);
+  const [loaded, setLoaded] = React.useState(false);
   const storage = getStorage();
-  const starsRef = sRef(storage, `profiles/${props.uid}/profile.jpg`);
+  const imgRef = sRef(storage, `profiles/${props.uid}/profile.jpg`);
 
   useEffect(() => {
-    if (starsRef)
-      getDownloadURL(starsRef)
+    if (imgRef)
+      getDownloadURL(imgRef)
       .then((url) => {
         setUrl(url);
       })
       .catch((error) => {
+        setUrl(defaultUrl)
       });
   }, [props.url]);
 
   var size = 40;
   if (props.size) size = props.size;
 
-  return <Image
-    style={[{ margin: 5, width: size, height: size, borderRadius: size }, props.style]}
-    source={{ uri: url }} 
-    defaultUrl={defaultUrl}/>;
+  return <View style={[{ margin: 5 }, props.style]}>
+    { !loaded &&
+    <ActivityIndicator style={{position:'absolute', width: size, height: size, borderRadius: size}} color='rgba(255,175,0,0.7)' />}
+    <Image style={{width: size, height: size, borderRadius: size}}
+      source={{ uri: url }}  onLoad={() => setLoaded(true)}/>
+    
+    </View>;
     
 }
 
@@ -208,9 +213,9 @@ const SearchBar = (props) => {
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={[newStyles.searchInput,{flex:7}]}
+              style={[newStyles.searchInput,{flex:4}]}
               onBlur={onBlur}
-              
+              autoCapitalize='none'
               onChangeText={onChange}
               placeholder="Keress valamire..."
               placeholderTextColor="gray"
@@ -222,7 +227,7 @@ const SearchBar = (props) => {
           name="text"
         />
 
-        <Pressable onPress={handleSubmit(onSubmit)} >
+        <Pressable onPress={handleSubmit(onSubmit)}style={{flex:1,}} >
           <Icon name="search-outline" size={25} color="black" />
         </Pressable>
       </View>

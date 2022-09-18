@@ -25,7 +25,7 @@ export const Search = ({ navigation, route }) => {
                 if (snapshot.exists())
                 snapshot.forEach((childSnapshot) => {
                     const childKey = childSnapshot.key;
-                    const childData = childSnapshot.val();
+                    const childData = childSnapshot.child('data').val();
 
                     let found = null
                     let index = null
@@ -53,7 +53,6 @@ export const Search = ({ navigation, route }) => {
 
     return(
         <View>
-            <SearchBar search={key}/>
             <View style={{flexDirection:'row',marginHorizontal:50,marginVertical:10}}>
                 <TouchableOpacity style={{flex:1}} onPress={()=>{setIsMapView(false)}}>
                     <Text style={{textAlign:'center',color:(isMapView ? 'black' : 'blue')}}>lista</Text>

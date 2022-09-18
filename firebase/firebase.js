@@ -11,6 +11,7 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { useDispatch } from 'react-redux';
 import { getUid, login as sliceLogin } from '../userReducer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 
 // we create a React Context, for this to be accessible
@@ -58,12 +59,25 @@ export default ({ children }) => {
         }
     }
 
-    const login = async (email = "macos.acos@gmail.com", password = "LEGOlego2000") => {
+    const login = async (email, password) => {
+        console.log(Platform.OS);
+        let newEmail = email
+        let newPass = password
+        if (email == undefined && password == undefined) {
+            if (Platform.OS == 'android') {
+                newEmail = 'a@gmail.com'
+                newPass = 'aaaaaa'
+            } else {
+                newEmail = "macos.acos@gmail.com"
+                newPass = "LEGOlego2000"
+            }
+        } 
+        console.log('newEmail',newEmail);
         let response = null
         if (!auth) {
             const retApp = await init()
             const a = getAuth(retApp)
-            await signInWithEmailAndPassword(a, email, password)
+            await signInWithEmailAndPassword(a, newEmail, newPass)
             .then((userCredential) => {
                 console.log('signed in as ',userCredential.user.email);
                 dispatch(sliceLogin(userCredential.user.uid))
@@ -86,12 +100,28 @@ export default ({ children }) => {
                     response = {error:"error: " + errorCode + " - " + errorMessage};
             });
         } else {
-            onAuthStateChanged(auth,(user)=>{
-                console.log('signed in as ',user.email);
-                const uid = user.uid
-                dispatch(sliceLogin(uid.toString()))
+            await signInWithEmailAndPassword(auth, newEmail, newPass)
+            .then((userCredential) => {
+                console.log('signed in as ',userCredential.user.email);
+                dispatch(sliceLogin(userCredential.user.uid))
+
+                response = {success:true}
+                
             })
-            response = {success:true}
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.error(error);
+            
+                if (errorCode == "auth/invalid-email")
+                    response = {error:"Rossz email adtál meg :("};
+                else if (errorCode == "auth/internal-error")
+                    response = {error:"Bejelentkezési hiba!"};
+                else if (errorCode == "auth/wrong-password")
+                    response = {error:"Rossz jelszavat adtál meg :/"};
+                else
+                    response = {error:"error: " + errorCode + " - " + errorMessage};
+            });
         }
 
         return response

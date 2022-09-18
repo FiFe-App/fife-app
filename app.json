@@ -19,17 +19,25 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kristofakos.fifeapp"
     },
     "android": {
+      "googleServicesFile": "./firebase/google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.kristofakos.fifeapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "description": ""
+    "description": "",
+    "extra": {
+      "eas": {
+        "projectId": "b02f20b4-99d4-458f-b217-4b0d38f0b239"
+      }
+    }
   }
 }

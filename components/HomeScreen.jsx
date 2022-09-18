@@ -43,21 +43,18 @@ export const HomeScreen = ({ navigation, route }) => {
 };
 
 export function LogoTitle() {
-  const [header,setHeader] = React.useState("block");
   const navigation = useNavigation();
-  const onPress = () => navigation.navigate("Menu");
   const width = Dimensions.get('window').width
-
-  useEffect(() => {
-    if (global.showHeader) setHeader("block")
-    else setHeader("none");
-  }, [global.showHeader]);
-//
 
   return (
     <LinearGradient colors={['#f5d142', "rgba(255,175,0,0.7)"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
-      <View style={{flexDirection:'row',justifyContent:'space-between'}}>
-        <Text  style={[styles.title]}>FiFe. a közösség</Text>
+      <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
+        { navigation.canGoBack && 
+        <Pressable onPress={()=>navigation.goBack()} style={{justifyContent:'center'}}><Icon name='arrow-back' size={40} color="#000"/></Pressable>
+        }
+        <Pressable onPress={()=>navigation.navigate('home')}>
+          <Text  style={[styles.title]}>FiFe. a közösség</Text>
+        </Pressable>
         { width >  950 &&
         <View style={{flexDirection:'row',marginRight:20}}>
           <MenuLink title="Profilom" text="" color="#509955" link={"profile"} icon="person-outline" />
@@ -76,8 +73,6 @@ export function LogoTitle() {
 
 const Menu = ({ navigation, route }) => {
   return(
-    <SafeAreaView >
-      <LogoTitle />
     <View style={styles.modules}>
         <Module title="Profilom" text="" color="#509955" to={"profile"} icon="person-outline" />
         <Module title="Üzeneteim" color="#0052ff" icon="mail-outline" to={"messages"}/>
@@ -86,7 +81,6 @@ const Menu = ({ navigation, route }) => {
         <Module title="Unatkozom" text="" color="#b51d1d" to={"new"} icon="bulb" />
         <Module title="Kijelentkezés" text="" color="black" to="login" with={{ logout: true }} icon="exit-outline" />
     </View>
-    </SafeAreaView>
   );
 }
 
@@ -112,8 +106,8 @@ function Module(props) {
     navigation.push(to, props.with);
   }
   return (
-    <LinearGradient colors={[props.color, "rgba(255,175,0,0.7)"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={moduleStyle(props.color)}>
-      <TouchableOpacity onPress={() => onPress(props.to)} style={{height:100}}>
+    <TouchableOpacity onPress={() => onPress(props.to)}>
+      <LinearGradient colors={[props.color, "rgba(255,175,0,0.7)"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={moduleStyle(props.color)}>
         <Row style={{height:'100%'}}>
           <Text style={{ textAlignVertical: 'center', marginHorizontal: 12 }}><Icon name={props.icon} size={25} color="#fff" /></Text>
           <Col>
@@ -121,8 +115,8 @@ function Module(props) {
             <Text style={{ color: isBright(props.color) }}>{props.text}</Text>
           </Col>
         </Row>
-      </TouchableOpacity>
-    </LinearGradient>
+      </LinearGradient>
+    </TouchableOpacity>
   );
   
 }

@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
         backgroundColor: "white",
         padding: 10,
         fontWeight: "400",
-        maxWidth: 500,
+        width: 200
     },
     fixToText: {
         flexDirection: 'row',

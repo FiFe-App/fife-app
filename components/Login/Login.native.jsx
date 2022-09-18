@@ -4,26 +4,27 @@ import React, { Component, useState, useContext } from 'react';
 import { Text, View, Button, TextInput } from 'react-native';
 // routes
 
-import { styles } from './components/styles'
+import { styles } from '../styles'
 
 // fonts
 import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
 import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
 
 import { LinearGradient } from "expo-linear-gradient";
-import { FirebaseContext } from './firebase/firebase';
+import { FirebaseContext } from '../../firebase/firebase';
 import { getAuth, signOut, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, onAuthStateChanged } from "firebase/auth";
 
 const LoginScreen = ({ navigation, route }) => {
     const {app, auth, user, api}  = useContext(FirebaseContext);
-    const [username, onChangeUsername] = React.useState("");
+    const [email, onChangeUsername] = React.useState("");
     const [password, onChangePassword] = React.useState("");
     const [loginError, onChangeLoginError] = React.useState("");
     const [canLogin, setCanLogin] = React.useState(route.params?.logout ? route.params.logout : false);
   
     const signIn = (email, password, printMessage) => {
       console.log('sign in');
-      api.login().then((res) => {
+      
+      api.login(email, password).then((res) => {
         if (res?.success) {
           navigation.push('home') 
         } else {
@@ -83,12 +84,14 @@ const LoginScreen = ({ navigation, route }) => {
           <TextInput
             style={styles.searchInput}
             onChangeText={onChangeUsername}
+            autoCapitalize='none'
             editable
-            placeholder="Felhasználónév"
+            placeholder="Email-cím"
             />
             <TextInput
             style={styles.searchInput}
             onChangeText={onChangePassword}
+            autoCapitalize='none'
             editable
               textContentType="password"
               secureTextEntry
@@ -96,8 +99,10 @@ const LoginScreen = ({ navigation, route }) => {
             />
           </View>
           <Text style={styles.error} >{loginError}</Text>
-          <Button style={styles.headline} title="Bejelentkezés" color="black" onPress={() =>
-            signIn(username, password, onChangeLoginError)
+          <Button style={styles.headline} title="Bejelentkezés" color="black"
+          disabled={!email || !password}
+          onPress={() =>
+            signIn(email, password, onChangeLoginError)
           } />
         </LinearGradient>
   
