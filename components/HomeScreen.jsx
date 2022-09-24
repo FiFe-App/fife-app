@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 
 import { useHover } from 'react-native-web-hooks';
 
@@ -22,69 +22,86 @@ import { Row, Col } from './Components'
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import { SearchBar } from "./Components"
-import {  } from 'react-native';
+import { FirebaseContext } from '../firebase/firebase';
+import { useSelector } from 'react-redux'
+import { child, get, ref } from 'firebase/database';
 
+import { useDispatch } from 'react-redux';
 const Stack = createNativeStackNavigator();
 
 export const HomeScreen = ({ navigation, route }) => {
-  const [showHeader, setShowHeader] = useState(true);
+  const {database, app, auth} = useContext(FirebaseContext);
+  const uid = route?.params?.uid || useSelector((state) => state.user.uid)
+  
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    if (database) {
+      const dbRef = ref(database);
+      get(child(dbRef, `users/${uid}/data`)).then((snapshot) => {
+        if (!snapshot.exists()) {
+          navigation.push('about')
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
+    }
+  }, [database]);
 
   let [fontsLoaded] = useFonts({
-    AmaticSC_700Bold,Poppins_200ExtraLight
+    AmaticSC_700Bold
   });
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded) 
     return <View />;
-  }
 
-  return (
-  <Menu/>
-  );
+  return <Menu />;
 };
 
 export function LogoTitle() {
   const navigation = useNavigation();
   const width = Dimensions.get('window').width
+  const unreadMessage = useSelector((state) => state.user.unreadMessage)
 
   return (
     <LinearGradient colors={['#f5d142', "rgba(255,175,0,0.7)"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
-      <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
-        { navigation.canGoBack && 
-        <Pressable onPress={()=>navigation.goBack()} style={{justifyContent:'center'}}><Icon name='arrow-back' size={40} color="#000"/></Pressable>
-        }
-        <Pressable onPress={()=>navigation.navigate('home')}>
-          <Text  style={[styles.title]}>FiFe. a közösség</Text>
-        </Pressable>
-        { width >  950 &&
-        <View style={{flexDirection:'row',marginRight:20}}>
-          <MenuLink title="Profilom" text="" color="#509955" link={"profile"} icon="person-outline" />
-          <MenuLink title="Üzeneteim" color="#0052ff" icon="mail-outline" link={"messages"}/>
-          <MenuLink title="Térképek" color="#f4e6d4" icon="map" link={"maps"}/>
-          <MenuLink title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
-          <MenuLink title="Unatkozom" text="" color="#b51d1d" link={"new"} icon="bulb" />
-          <MenuLink title="Kijelentkezés" text="" color="black" link="login" with={{ logout: true }} icon="exit-outline" />
-        </View>}
-      </View>
-      <View >
-        <SearchBar/>
-      </View>
+      <SafeAreaView>
+        <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
+          { navigation.canGoBack && 
+            <Pressable onPress={()=>navigation.goBack()} style={{justifyContent:'center'}}><Icon name='arrow-back' size={40} color="#000"/></Pressable>
+          }
+          <Pressable onPress={()=>navigation.navigate('home')}>
+            <Text style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe. a közösség</Text>
+          </Pressable>
+          { width >  950 &&
+          <View style={{flexDirection:'row',marginRight:20,marginBottom:5}}>
+            <SearchBar/>
+            <MenuLink title="Profilom" text="" color="#509955" link={"profile"} icon="person-outline" />
+            <MenuLink title="Üzeneteim" color="#0052ff" icon="mail-outline" link={"messages"} number={unreadMessage?.length}/>
+            <MenuLink title="Térképek" color="#f4e6d4" icon="map" link={"maps"}/>
+            <MenuLink title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
+            <MenuLink title="Unatkozom" text="" color="#b51d1d" link={"new"} icon="bulb" />
+            <MenuLink title="Kijelentkezés" text="" color="black" link="login" with={{ logout: true }} icon="exit-outline" />
+          </View>}
+        </View>
+      </SafeAreaView>
     </LinearGradient>)
 }
 
 const Menu = ({ navigation, route }) => {
   return(
     <View style={styles.modules}>
-        <Module title="Profilom" text="" color="#509955" to={"profile"} icon="person-outline" />
-        <Module title="Üzeneteim" color="#0052ff" icon="mail-outline" to={"messages"}/>
-        <Module title="Térképek" color="#f4e6d4" icon="map" to={"maps"}/>
-        <Module title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
-        <Module title="Unatkozom" text="" color="#b51d1d" to={"new"} icon="bulb" />
-        <Module title="Kijelentkezés" text="" color="black" to="login" with={{ logout: true }} icon="exit-outline" />
+        <Module title="Profilom" text="" color="#D8FFCD" to={"profile"} icon="person-outline" />
+        <Module title="Üzeneteim" color="#CDEEFF" icon="mail-outline" to={"messages"} number={'unreadMessage'}/>
+        <Module title="Térképek" color="#f4e6d4" icon="map-outline" to={"maps"}/>
+        <Module title="Beállítások" text="" color="#FDCDFF" icon="flower-outline" />
+        <Module title="Unatkozom" text="" color="#FF9D9D" to={"new"} icon="bulb-outline" />
+        <Module title="Kijelentkezés" text="" color="#ECECEC" to="login" with={{ logout: true }} icon="exit-outline" />
     </View>
   );
 }
 
-const MenuLink = ({title,link}) => {
+const MenuLink = ({title,link,number}) => {
   const ref = useRef(null);
 
   const isHovered = useHover(ref);
@@ -94,28 +111,32 @@ const MenuLink = ({title,link}) => {
     <Pressable ref={ref}
       style={!isHovered && route.name != link ? styles.menuLink : [styles.menuLink,styles.menuLinkHover]}
       onPress={()=>navigation.navigate(link)}>
-      <Text>{title}</Text>
+      <Row>
+        <Text>{title}</Text>
+        {!!number && <Text style={styles.number}>{number}</Text>}
+      </Row>
     </Pressable>
   )
 }
 
-
 function Module(props) {
+  const number = props?.number ? useSelector((state) => state.user[props.number]).length : 0
   const navigation = useNavigation();
   const onPress = (to) => {
     navigation.push(to, props.with);
   }
   return (
     <TouchableOpacity onPress={() => onPress(props.to)}>
-      <LinearGradient colors={[props.color, "rgba(255,175,0,0.7)"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} style={moduleStyle(props.color)}>
+      <View style={moduleStyle(props.color)}>
         <Row style={{height:'100%'}}>
-          <Text style={{ textAlignVertical: 'center', marginHorizontal: 12 }}><Icon name={props.icon} size={25} color="#fff" /></Text>
+            <Text style={{ textAlignVertical: 'center', marginHorizontal: 12 }}><Icon name={props.icon} size={25} color="#000" /></Text>
+            {!!number && <Text style={styles.number}>{number}</Text>}  
           <Col>
             <Text style={{ fontWeight: 'bold', color: isBright(props.color) }}>{props.title}</Text>
             <Text style={{ color: isBright(props.color) }}>{props.text}</Text>
           </Col>
         </Row>
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
   
@@ -124,11 +145,11 @@ function Module(props) {
 var moduleStyle = function(color) {
   return {
     width: widthPercentageToDP(47),
-    height: heightPercentageToDP(17),
+    height: heightPercentageToDP(25),
+    
     marginVertical: 3,
     backgroundColor: color,
-    borderWidth: 0,
-    borderRadius: 10,
+    borderWidth: 2,
     padding: 10,
   }
 }

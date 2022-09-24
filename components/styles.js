@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
     },
     title: {
         fontFamily: "AmaticSC_700Bold",
-        fontSize: 60,
+        fontSize: 50,
         fontWeight: "bold",
         padding: 10
     },
@@ -44,7 +44,6 @@ export const styles = StyleSheet.create({
         margin: 5,
         borderColor: "black",
         borderWidth: 1,
-        borderRadius: 10,
         backgroundColor: "white",
         padding: 10,
         fontWeight: "400",
@@ -97,7 +96,6 @@ export const styles = StyleSheet.create({
         padding:10,
         paddingRight:15,
         marginLeft:15,
-        transform: 'skew(-20deg)'
     },
     menuLinkHover: {
         backgroundColor:'white',
@@ -105,5 +103,15 @@ export const styles = StyleSheet.create({
         borderTopWidth:0,
         borderRadius: 0,
         marginLeft:11,
+    },
+    number: {
+        textAlignVertical: 'center',
+        marginHorizontal: 12,
+        fontSize:15,
+        backgroundColor:'white',
+        borderRadius:20,
+        textAlign:'center',
+        width:20,
+        height:20,
     }
 });

@@ -1,11 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { Component, useState, useContext, useEffect, useRef } from 'react';
 //import { Image, Text, View, Button, TextInput } from 'react-native';
-import { Text, View, Button, TextInput } from 'react-native';
+import { Text, View, Button, TextInput, Platform, Pressable } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ref, child, get, set, onValue, onChildAdded, off } from "firebase/database";
 // routes
 import { HomeScreen, LogoTitle } from './components/HomeScreen';
 
@@ -45,10 +46,12 @@ import {store,persistor} from './components/store'
 import { PersistGate } from 'redux-persist/integration/react'
 
 
-import { useDispatch } from 'react-redux'
 import { login, logout } from './userReducer'
 import { useSelector } from 'react-redux'
 import { authIsReady } from 'react-redux-firebase';
+
+import { useDispatch } from 'react-redux';
+import { setUnreadMessage } from './userReducer';
 
 import { getAuth, signOut, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, onAuthStateChanged } from "firebase/auth";
 
@@ -70,6 +73,7 @@ Notifications.setNotificationHandler({
 export default function App(props) {
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(false);
+  const [popups, setPopups] = useState([]);
   const notificationListener = useRef();
   const responseListener = useRef();
   const linking = useState({prefixes: [prefix]})
@@ -80,24 +84,30 @@ export default function App(props) {
     }
   })
 
-useEffect(() => {
-  registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
+  useEffect(() => {
+    
+  }, []);
 
-  // This listener is fired whenever a notification is received while the app is foregrounded
-  notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-    setNotification(notification);
-  });
+  useEffect(() => {
+    if (Platform.OS == 'android') {
+    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
 
-  // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
-  responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-    console.log(response);
-  });
+    // This listener is fired whenever a notification is received while the app is foregrounded
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+    });
 
-  return () => {
-    Notifications.removeNotificationSubscription(notificationListener.current);
-    Notifications.removeNotificationSubscription(responseListener.current);
-  };
-}, []);
+    // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(responseListener.current);
+    };
+    }
+  }, []);
 
 
   let [fontsLoaded] = useFonts({
@@ -118,7 +128,7 @@ useEffect(() => {
                             <Stack.Screen name="search" component={Search} />
 
                             <Stack.Screen name="profile" component={Profile} options={{ title: "Profil" }} />
-                            <Stack.Screen name="about" component={First} options={{ title: "A FiFe Appról" }} />
+                            <Stack.Screen name="about" component={First} options={{ headerShown: false }} />
                             <Stack.Screen name="edit-profile" component={Edit} options={{ title: "Profil szerkesztése" }} />
                             <Stack.Screen name="messages" component={Messages} options={{ title: "Beszélgetések" }} />
                             <Stack.Screen name="chat" component={Chat} options={{ title: "Beszélgetés" }} />
@@ -129,7 +139,7 @@ useEffect(() => {
 
                             <Stack.Screen name="new" component={New} options={{ title: "Unatkozom" }} />
 
-                            <Stack.Screen name="maps" component={Maps} options={{ headerShown: false }} />
+                            <Stack.Screen name="maps" component={Maps} />
                           </>
                         
                       </Stack.Navigator>) : (
@@ -137,11 +147,80 @@ useEffect(() => {
                           </>
                     )}
                   </NavigationContainer>
+                  {Platform.OS == 'web' && <PopUps/>}
                 </SafeAreaProvider>
               </FirebaseProvider>
             </PersistGate>
         </Provider>
     );
+}
+
+const PopUps = () => {
+  const [popups, setPopups] = useState([]);
+  const {database, app, auth} = useContext(FirebaseContext);
+  const uid = useSelector((state) => state.user.uid)
+  const dispatch = useDispatch()
+
+  const removePopup = (index) => {
+    setPopups(popups.filter((p,i)=>i!=index))
+    console.log('remove');
+  }
+
+
+  useEffect(() => {
+    if (database) {
+
+        const dbRef = ref(database,`users/${uid}/messages`);
+        const userRef = ref(database,`users`);
+
+        let allUnread = 0
+        onChildAdded(dbRef, (childSnapshot) => {
+            const childKey = childSnapshot.key;
+            const read = childSnapshot.child('read').val() 
+            console.log('chat',childKey);
+            if (!read) {
+              get(child(userRef,childKey+'/data/name')).then((snapshot) => {
+                  const name = snapshot.val()
+                  console.log('messager added',name);
+                  setPopups(old=>[...old,{uid:childKey,name:name}])
+                });
+                console.log('unread++',allUnread);
+                dispatch(setUnreadMessage(childKey))
+            }
+        });
+
+    }
+  }, [database]);
+
+
+  return (
+    <View>
+      {
+      popups.map((popup,index)=>
+        <Popup 
+          title={'Új üzenet '+popup.name} 
+          key={index} 
+          handleClose={()=>removePopup(index)}
+          handlePress={()=>console.log('clicked')}
+        />)
+      }
+    </View>)
+}
+
+const Popup = ({title,description,handlePress,handleClose}) => {
+  return (
+    <Pressable 
+      onPress={handlePress}
+      style={{position:'absolute',bottom:10,right:10,width:300,borderWidth:2,height:100,backgroundColor:'white',padding:20}}>
+      <View style={{flexDirection:'row'}}>
+        <Text style={{fontWeight:'bold',flexGrow:1}}>{title}</Text>
+        <Pressable onPress={handleClose}>
+          <Text>X</Text>
+        </Pressable>
+      </View>
+      <Text>Hello</Text>
+    </Pressable>
+  )
 }
 
 const Show = (props) => {

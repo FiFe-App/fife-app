@@ -31,13 +31,12 @@ export const { login, getUid } = userSlice.actions
 export default userSlice.reducer
 */
 
-const initialState = {
-  uid: null,
-}
-
 export const userReducer = createSlice({
   name: 'user',
-  initialState,
+  initialState: {
+    uid: null,
+    unreadMessage: []
+  },
   reducers: {
     login: (state,action) => {
       state.uid = action.payload
@@ -46,10 +45,22 @@ export const userReducer = createSlice({
     logout: (state,action) => {
       state.uid = action.payload
       AsyncStorage.setItem('uid',null)
+    },
+    setUnreadMessage: (state,action) => {
+      if (!state.unreadMessage.includes(action.payload))
+        state.unreadMessage.push(action.payload.toString())
+    },
+    removeUnreadMessage: (state,action) => {
+      let arr = state.unreadMessage
+      console.log('arr',arr);
+      if (arr?.length)
+        state.unreadMessage = arr.filter(function(item) {
+          return item !== action.payload
+        })
     }
   }
 })
 
-export const { login, logout } = userReducer.actions
+export const { login, logout, setUnreadMessage, removeUnreadMessage } = userReducer.actions
 
 export default userReducer.reducer

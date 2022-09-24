@@ -14,7 +14,9 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'fire
 import { Loading } from './Components';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 
-const themeColor = 'rgba(255,196,0,1)';
+const themeColor = 'rgba(255,196,0,1)';//#ba9007
+//const themeColor = '#fcf3d4';
+const bgColor = '#ffffff'
 
 export const Edit = ({ navigation, route }) => {
   const uid = useSelector((state) => state.user.uid)
@@ -105,8 +107,8 @@ export const Edit = ({ navigation, route }) => {
             name: '',
             username: '',
             bio: '',
+            profession: [],
             links: [],
-            profession: []
           }
           setData(object)
           setNewData(object)
@@ -167,11 +169,12 @@ export const Edit = ({ navigation, route }) => {
 
   if (loading)
   return (
-  <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:'white'}}>
+  <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:bgColor}}>
     <ActivityIndicator size='large' color='rgba(255,196,0,1)'/>
   </View>)
   else 
   return (
+    <View style={{flex:1}}>
     <ScrollView>
       <View style={localStyle.imageContainer}>
         <Pressable onPress={pickImage} style={{flex:1,alignItems:'center'}}>
@@ -218,26 +221,22 @@ export const Edit = ({ navigation, route }) => {
         <Links data={newData} setData={setNewData}/>
       </View>
 
-      <TouchableOpacity onPress={save} style={{margin:20}}>
-            <Text><Icon name="save" color="black" size={25}/></Text>
-          </TouchableOpacity>
     </ScrollView>
+      <TouchableOpacity onPress={save} style={{margin:20,alignItems:'center'}}>
+        <Text><Icon name="save" color="black" size={25}/></Text>
+      </TouchableOpacity>
+    </View>
   )
 
 }
 
-const Professions = (props) => {
+export const Professions = (props) => {
   const {data,setData} = props
+  const centered = props.centered || false
   const [list, setList] = useState(data.profession || []);
 
   useEffect(() => {
-    console.log('proffession list',list);
-    if (list?.length)
-    setData({...data,profession:list})
-  }, [list]);
-  
-  useEffect(() => {
-    setList(props.data.profession)
+    setList(props.data.profession || [])
   }, [props]);
 
   const addNew = () => {
@@ -247,13 +246,17 @@ const Professions = (props) => {
     const newState = [...list]
     newState[index] = {...newState[index], [key]:val}
     setList(newState)
+    if (newState?.length)
+      setData({...data,profession:newState})
   } 
   const remove = (i) => {
     setList(list.filter((item,ei) => ei !== i));
+    setData({...data,profession:null})
   }
   return (
-    <View>
-      <Header title="Ehhez értek" icon="thumbs-up"/>
+    <View style={{width:'100%',flex:1}}>
+      <Header title="Ehhez értek" icon="thumbs-up" centered={centered}/>
+      <ScrollView>
       {list && !!list.length && list.map((e,i)=>
         <View key={i}  style={localStyle.profession}>
           <View style={{flexDirection:'row'}}>
@@ -263,10 +266,10 @@ const Professions = (props) => {
               </Pressable>
             </View>
             <View style={{flex:4}}>
-              <TextInput style={localStyle.input} onChangeText={(val)=>set(val,i,'name')} value={list[i].name}/>
-              <TextInput style={localStyle.input} onChangeText={(val)=>set(val,i,'description')} value={list[i].description} multiline numberOfLines={3}/>
+              <TextInput style={localStyle.input} placeholder="kategória" onChangeText={(val)=>set(val,i,'name')} value={list[i].name}/>
+              <TextInput style={localStyle.input} placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={list[i].description} multiline numberOfLines={1}/>
             </View>
-            <View style={{flex:5,justifyContent:'center'}}>
+            <View style={{flex:2,justifyContent:'center'}}>
               <Pressable style={{width:100,height:100,margin:5,backgroundColor:'lightblue',alignItems:'center',justifyContent:'center'}}>
                 <Text>Új kép</Text>
               </Pressable>
@@ -276,28 +279,24 @@ const Professions = (props) => {
         </View>
       )}
       {!list?.length && <Text style={localStyle.label}>Van valami amiben jó vagy? </Text>}
+      </ScrollView>
       <View>
-        <Pressable style={[localStyle.adder]} onPress={addNew}>
+        <Pressable style={[localStyle.adder,centered ? {borderRadius:30} : {}]} onPress={addNew}>
           <Text style={localStyle.text}>
-            <Icon name="md-add" color='white'/>
+            <Icon name="md-add" color={bgColor} size={40}/>
           </Text>
         </Pressable>
       </View>
     </View>)
 }
 
-const Links = (props) => {
+export const Links = (props) => {
   const {data,setData} = props
+  const centered = props.centered || false
   const [list, setList] = useState(data.links || []);
-
-  useEffect(() => {
-    console.log(list);
-    if (list)
-    setData({...data,links:list})
-  }, [list]);
   
   useEffect(() => {
-    setList(props.data.links)
+    setList(props.data.links || [])
   }, [props]);
 
   const addNew = () => {
@@ -306,14 +305,17 @@ const Links = (props) => {
   const set = (val,index,key) => {
     const newState = [...list]
     newState[index] = {...newState[index], [key]:val}
-    setList(newState)
+    if (newState)
+      setData({...data,links:newState})
   } 
   const remove = (i) => {
     setList(list.filter((item,ei) => ei !== i));
+    setData({...data,links:null})
   }
   return (
-    <View>
-      <Header title="Elérhetőségeim" icon="at-sharp"/>
+    <View style={{width:'100%',flex:1}}>
+      <Header title="Elérhetőségeim" icon="at-sharp" centered={centered}/>
+      <ScrollView>
       {list && !!list.length && list.map((e,i)=>
         <View key={i}  style={localStyle.profession}>
           <View style={{flexDirection:'row'}}>
@@ -330,9 +332,10 @@ const Links = (props) => {
           {(list.length > i+1) && <View style={localStyle.divider}></View>}
         </View>
       )}
-      {!list?.length && <Text style={localStyle.label}>Van valami amiben jó vagy? </Text>}
+      {!list?.length && <Text style={localStyle.label}>Milyen elérhetőségeid vannak?</Text>}
+      </ScrollView>
       <View>
-        <Pressable style={[localStyle.adder]} onPress={addNew}>
+        <Pressable style={[localStyle.adder,centered ? {borderRadius:30} : {}]} onPress={addNew}>
           <Text style={localStyle.text}>+</Text>
         </Pressable>
       </View>
@@ -340,10 +343,10 @@ const Links = (props) => {
 }
 
 const Header = (props) => {
-  const {icon,title} = props
+  const {icon,title,centered} = props
   const color = themeColor
   return (
-    <View style={[localStyle.adder,{flexDirection:'row',backgroundColor:color}]}>
+    <View style={[localStyle.adder,{flexDirection:'row',backgroundColor:color},centered ? {borderRadius:30} : {}]}>
       <View style={[localStyle.plusContainer,{color: color}]}>
         <Text style={localStyle.plusText}><Icon name={icon} size={25} color={color}/></Text>
       </View>
@@ -357,32 +360,34 @@ const Header = (props) => {
 const localStyle = StyleSheet.create ({
   container: { 
     textAlign:'left',
-    backgroundColor: 'white',
+    backgroundColor: bgColor,
     paddingLeft:20
   },
   image: {
     resizeMode: 'cover',
     aspectRatio: 1,
-    height:200,
-    borderRadius: 200,
-    backgroundColor:'white'
+    height:150,
+    borderRadius: 150,
+    backgroundColor:bgColor
   },
   imageContainer: {
-    backgroundColor: themeColor,
+    backgroundColor: bgColor,
+    padding:10,
     flexDirection: 'row'
   },
   imagePadding: {
     flex:1,
-    backgroundColor: "white"
+    backgroundColor: themeColor
   },
-  color: themeColor,
   input: {
     margin: 5,
-    borderColor: "black",
-    borderWidth: 1,
-    borderRadius: 5,
-    backgroundColor: "white",
-    padding: 10,
+    borderColor: themeColor,
+    borderWidth: 2,
+    borderRadius: 0,
+    color:themeColor,
+    fontWeight: "600",
+    backgroundColor: bgColor,
+    padding: 10
   },
   adder: {
     backgroundColor: themeColor,
@@ -393,7 +398,7 @@ const localStyle = StyleSheet.create ({
     alignItems: 'center'
   },
   plusContainer: {
-    backgroundColor: 'white',
+    backgroundColor: bgColor,
     borderRadius: 25,
     justifyContent: "center",
     textAlign: 'center',
@@ -407,11 +412,12 @@ const localStyle = StyleSheet.create ({
   },
   text: {
     textAlign:'center',
-    color: 'white',
+    color: bgColor,
     margin: 10
   },
   profession: {
-    paddingLeft: 30,
+    paddingLeft: 0,
+    flex:1
   },
   divider: {
     height:2,
@@ -421,6 +427,5 @@ const localStyle = StyleSheet.create ({
     marginLeft: 20,
     marginVertical: 10,
     fontSize: 16,
-    
   }
 })

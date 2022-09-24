@@ -7,6 +7,10 @@ import { Row } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
 
+import { MapContainer } from 'react-leaflet/MapContainer'
+import { TileLayer } from 'react-leaflet/TileLayer'
+import { useMap } from 'react-leaflet/hooks'
+
 const mapData = [
   {
     name: "turik",
@@ -57,12 +61,6 @@ export const Maps = () => {
         zoom: 16
     })
 
-    const loader = new Loader({
-      apiKey: "AIzaSyDqjygaNZxE3FU0aJbQ9v6EOzOdV2waxSo",
-      version: "weekly",
-      libraries: ["places"]
-    });
-    
     const [selectedMap,setSelectedMap] = useState(null) 
 
     const [map,setMap] = useState(null)
@@ -217,8 +215,18 @@ export const Maps = () => {
                 </View>                
                 {maplist}
                 <LocationData location={selected} />
-                </View>
-              <div id='map' style={localStyles.map} />
+              </View>
+              <MapContainer center={[51.505, -0.09]} zoom={13} scrollWheelZoom={false}>
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[51.505, -0.09]}>
+                <Popup>
+                  A pretty CSS3 popup. <br /> Easily customizable.
+                </Popup>
+              </Marker>
+            </MapContainer>
         </Pressable>
     )
 }

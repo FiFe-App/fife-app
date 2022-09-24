@@ -1,37 +1,16 @@
 
 import React, { useEffect, useContext } from 'react';
-import { Dimensions } from 'react-native';
+import { View } from "react-native";
+import MapView from 'react-native-maps';
 
 export const Maps = () => {
-    const [mapOptions,setMapOptions] = React.useState({
-        center: {
-        lat: 10,
-        lng: 0
-        },
-        zoom: 4
-    })
-
-    navigation = useNavigation()
-    const loader = new Loader({
-        apiKey: "AIzaSyDqjygaNZxE3FU0aJbQ9v6EOzOdV2waxSo",
-        version: "weekly",
-        libraries: ["places"]
-    });
-
-    loader
-        .load()
-        .then((google) => {
-        //new google.maps.Map(document.getElementById("map"), mapOptions);
-        })
-        .catch(e => {
-        // do something
-        });
-
     return (
+      <View style={{flex:1}}>
         <View>
-            {(Platform.OS !== 'web') && <MapView style={localStyles.map} />}
-            {(Platform.OS === 'web') && <div id='map' style={localStyles.map} />}
+          
         </View>
+        <MapView style={localStyles.map} />
+      </View>
     )
 }
 
@@ -73,6 +52,6 @@ const localStyles = {
 
     },
     map: {
-      height: 200,
+      flex: 1,
     },
   }

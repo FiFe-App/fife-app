@@ -1,18 +1,28 @@
 import { useState, useContext, useEffect } from "react";
 import {View, Text, TextInput, Pressable, ScrollView, StyleSheet, TouchableOpacity} from 'react-native'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
-import { ref, child, get, set, onValue, onChildAdded, push } from "firebase/database";
+import { ref, child, get, set, onValue, onChildAdded, push, off } from "firebase/database";
 import Icon from 'react-native-vector-icons/Ionicons'
 import { Loading, LoadImage } from "./Components";
+import { removeUnreadMessage } from '../userReducer';
 
-export const Chat = ({props,route, navigation}) => {
+export const Chat = ({route, navigation, propUid}) => {
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
     const [header, setHeader] = useState(null);
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
-    const uid2 = props?.uid || route?.params?.uid
+    const [uid2, setUid2] = useState(propUid || route?.params?.uid);
+    const [scrollView, setScrollView] = useState(null);
+    const dispatch = useDispatch()
+
+    useEffect(() => {
+        if (propUid) {
+            console.log('set uid2',propUid);
+            setUid2(propUid)
+        }
+    }, [propUid]);
 
     const send = () => {
         console.log(message);
@@ -26,17 +36,29 @@ export const Chat = ({props,route, navigation}) => {
                 uid: uid,
                 time: Date.now()
             })
+            set(child(messageListRef,'read'),null).then(e=>{
+                console.log('set!!!!');
+            })
             set(newMessageRef2, {
                 text: message,
                 uid: uid,
                 time: Date.now()
             })
+            set(child(messageListRef2,'read'),null).then(e=>{
+                console.log('set!!!!');
+            })
             setMessage('');
         }
     }
+
+    useEffect(() => {
+        if (scrollView) {
+            scrollView.scrollToEnd({animated:false})
+        }
+    }, [scrollView,messages]);
     
     useEffect(() => {
-        console.log(route.params);
+        console.log(route?.params);
         console.log('chat with',uid2);
         if (database && uid2) {
             if (navigation) {
@@ -50,23 +72,32 @@ export const Chat = ({props,route, navigation}) => {
                     )
                 });
             }
-
-
-            
             const messageListRef = ref(database, `users/${uid}/messages/${uid2}`);
+            off(messageListRef,'child_added')
+            setMessages([])
+            set(child(messageListRef,'read'),true)
             onChildAdded(messageListRef, (data) => {
-                console.log(data.val());
-                setMessages(old => [...old,data.val()])
+                if (data.key != 'read')
+                    setMessages(old => [...old,data.val()])
             });
+            dispatch(removeUnreadMessage(uid2))
         }
-    }, [database]);
+    }, [database,uid2]);
     
+    if (!uid2) return (
+        <View style={{flex:1,backgroundColor:'white',justifyContent:'center',alignItems:'center'}}>
+            <Text>Válassz ki valakit, akivel beszélnél.</Text>
+        </View>
+    )
+
     return (
     <View style={{flex:1}}>
-        {uid2 && !!messages.length ? 
+        {!!messages.length ? 
         <View style={{flex:1}}>
             {header && header}
-            <ScrollView style={{flex:1,backgroundColor:'white'}} contentContainerStyle={styles.messages}>
+            <ScrollView 
+            ref={(scroll) => {setScrollView(scroll)}}
+            style={{flex:1,backgroundColor:'white'}} contentContainerStyle={styles.messages}>
                 {messages.map((e,i)=> {
                     return (
                         <Message text={e.text} isMine={e.uid == uid} key={i}/>
@@ -103,13 +134,11 @@ const Message = (props) => {
 
 const styles = StyleSheet.create({
     messages: {
-        flex:1,
         backgroundColor: 'white',
         paddingVertical:20,
         paddingHorizontal:10,
     },
     messageContainer: {
-        flexWrap: 'wrap',
         margin:1
     },
     messageText: {

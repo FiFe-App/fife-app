@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import {View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
-import { ref, child, get, set, onValue, onChildAdded } from "firebase/database";
+import { ref, child, get, set, onValue, onChildAdded, off } from "firebase/database";
 import { LoadImage } from './Components'
 import { useNavigation } from '@react-navigation/native';
 import { styles } from "./styles";
@@ -13,6 +13,7 @@ export const Messages = ({route,navigation}) => {
     const [list, setList] = useState([]);
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
+    const [selected, setSelected] = useState(null);
 
     const getRandom = () => {
         const dbRef = ref(database,`users`);
@@ -48,12 +49,12 @@ export const Messages = ({route,navigation}) => {
             const dbRef = ref(database,`users/${uid}/messages`);
             const userRef = ref(database,`users`);
 
-
             onChildAdded(dbRef, (childSnapshot) => {
                 const childKey = childSnapshot.key;
-                console.log(childKey);
-                onValue(userRef, (snapshot) => {
-                    const name = snapshot.child(childKey+'/data/name').val()
+                console.log('chat',childKey);
+                get(child(userRef,childKey+'/data/name')).then((snapshot) => {
+                    const name = snapshot.val()
+                    console.log('messager added',name);
                     setList(old=>[...old,{uid:childKey,name:name}])
                   });
             });
@@ -62,25 +63,29 @@ export const Messages = ({route,navigation}) => {
       }, [database]);
     return (
     <View style={{flex:1, flexDirection:'row'}}>
-        <ScrollView style={{width: '30%', height: '100%'}}>
+        <ScrollView style={{flex:1}}>
             {!!list.length && list.map((e,i)=>{
                 return (
-                    <Item title={e?.name} text={e?.last} uid={e?.uid} key={i}/>
+                    <Item title={e?.name} text={e?.last} uid={e?.uid} key={i} setSelected={setSelected}/>
                 )
             })}
         </ScrollView>
-    {Platform.OS == 'webc' && 
-        <View style={{width: '70%', height: '100%'}}>
-            <Chat uid={null}/>
-        </View>}
+        {Platform.OS == 'web' &&
+            <View style={{flex:2}}>
+                <Chat propUid={selected}/>
+            </View>
+        }
     </View>
     )
 }
 
-function Item({title,text,uid}) {
+function Item({title,text,uid,setSelected}) {
     const navigation = useNavigation();
     const onPress = () => {
-        navigation.navigate("chat", {uid:uid});
+        if (Platform.OS == 'web')
+            setSelected(uid)
+        else 
+            navigation.navigate("chat", {uid:uid});
     }
 
     return (

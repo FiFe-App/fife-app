@@ -1,28 +1,40 @@
 import React, {useState} from 'react';
 import { StyleSheet, View, Text, Button } from 'react-native';
+import { Pages } from "./pages";
+import * as Progress from 'react-native-progress';
+
+
 const First = () => {
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
+    const [newData, setNewData] = React.useState({
+      name: '',
+      username: '',
+      bio: '',
+      profession: [],
+      links: [],
+    });
+    const pages = Pages({newData, setNewData})
+    const goTo = (page) => {
+      if (page < pages.length && page >= 0)
+        setPage(page)
+    }
   return (
-    
-    <View style={{ flex: 1, alignItems:'center', justifyContent:'center ' }}>
-        {page == 1 &&
-        <View style={{width:"50%", alignItems:'center', justifyContent:'center ' }}>
-            <Text style={styles.text}>Üdvözöllek a FiFe alkalmazásban.</Text>
-            <Text style={styles.text}>Az alkalmazás célja a FiFe szellemiség megvalósítása az online térben.
-            Vagyis a korrektséget és segítőkészséget becsomagolni egy biztonságot nyújtó környezetbe.
-            Ezt egy közösségi háló, ahol a tagok különböző módokon kereshetnek és nyújthatnak segítséget egymásnak.</Text>
-            <Text style={styles.text}>Ez egy hasznos eszköz lehet minden budapestinek!</Text>
+    <View style={{flex:1}}>
+      <View style={{ flex: 8, alignItems:'center', justifyContent:'flex-start',padding:100 }}>
+          {pages[page]}
+      </View>
+      <View style={{ flex: 1, alignItems:'center', justifyContent:'flex-end', marginBottom: 30 }}>
+        <Progress.Bar progress={page/(pages.length-1)} width={200} height={10} color='rgba(255,196,0,1)' animationType="timing"/>
+      
+        <View style={{flexDirection:'row'}}>
+          <View style={styles.button}>
+            <Button title='Vissza' color='rgba(255,196,0,1)' onPress={()=>goTo(page-1)}/>
+          </View>
+          <View style={styles.button}>
+            <Button title='Tovább' color='rgba(255,196,0,1)' onPress={()=>goTo(page+1)}/>
+          </View>
         </View>
-        }
-        {page == 2 &&
-        <View style={{width:"50%", alignItems:'left', justifyContent:'center ' }}>
-            <Text style={styles.text}>A profilodban megadhatsz magadról olyan információkat mint:</Text>
-            <Text style={styles.text}>- Mihez értesz? Bármilyen végzettség, szaktudás, hobbi</Text>
-            <Text style={styles.text}>- Elérhetőségeid. instagramod, saját webhelyed, olyan linkeket, ahol mások is elérhetik, hogy mivel foglalkozol</Text>
-            <Text style={styles.text}></Text>
-        </View>
-        }
-        <Button title='Tovább' color='rgba(255,196,0,1)' onPress={()=>setPage(page+1)}/>
+      </View>
     </View>
   );
 };
@@ -34,11 +46,26 @@ const styles = StyleSheet.create({
   page: {
     justifyContent: 'center',
     alignItems: 'center',
+    width:'100%'
   },
   text: {
-    fontSize:30,
-    textAlign:'justify',
+    fontSize:25,
+    textAlign:'left',
     marginBottom: 30
+  },
+  title: {
+    fontSize: 30,
+    width:'100%',
+    borderBottomWidth:2,
+    paddingBottom:20,
+    paddingHorizontal:50
+  },
+  button: {
+    margin:10
+  },
+  progressBar: {
+    height: 12,
+    borderRadius: 5
   }
 });
 

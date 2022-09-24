@@ -199,17 +199,18 @@ const SearchBar = (props) => {
     console.log('blur');
   } 
   const [showHistory,setShowHistory] = React.useState(false);
+  global.searchList = ['abcd']
   const listItems = global.searchList.reverse().map((element) =>
     <Pressable key={element.toString()} onPress={() => navigation.push("search", { key: element })} >
-      <Row style={newStyles.searchList}>
+      <Row style={[newStyles.searchList,{backgroundColor:'white'}]}>
         <Icon name="time-outline" size={25} color="black" style={{ marginHorizontal: 5 }} />
         <Text>{element}</Text>
       </Row>
     </Pressable>
   );
   return (
-    <View>
-      <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
+    <View style={{alignSelf:'center'}}>
+      <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center',width:'100%'}}>
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
@@ -219,7 +220,7 @@ const SearchBar = (props) => {
               onChangeText={onChange}
               placeholder="Keress valamire..."
               placeholderTextColor="gray"
-              onSubmitEditing={handleSubmit}
+              onSubmitEditing={handleSubmit(onSubmit)}
               value={value}
               onClick={()=>setShowHistory(true)}
             />
@@ -231,7 +232,7 @@ const SearchBar = (props) => {
           <Icon name="search-outline" size={25} color="black" />
         </Pressable>
       </View>
-      <ScrollView>
+      <ScrollView style={{position:"absolute",top:45,width:200}}>
         {(showHistory && global.searchList.length > 0) && listItems}
       </ScrollView>
     </View>
