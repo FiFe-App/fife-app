@@ -1,20 +1,22 @@
-import { LoadImage, Loading, Row } from './Components'
+import { LoadImage, Loading, Row } from '../Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 
 import React, { useEffect, useContext } from 'react';
-import { Text, Platform, View, Pressable } from 'react-native';
-import {styles} from './styles'
+import { Text, Platform, View, Pressable, Dimensions } from 'react-native';
+import {styles} from '../styles'
 import { Animated, Image, Easing } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { useSelector } from 'react-redux'
-import { FirebaseContext } from '../firebase/firebase';
+import { FirebaseContext } from '../../firebase/firebase';
 
 import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
 
 export const Profile = ({ navigation, route }) => {
   const [profile, setProfile] = React.useState(null);
+  const width = Dimensions.get('window').width
+  
   const {database, app, auth} = useContext(FirebaseContext);
   const uid = route?.params?.uid || useSelector((state) => state.user.uid)
 
@@ -88,29 +90,34 @@ export const Profile = ({ navigation, route }) => {
   if (profile)
   return(
     <View>
-      <Row style={{justifyContent: "center",alignItems: 'center',margin:10}}>
-        <LoadImage uid={uid} size={50}/>
-        <AutoSizeText
-          fontSize={32}
-          numberOfLines={1}
-          mode={ResizeTextMode.max_lines}>
-          {profile.name}
-        </AutoSizeText>
-      </Row>
-      <Row style={{justifyContent: 'center'}}>
-        <Text style={localStyles.text}>{profile.username}</Text>
-        <View style={localStyles.verticleLine}/>
-        <Text style={localStyles.text}>Ajánlók: {followers}</Text>
-      </Row>
-      <View style={{justifyContent: "center"}}>
-          { !myProfile && <>
-          <NewButton title={followButtonText} onPress={follow}/>
-          <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('chat',{uid:uid})}/>
-          </>
-          }
-        {myProfile &&
-          <NewButton title={"Módosítás"} onPress={() => navigation.navigate('edit-profile')} />
-          }
+      <View style={{flexDirection: width >  1120 ? 'row' : 'column'}}>
+        <Row style={{justifyContent: "center",alignItems: 'center',margin:10}}>
+          <LoadImage uid={uid} size={150}/>
+        </Row>
+        <Row style={{justifyContent: width >  1120 ? 'space-between' : 'center',flex:1,alignItems: 'center',margin:10}}>
+          <AutoSizeText
+            fontSize={52}
+            numberOfLines={1}
+            style={{padding:30}}
+            mode={ResizeTextMode.max_lines}>
+            {profile.name}
+          </AutoSizeText>
+          <View style={{alignItems: 'center',alignSelf:'center',paddingHorizontal:30}}>
+            <Text style={localStyles.text}>{profile.username}</Text>
+            <View style={localStyles.horizontalLine}/>
+            <Text style={localStyles.text}>Ajánlók: {followers}</Text>
+          </View>
+        </Row>
+        <View style={{justifyContent: "center",alignItems: width >  1120 ? 'flex-end' : 'center',flex:1}}>
+            { !myProfile && <>
+            <NewButton title={followButtonText} onPress={follow}/>
+            <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('chat',{uid:uid})}/>
+            </>
+            }
+          {myProfile &&
+            <NewButton title={"Módosítás"} onPress={() => navigation.navigate('edit-profile')} />
+            }
+        </View>
       </View>
 
       {profile.location ? (
@@ -139,7 +146,7 @@ export const Profile = ({ navigation, route }) => {
 }
 
   function NewButton(props) {
-    const color = props?.color || "rgb(245, 209, 66)";
+    const color = props?.color || "#FFC372";
     return (
       <Pressable style={[localStyles.newButton, { backgroundColor: color }]} onPress={props.onPress}>
             <Text style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{props.title}</Text>
@@ -182,7 +189,7 @@ export const Profile = ({ navigation, route }) => {
       fontWeight: 'bold',
       color: "black",
       fontSize:18,
-      paddingHorizontal: 16,
+      paddingVertical: 8,
     },
     subText: {
       color: "black",
@@ -190,17 +197,24 @@ export const Profile = ({ navigation, route }) => {
       padding: 16,
     },
     newButton:{
-      borderRadius: 20,
+      width:'100%',
       margin:10,
       marginHorizontal: 20,
       paddingVertical:10,
+      paddingHorizontal:20,
       alignItems: 'center',
       justifyContent: "center",
-      maxWidth: 500
+      maxWidth: 500,
+      borderWidth:2
     },
     verticleLine: {
       height: '100%',
       width: 1,
+      backgroundColor: '#909090',
+    },
+    horizontalLine: {
+      height: 1,
+      width: '100%',
       backgroundColor: '#909090',
     },
     section:{

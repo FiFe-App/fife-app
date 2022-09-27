@@ -65,8 +65,8 @@ const LoadImage = (props) => {
 
   return <View style={[{ margin: 5 }, props.style]}>
     { !loaded &&
-    <ActivityIndicator style={{position:'absolute', width: size, height: size, borderRadius: size}} color='rgba(255,175,0,0.7)' />}
-    <Image style={{width: size, height: size, borderRadius: size}}
+    <ActivityIndicator style={{position:'absolute', width: size, height: size}} color='rgba(255,175,0,0.7)' />}
+    <Image style={{width: size, height: size}}
       source={{ uri: url }}  onLoad={() => setLoaded(true)}/>
     
     </View>;
@@ -178,7 +178,6 @@ function NewEventModal(params) {
 
 }
 
-
 const SearchBar = (props) => {
   const allMethods = useForm();
   const { setFocus } = allMethods;
@@ -209,7 +208,7 @@ const SearchBar = (props) => {
     </Pressable>
   );
   return (
-    <View style={{alignSelf:'center'}}>
+    <View style={{alignSelf:'center',flexGrow:1}}>
       <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center',width:'100%'}}>
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, onBlur, value } }) => (
@@ -240,13 +239,23 @@ const SearchBar = (props) => {
 
 }
 
+const OpenNav = ({open,children,style}) => {
+  if (open)
+  return (
+    <View style={style && {position:'relative',elevation:10,width:'100%'}}>
+      {children}
+    </View>
+  )
+}
+
 export {
   LoadImage,
   Loading,
   Row,
   Col,
   FAB,
-  SearchBar
+  SearchBar,
+  OpenNav
 }
 
 const styles = StyleSheet.create({

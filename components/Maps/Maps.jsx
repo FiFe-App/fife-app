@@ -7,9 +7,6 @@ import { Row } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
 
-import { MapContainer } from 'react-leaflet/MapContainer'
-import { TileLayer } from 'react-leaflet/TileLayer'
-import { useMap } from 'react-leaflet/hooks'
 
 const mapData = [
   {
@@ -64,7 +61,6 @@ export const Maps = () => {
     const [selectedMap,setSelectedMap] = useState(null) 
 
     const [map,setMap] = useState(null)
-    const [google,setGoogle] = useState(null)
     const [maplist,setMapList] = useState(null)
     const [search, setSearch] = React.useState('');
     const [filterList,setFilterList] = useState(null);
@@ -89,17 +85,20 @@ export const Maps = () => {
     useEffect(()=>setFilterList(reFilterList()),[filter])
 
     useEffect(()=>{
+
       if (map && google)
             mapData.find(e=>(e.name==selectedMap)).locations.forEach(location => {
               console.log(location.name);
-              const marker = new google.maps.Marker({
-                position: {
+              const marker = {
+                id: '1',
+                coords: {
                   lat: location.lat,
                   lng: location.lng
                 },
-                
-                map: map,
-              })
+                icon: "<div>❤️</div>",
+                size: [24, 24]
+              }
+              
 
               console.log('nav');
               marker.addListener("click", () => {
@@ -152,48 +151,13 @@ export const Maps = () => {
     },[search,selectedMap,filter])
 
     useEffect(()=>{
-      loader
-          .load()
-          .then((google) => {
-            setGoogle(google)
-            const map=0// = new google.maps.Map(document.getElementById("map"), mapOptions)
-            setMap(map)
-
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(
-                (position) => {
-
-                  const myLocation = new google.maps.Marker();
-                  const pos = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                  };
-        
-                  myLocation.setPosition(pos);
-                  myLocation.setMap(map);
-                  map.setCenter(pos);
-                },
-                () => {
-                  handleLocationError(true, infoWindow, map.getCenter());
-                }
-              );
-            } else {
-              // Browser doesn't support Geolocation
-              handleLocationError(false, infoWindow, map.getCenter());
-            }
-          })
-        .catch(e => {
-        // do something
-        });
-    },[])
-
-    useEffect(()=>{
-      if (map) {
-        map.panTo(new google.maps.LatLng(selected.lat,selected.lng));
+      if (false) {
+        //map.panTo(new google.maps.LatLng(selected.lat,selected.lng));
       }
     },[selected])
 
     return (
+      <View>
         <Pressable style={{flex:1,flexDirection:'row'}} onPress={() => setFilterList(null)}>
               <View style={localStyles.side}>
                   <TextInput
@@ -216,18 +180,10 @@ export const Maps = () => {
                 {maplist}
                 <LocationData location={selected} />
               </View>
-              <MapContainer center={[51.505, -0.09]} zoom={13} scrollWheelZoom={false}>
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <Marker position={[51.505, -0.09]}>
-                <Popup>
-                  A pretty CSS3 popup. <br /> Easily customizable.
-                </Popup>
-              </Marker>
-            </MapContainer>
+
+              <div style={localStyles.map}></div>
         </Pressable>
+      </View>
     )
 }
 

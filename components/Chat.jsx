@@ -15,7 +15,9 @@ export const Chat = ({route, navigation, propUid}) => {
     const uid = useSelector((state) => state.user.uid)
     const [uid2, setUid2] = useState(propUid || route?.params?.uid);
     const [scrollView, setScrollView] = useState(null);
+    const [input, setInput] = useState(null);
     const dispatch = useDispatch()
+
 
     useEffect(() => {
         if (propUid) {
@@ -48,6 +50,7 @@ export const Chat = ({route, navigation, propUid}) => {
                 console.log('set!!!!');
             })
             setMessage('');
+            input.focus()
         }
     }
 
@@ -114,6 +117,8 @@ export const Chat = ({route, navigation, propUid}) => {
                 onChangeText={setMessage}
                 value={message}
                 placeholder="Írj valami kedveset..."
+                onSubmitEditing={send}
+                ref={input}
             />
             <Pressable onPress={send} style={styles.textButton}>
                 <Icon name="send" color="white" size={20}/>

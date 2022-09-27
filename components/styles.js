@@ -13,14 +13,16 @@ export const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         flexWrap: 'wrap',
-        alignItems: 'stretch', // if you want to fill rows left to right
-        justifyContent: 'space-around'
+        alignItems: 'center', // if you want to fill rows left to right
+        justifyContent: 'space-around',
+        backgroundColor: 'white'
     },
     title: {
         fontFamily: "AmaticSC_700Bold",
         fontSize: 50,
         fontWeight: "bold",
-        padding: 10
+        padding: 10,
+        borderBottomWidth: 2,
     },
     subTitle: {
         fontSize: 40,

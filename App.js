@@ -13,7 +13,7 @@ import { HomeScreen, LogoTitle } from './components/HomeScreen';
 import { styles } from './components/styles'
 import LoginScreen from './components/Login/Login';
 import { Search } from './components/Search';
-import { Profile } from "./components/Profile";
+import { Profile } from "./components/Profile/Profile";
 import First from "./components/First/First";
 import { Edit } from "./components/Edit";
 import { Messages } from "./components/Messages";
@@ -28,10 +28,7 @@ import { Maps } from "./components/Maps/Maps";
 import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
 import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
 
-import { Loading } from './components/Components'
-import { LinearGradient } from "expo-linear-gradient";
 import * as SplashScreen from 'expo-splash-screen';
-import { global } from './components/global.js'
 
 // routes
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -45,15 +42,10 @@ import { FirebaseContext } from './firebase/firebase';
 import {store,persistor} from './components/store'
 import { PersistGate } from 'redux-persist/integration/react'
 
-
-import { login, logout } from './userReducer'
 import { useSelector } from 'react-redux'
-import { authIsReady } from 'react-redux-firebase';
 
 import { useDispatch } from 'react-redux';
 import { setUnreadMessage } from './userReducer';
-
-import { getAuth, signOut, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, onAuthStateChanged } from "firebase/auth";
 
 
 SplashScreen.preventAutoHideAsync();

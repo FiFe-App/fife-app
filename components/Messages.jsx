@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import {View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native'
+import {View, Text, TouchableOpacity, ScrollView, Platform, Dimensions} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
 import { ref, child, get, set, onValue, onChildAdded, off } from "firebase/database";
@@ -13,6 +13,7 @@ export const Messages = ({route,navigation}) => {
     const [list, setList] = useState([]);
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
+    const width = Dimensions.get('window').width
     const [selected, setSelected] = useState(null);
 
     const getRandom = () => {
@@ -70,7 +71,7 @@ export const Messages = ({route,navigation}) => {
                 )
             })}
         </ScrollView>
-        {Platform.OS == 'web' &&
+        {(width > 1120) &&
             <View style={{flex:2}}>
                 <Chat propUid={selected}/>
             </View>
@@ -81,15 +82,16 @@ export const Messages = ({route,navigation}) => {
 
 function Item({title,text,uid,setSelected}) {
     const navigation = useNavigation();
+    const width = Dimensions.get('window').width
     const onPress = () => {
-        if (Platform.OS == 'web')
+        if (Platform.OS == 'web' && width > 1120)
             setSelected(uid)
         else 
             navigation.navigate("chat", {uid:uid});
     }
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: 'white'}]}>
+        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: '#fdfdfd'}]}>
             <LoadImage style={styles.listIcon} uid={uid}/>
             <View style={{marginLeft: 5}}>
               <Text style={{ fontWeight: 'bold',flex: 1, }}>{title}</Text>
