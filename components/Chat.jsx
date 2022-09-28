@@ -50,7 +50,8 @@ export const Chat = ({route, navigation, propUid}) => {
                 console.log('set!!!!');
             })
             setMessage('');
-            input.focus()
+            if (input)
+                input.focus()
         }
     }
 

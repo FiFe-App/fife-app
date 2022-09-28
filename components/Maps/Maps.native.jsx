@@ -4,12 +4,11 @@ import MapView, { Marker } from 'react-native-maps';
 
 import React, { useEffect, useContext, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Text, Platform, View, Button, Pressable, TextInput, StyleSheet } from 'react-native';
+import { Text, Platform, View, Button, Pressable, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Dimensions } from 'react-native';
 import { Row } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native-web';
 
 const mapData = [
   {
@@ -84,7 +83,9 @@ export const Maps = () => {
     })
   }
 
-  useEffect(()=>setFilterList(reFilterList()),[filter])
+  useEffect(()=>{
+    setFilterList(reFilterList())
+  },[filter])
 
   useEffect(()=>{
     let list = []
@@ -144,6 +145,7 @@ export const Maps = () => {
       });
     }
   },[selected])
+
     return (
       <View style={{flex:1}}>
         <View style={localStyles.side}>

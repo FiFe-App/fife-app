@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:235592798960:android:967d67c71e3983b9f82835",
         "android_client_info": {
-          "package_name": "com.example.fifeapp"
+          "package_name": "com.kristofakos.fifeapp"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "235592798960-569b3pqlsjhdau0qkm2520ohkr0mdcsv.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.fifeapp",
+            "package_name": "com.kristofakos.fifeapp",
             "certificate_hash": "449ffe37704bbd6e33efd82ca15d4d1584a225e8"
           }
         },
