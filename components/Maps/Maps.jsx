@@ -3,12 +3,15 @@ import React, { useEffect, useContext, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Text, Platform, View, Button, Pressable, TextInput } from 'react-native';
 import { Dimensions } from 'react-native';
-import { Row } from '../Components';
+import { Loading, Row } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
 
+import {getMaps,LocationData} from "./mapService";
+import { FirebaseContext } from '../../firebase/firebase';
+import { ActivityIndicator, ScrollView } from 'react-native-web';
 
-const mapData = [
+const mapaData = [
   {
     name: "turik",
     locations: [
@@ -50,6 +53,7 @@ const mapData = [
 ]
 
 export const Maps = () => {
+    const {database} = useContext(FirebaseContext);
     const [mapOptions,setMapOptions] = useState({
         center: {
           lat: 47.47585815076657,
@@ -61,6 +65,8 @@ export const Maps = () => {
     const [selectedMap,setSelectedMap] = useState(null) 
 
     const [map,setMap] = useState(null)
+    const [mapData, setMapData] = useState(null);
+    const [markers, setMarkers] = useState([]);
     const [maplist,setMapList] = useState(null)
     const [search, setSearch] = React.useState('');
     const [filterList,setFilterList] = useState(null);
@@ -71,135 +77,155 @@ export const Maps = () => {
     ];
     const [filter, setFilter] = React.useState(defaultFilterList[0]);
     const [selected, setSelected] = React.useState(null);
+    const [ids, setIds] = useState({mapId:null,locationId:null});
+
     const reFilterList = () => {
       return defaultFilterList.map((e,index) => {
         if (e.name != filter.name)
         return ( 
-          <Pressable style={localStyles.filterList} onPress={()=>{setFilter(defaultFilterList[index])}} key={e.name}>
+          <Pressable style={localStyles.filterList} onPress={()=>{setFilter(defaultFilterList[index]);reFilterList()}} key={e.name}>
             <Text>{e.name}</Text>
           </Pressable>
         )
       })
     }
 
-    useEffect(()=>setFilterList(reFilterList()),[filter])
+    useEffect( () => {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
+      link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+      link.crossOrigin=""
+  
+      const script = document.createElement("script");
+      script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
+      script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
+      script.crossOrigin=""
+  
+      document.head.appendChild(link);
+      document.body.appendChild(script);
+
+      script.onload = () => {
+        setMap(L.map('map').setView([47.4983, 19.0408], 13));
+      }
+
+      async function getData() {
+        setMapData(await getMaps(database));
+      }
+      getData()
+
+
+      
+    }, []);
+
+
+    useEffect(() => {
+      console.log(ids);
+    }, [ids]);
+    //useEffect(()=>setFilterList(reFilterList()),[filter])
+
+    useEffect(() => {
+      if (map) {
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+      }
+    }, [map]);
 
     useEffect(()=>{
-
-      if (map && google)
-            mapData.find(e=>(e.name==selectedMap)).locations.forEach(location => {
-              console.log(location.name);
-              const marker = {
-                id: '1',
-                coords: {
-                  lat: location.lat,
-                  lng: location.lng
-                },
-                icon: "<div>❤️</div>",
-                size: [24, 24]
-              }
-              
-
-              console.log('nav');
-              marker.addListener("click", () => {
-                setSelected(location)
-              });
-              /*
-              const request = {
-                location: new google.maps.LatLng(location.lat,location.lng),
-                radius: '100',
-                type: ['restaurant']
-              };
-              const service = new google.maps.places.PlacesService(map);
-              service.nearbySearch(request, (results, status) => {
-                console.log(status);
-                if (status == google.maps.places.PlacesServiceStatus.OK) {
-                  console.log(results);
-                }
-              })*/
-            });
+      if ( map && mapData) {
+        markers.forEach((m) =>map.removeLayer(m))
+        mapData.find(e=>(e.name==selectedMap)).locations.forEach((location,index) => {
+          const marker = L.marker([location.lat, location.lng]).addTo(map)
+          marker.bindPopup("<b>"+location.name+"</b><br>"+location.description)
+          marker.on('click',() => {
+            setSelected(location)
+            setIds({...ids,locationId:index})
+            marker.getPopup().openPopup();
+          })
+          setMarkers(old=>[...old,marker])
+        });
+      }
 
 
     },[selectedMap])
 
     useEffect(()=>{
+      const searchL = search.toLowerCase()
+      if (mapData)
       setMapList(
         mapData.sort(filter.function('name')).map((map,index) => {
-          if (map.name.includes(search) || !search || map.locations.find(e=>e.name.includes(search) || e.description.includes(search))) {
-            console.log(selectedMap);
+          if (
+            map.name.toLowerCase().includes(searchL) || 
+            !searchL || 
+            map.locations.find(e=>e.name.toLowerCase().includes(searchL) || 
+            e.description.toLowerCase().includes(searchL))
+          ) {
+            
             const placeList = map.locations.map((place,index2)=>{
-              if (place.name.includes(search) || place.description.includes(search) || !search)
+              if (place.name.toLowerCase().includes(searchL) || place.description.toLowerCase().includes(searchL) || !searchL)
               return (
-                <Pressable style={[localStyles.mapLink,{left:10,marginHorizontal:40}]} key={"place"+index2} onPress={()=>setSelected(place)}>
-                  <Text>{place.name}</Text>
+                <Pressable style={[localStyles.mapLink,{left:10,marginHorizontal:40,borderColor:selected==place ? map.color : 'black'}]} 
+                           key={"place"+index2} onPress={()=>{setSelected(place); setIds({...ids,locationId:mapData.find(e=>e.name == selectedMap).locations.findIndex(e=>e.name==place.name)})}}>
+                  <Text style={{color:selected==place ? map.color : 'black'}}>{place.name}</Text>
                 </Pressable>)
             })
             return(
-              <View key={index}>
-                <Pressable  onPress={()=>setSelectedMap(map.name)} 
-                style={[localStyles.mapLink,selectedMap==map.name ? {borderColor:map.color} : {}]}>
-                  <Icon style={{ marginHorizontal: 12 }}name='map' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
-                  <Text style={selectedMap==map.name ?  {color:map.color} : {}}>{map.name}</Text>
-                  <Icon style={{ marginHorizontal: 12, flex:1, textAlign:'right' }} name='arrow-forward' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
-                </Pressable>
-                {selectedMap == map.name && placeList}
+              <View key={index} style={{justifyContent:'flex-end'}}>
+                  <Pressable  onPress={()=>{setSelectedMap(map.name);setIds({...ids,mapId:mapData.findIndex(e=>e.name==map.name)})}} 
+                  style={[localStyles.mapLink,selectedMap==map.name ? {borderColor:map.color} : {}]}>
+                    <Icon style={{ marginHorizontal: 12 }}name='map' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
+                    <Text style={selectedMap==map.name ?  {color:map.color} : {}}>{map.name}</Text>
+                    <Icon style={{ marginHorizontal: 12, flex:1, textAlign:'right' }} name='arrow-forward' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
+                  </Pressable>
+                  {selectedMap == map.name && 
+                  <ScrollView style={{maxHeight:300}}>
+                    {placeList}
+                  </ScrollView>}
               </View>
             )
           }
         })
       )
-    },[search,selectedMap,filter])
+    },[search,selectedMap,selected,filter,mapData])
 
     useEffect(()=>{
-      if (false) {
-        //map.panTo(new google.maps.LatLng(selected.lat,selected.lng));
+      if (map,selected) {
+        map.flyTo([selected.lat,selected.lng]);
       }
     },[selected])
 
     return (
-      <View>
-        <Pressable style={{flex:1,flexDirection:'row'}} onPress={() => setFilterList(null)}>
-              <View style={localStyles.side}>
-                  <TextInput
-                    style={localStyles.searchInput}
-                    onChangeText={setSearch}
-                    editable
-                    placeholder="Keress valamire"
-                  />
-                <Pressable style={{flexDirection:'row',justifyContent:'space-around',alignItems:'center'}} 
-                  onPress={() => setFilterList(filterList ? null : reFilterList)}>
-                  <Text>Sorrend:</Text>
-                  <Row style={{alignItems:'center'}}>
-                    <Text style={{margin:5}}>{filter.name}</Text>
-                    <AntDesign name="caretdown" size={10} color="black" />
-                  </Row>
-                </Pressable>
-                <View style={{textAlign:'right',marginHorizontal:50}}>
-                  {filterList}  
-                </View>                
-                {maplist}
-                <LocationData location={selected} />
-              </View>
+      <View style={{flex:1,flexDirection:'row'}}>
+        <View style={localStyles.side}>
+          <TextInput
+            style={localStyles.searchInput}
+            onChangeText={setSearch}
+            editable
+            placeholder="Keress helyekre, kategóriákra"
+          />
+          <Pressable style={{flexDirection:'row',justifyContent:'space-around',alignItems:'center'}} 
+            onPress={() => setFilterList(filterList ? null : reFilterList)}>
+            <Text>Sorrend:</Text>
+            <Row style={{alignItems:'center'}}>
+              <Text style={{margin:5}}>{filter.name}</Text>
+              <AntDesign name="caretdown" size={10} color="black" />
+            </Row>
+          </Pressable>
+          <View style={{textAlign:'right',marginHorizontal:50}}>
+            {filterList}  
+          </View>      
+          <View style={{flex:1}}>
+            {maplist || <ActivityIndicator size="large" />}
+          </View>          
+          <LocationData location={selected} locationId={ids.locationId} mapId={ids.mapId}/>
+        </View>
+        <div id="map" style={localStyles.map}></div>
 
-              <div style={localStyles.map}></div>
-        </Pressable>
       </View>
     )
 }
 
-const LocationData = (props) => {
-  const {location} = props;
-  return (
-    <View style={localStyles.selectedLocation}>
-      <Text style={{fontSize:20}}>
-      {location?.name}
-      </Text>
-      <Text>
-      {location?.description}
-      </Text>
-    </View>
-  )
-}
 
 const localStyles = {
     text:{
@@ -247,10 +273,10 @@ const localStyles = {
 
     },
     map: {
-      flex:8
+      flex:3,
     },
     side: {
-      width: 300,
+      flex:1,
       backgroundColor: 'white',
       cursor: 'default'
     },

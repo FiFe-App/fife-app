@@ -4,7 +4,7 @@ import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
 import Icon from 'react-native-vector-icons/Ionicons'
 import { LinearGradient } from "expo-linear-gradient";
 import { useForm, Controller } from "react-hook-form";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { global } from './global';
 import { styles as newStyles } from './styles';
 
@@ -182,25 +182,27 @@ const SearchBar = (props) => {
   const allMethods = useForm();
   const { setFocus } = allMethods;
   const navigation = useNavigation();
+  const route = useRoute();
   const { control, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
-      text: props?.search || ''
+      text: route?.params?.key || global.search || ''
     }
   });
   const onSubmit = data => {
     if (global.searchList.includes(data.text))
       global.searchList.splice(global.searchList.indexOf(data.text), 1);
     global.searchList.push(data.text);
+    global.search = data.text;
     setShowHistory(false);
+    console.log('push');
     navigation.push("search", { key: data.text });
   };
   const onBlur = () => {
-    console.log('blur');
+    setShowHistory(false)
   } 
   const [showHistory,setShowHistory] = React.useState(false);
-  global.searchList = ['abcd']
   const listItems = global.searchList.reverse().map((element) =>
-    <Pressable key={element.toString()} onPress={() => navigation.push("search", { key: element })} >
+    <Pressable key={element.toString()} onPress={() => onSubmit()} >
       <Row style={[newStyles.searchList,{backgroundColor:'white'}]}>
         <Icon name="time-outline" size={25} color="black" style={{ marginHorizontal: 5 }} />
         <Text>{element}</Text>
@@ -211,7 +213,7 @@ const SearchBar = (props) => {
     <View style={{alignSelf:'center',flexGrow:1}}>
       <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center',width:'100%'}}>
         <Controller control={control} rules={{ required: true, }}
-          render={({ field: { onChange, onBlur, value } }) => (
+          render={({ field: { onChange, value } }) => (
             <TextInput
               style={[newStyles.searchInput,{flex:4}]}
               onBlur={onBlur}

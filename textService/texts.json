@@ -1,0 +1,10 @@
+{
+    "web_title": ["a közösség","minden egyben","cicák","kultúra","művészet","online"],
+    "no_result": ["Nincs találat","Hupsz! Nem találtunk semmit.","Próbáld meg más megfogalmazásban!"],
+    "places": ["Térképek","Mi merre van","Hol vagyok"],
+    "profile": ["Profil","Én"],
+    "help_needed": ["Egyedül nem merek elmenni","Valaki segítene eltévedni?"],
+    "messages": ["Üzeneteim","Dumcsi","Üzik"],
+    "logout": ["Kijelentkezés","Viszlát","Adios"],
+    "heart": ["Tetszik ez a hely","Jó a hely!","Ez a hely klafa"]
+}

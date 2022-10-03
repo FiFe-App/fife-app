@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View, Pressable, Image } from 'react-native';
 import { global } from './global'
-import {styles} from './styles'
 import { useNavigation, StackActions } from '@react-navigation/native';
 import { getDatabase, ref as dRef, child, onValue, get } from "firebase/database";
 import { Loading, LoadImage } from './Components'
 import { FirebaseContext } from '../firebase/firebase';
 import { SearchBar } from './Components';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { TextFor } from '../textService/textService';
 
 export const Search = ({ navigation, route }) => {
     const {database, app, auth} = useContext(FirebaseContext);
@@ -64,8 +64,11 @@ export const Search = ({ navigation, route }) => {
             <View>
             {array ? 
                 (array.length == 0 
-                    ? <Text>Nem volt találat!</Text>
-                    : <ScrollView style={{height:'100%'}}>{array}</ScrollView>)
+                    ?   <View>
+                            <TextFor style={styles.noResultText} text="no_result"/>
+                            <Text style={styles.noResultSubText}>0 találat volt erre: {key}</Text>
+                        </View>
+                    :   <ScrollView style={{height:'100%'}}>{array}</ScrollView>)
                 : <Loading color="#f5d142" />}
             </View>
         </View>
@@ -88,3 +91,33 @@ function Item({title,text,uid}) {
     );
     
   }
+
+const styles = StyleSheet.create({
+
+    list: {
+        alignItems: "center",
+        borderColor: "rgb(240,240,240)",
+        backgroundColor: 'white',
+        borderBottomWidth: 2,
+        borderTopWidth: 1,
+        padding: 12,
+        marginTop: -1,
+    },
+    noResultText: {
+        fontSize: 30,
+        margin: 40,
+        marginBottom: 10,
+    },
+    noResultSubText: {
+        fontSize: 20,
+        margin: 50,
+        marginTop:10
+    },
+    searchList: {
+        padding: 16,
+        backgroundColor: 1,
+        borderBottomWidth: 1,
+        borderBottomColor: 0,
+        alignItems: "center",
+    },
+  })

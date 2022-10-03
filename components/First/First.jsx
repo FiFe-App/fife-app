@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { StyleSheet, View, Text, Button } from 'react-native';
+import { StyleSheet, View, Text, Button, Pressable, TouchableOpacity } from 'react-native';
 import { Pages } from "./pages";
 import * as Progress from 'react-native-progress';
 
@@ -20,20 +20,20 @@ const First = () => {
     }
   return (
     <View style={{flex:1}}>
-      <View style={{ flex: 8, alignItems:'center', justifyContent:'flex-start',padding:100 }}>
+      <View style={{ flex: 5, alignItems:'center', justifyContent:'flex-start',padding:100 }}>
           {pages[page]}
       </View>
-      <View style={{ flex: 1, alignItems:'center', justifyContent:'flex-end', marginBottom: 30 }}>
-        <Progress.Bar progress={page/(pages.length-1)} width={200} height={10} color='rgba(255,196,0,1)' animationType="timing"/>
-      
-        <View style={{flexDirection:'row'}}>
-          <View style={styles.button}>
-            <Button title='Vissza' color='rgba(255,196,0,1)' onPress={()=>goTo(page-1)}/>
-          </View>
-          <View style={styles.button}>
-            <Button title='Tovább' color='rgba(255,196,0,1)' onPress={()=>goTo(page+1)}/>
-          </View>
-        </View>
+      <View style={{flexDirection:'row',height:10}}>
+        <View style={{backgroundColor:'rgba(255,196,0,1)',width:page/(pages.length-1)*100+'%'}}/>
+        <View style={{backgroundColor:'none',width:100-page/(pages.length-1)*100+'%'}}/>
+      </View>
+      <View style={{ flex: 2, flexDirection:'row' }}>
+        <TouchableOpacity style={styles.button} onPress={()=>goTo(page-1)}>
+          <Text style={styles.buttonText}>Vissza</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={()=>goTo(page+1)}>
+          <Text style={styles.buttonText}>{page == pages.length-1 ? 'Befejezés' : 'Tovább'}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -61,7 +61,15 @@ const styles = StyleSheet.create({
     paddingHorizontal:50
   },
   button: {
-    margin:10
+    justifyContent:'center',
+    alignItems:'center',
+    backgroundColor:'rgba(255,196,0,1)',
+    
+    width:'50%'
+  },
+  buttonText: {
+    fontSize:30,
+    color:'white'
   },
   progressBar: {
     height: 12,

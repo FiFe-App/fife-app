@@ -45,10 +45,10 @@ export const styles = StyleSheet.create({
     searchInput: {
         margin: 5,
         borderColor: "black",
-        borderWidth: 1,
+        borderWidth: 2,
         backgroundColor: "white",
         padding: 10,
-        fontWeight: "400",
+        fontWeight: "500",
         width: 200
     },
     fixToText: {
@@ -76,22 +76,6 @@ export const styles = StyleSheet.create({
         fontSize: 12,
         color: "red",
         margin: 5
-    },
-    list: {
-        alignItems: "center",
-        borderColor: "rgb(240,240,240)",
-        backgroundColor: 'white',
-        borderBottomWidth: 2,
-        borderTopWidth: 1,
-        padding: 12,
-        marginTop: -1,
-    },
-    searchList: {
-        padding: 16,
-        backgroundColor: 1,
-        borderBottomWidth: 1,
-        borderBottomColor: 0,
-        alignItems: "center",
     },
     menuLink: {
         justifyContent:'center',

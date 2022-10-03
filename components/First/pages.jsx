@@ -8,9 +8,9 @@ export const Pages = ({newData,setNewData}) => {
             <Text style={styles.title}>Üdvözöllek a FiFe alkalmazásban.</Text>
             <Text style={styles.text}>Az alkalmazás célja a FiFe szellemiség megvalósítása az online térben.
             Vagyis a korrektséget és segítőkészséget becsomagolni egy biztonságot nyújtó környezetbe.
-            Ezt egy közösségi háló, ahol a tagok különböző módokon kereshetnek és nyújthatnak segítséget egymásnak.</Text>
+            Ez egy közösségi háló, ahol a tagok különböző módokon kereshetnek és nyújthatnak segítséget egymásnak.</Text>
             <Text style={styles.text}>Ez egy hasznos eszköz lehet minden budapestinek!</Text>
-            <Text>húzz balra</Text>
+            <Text>Ahhoz, hogy elkezdhesd használni, először regisztrálnod kell.</Text>
         </View>,
         <View style={styles.page} key="2">
             <Text style={styles.title}>Biztonság</Text>
@@ -41,7 +41,8 @@ export const Pages = ({newData,setNewData}) => {
             <Links data={newData} setData={setNewData} centered/>
         </View>,
         <View style={styles.page} key="6">
-            <Button color={"rgba(255,196,0,1)"} title='Kész' onPress={()=>navigation.navigate('home')}/>
+          <Text style={styles.title}>Szép munka! </Text>
+          <iframe src="https://giphy.com/embed/BBNYBoYa5VwtO" width="480" height="360" frameBorder="0" className="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/cat-shocked-cats-BBNYBoYa5VwtO">via GIPHY</a></p>
         </View>
 ]}
 
@@ -65,7 +66,8 @@ const styles = StyleSheet.create({
       width:'100%',
       borderBottomWidth:2,
       paddingBottom:20,
-      paddingHorizontal:50
+      paddingHorizontal:50,
+      marginBottom: 20
     },
     button: {
       margin:10

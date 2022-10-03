@@ -154,6 +154,7 @@ export const Edit = ({ navigation, route }) => {
         if (newData.username != data.username) {
           await set(databaseRef(database, 'usernames/' + newData.username), {owner:uid})
         }
+        newData.unread = null
         console.log("newdata to upload:", newData);
         console.log("data to upload:", data);
         set(databaseRef(database, 'users/' + uid + '/data'), newData)

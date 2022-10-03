@@ -24,6 +24,7 @@
   import { child, get, ref } from 'firebase/database';
 
   import { useDispatch } from 'react-redux';
+  import { TextFor } from '../textService/textService';
   const Stack = createNativeStackNavigator();
 
   export const HomeScreen = ({ navigation, route }) => {
@@ -63,23 +64,26 @@
 
     return (
       <LinearGradient colors={['#FDE6A2', "#FDF5A2"]} style={{borderBottomWidth:2}} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
-        <SafeAreaView>
+
           <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
             { navigation.canGoBack && 
-              <Pressable onPress={()=>navigation.goBack()} style={{justifyContent:'center',width:60,alignItems:'center'}}><Icon name='arrow-back' size={30} color="#000"/></Pressable>
+              <Pressable onPress={()=>navigation.goBack()} style={{justifyContent:'center',alignItems:'center'}}><Icon name='arrow-back' size={30} color="#000"/></Pressable>
             }
             <Pressable onPress={()=>navigation.navigate('home')}>
-              { width >  1230 && <Text style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe. a közösség</Text>}
+              { width >  1230 ? <Text style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe. <TextFor text="web_title"/></Text>:
+              <Text style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe</Text>}
             </Pressable>
             { width >  1120 ?
             <View style={{flexDirection:'row',marginRight:20,marginBottom:5}}>
+              <Pressable style={{justifyContent:'center',alignItems:'center'}} onPress={()=>navigation.navigate('home')}>
+              </Pressable>
               <SearchBar/>
-              <MenuLink title="Profilom" text="" color="#509955" link={"profile"} icon="person-outline" />
-              <MenuLink title="Üzeneteim" color="#0052ff" icon="mail-outline" link={"messages"} number={unreadMessage?.length}/>
-              <MenuLink title="Térképek" color="#f4e6d4" icon="map" link={"maps"}/>
+              <MenuLink title="profile" text="" color="#509955" link={"profile"} icon="person-outline" />
+              <MenuLink title="messages" color="#0052ff" icon="mail-outline" link={"messages"} number={unreadMessage?.length}/>
+              <MenuLink title="places" color="#f4e6d4" icon="map" link={"maps"}/>
               <MenuLink title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
               <MenuLink title="Unatkozom" text="" color="#b51d1d" link={"new"} icon="bulb" />
-              <MenuLink title="Kijelentkezés" text="" color="black" link="login" with={{ logout: true }} icon="exit-outline" />
+              <MenuLink title="logout" text="" color="black" link="login" with={{ logout: true }} icon="exit-outline" />
             </View>
             :
             <Row style={{flex:1}}>
@@ -92,14 +96,14 @@
           </View>
           <OpenNav open={open} style={{width:'100%'}}>
             <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"home"} icon="person-outline" />
-            <MenuLink setOpen={setOpen} title="Profilom" text="" color="#509955" link={"profile"} icon="person-outline" />
-            <MenuLink setOpen={setOpen} title="Üzeneteim" color="#0052ff" icon="mail-outline" link={"messages"} number={unreadMessage?.length}/>
-            <MenuLink setOpen={setOpen} title="Térképek" color="#f4e6d4" icon="map" link={"maps"}/>
+            <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profile"} icon="person-outline" />
+            <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"messages"} number={unreadMessage?.length}/>
+            <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"maps"}/>
             <MenuLink setOpen={setOpen} title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
             <MenuLink setOpen={setOpen} title="Unatkozom" text="" color="#b51d1d" link={"new"} icon="bulb" />
-            <MenuLink setOpen={setOpen} title="Kijelentkezés" text="" color="black" link="login" with={{ logout: true }} icon="exit-outline" />
+            <MenuLink setOpen={setOpen} title="logout" text="" color="black" link="login" with={{ logout: true }} icon="exit-outline" />
           </OpenNav>
-        </SafeAreaView>
+
       </LinearGradient>)
   }
 
@@ -107,12 +111,12 @@
     return(
       <View style={styles.modules}>
           <Module title="Segélykérés" text="" color="#ffb0b0" to={"help"} icon="alert-outline" flat/>
-          <Module title="Profilom" text="" color="#D8FFCD" to={"profile"} icon="person-outline" />
-          <Module title="Üzeneteim" color="#CDEEFF" icon="mail-outline" to={"messages"} number={'unreadMessage'}/>
-          <Module title="Térképek" color="#f4e6d4" icon="map-outline" to={"maps"}/>
+          <Module title="profile" text="" color="#D8FFCD" to={"profile"} icon="person-outline" />
+          <Module title="messages" color="#CDEEFF" icon="mail-outline" to={"messages"} number={'unreadMessage'}/>
+          <Module title="places" color="#f4e6d4" icon="map-outline" to={"maps"}/>
           <Module title="Beállítások" text="" color="#FDCDFF" icon="flower-outline" />
           <Module title="Unatkozom" text="" color="#FF9D9D" to={"new"} icon="bulb-outline" />
-          <Module title="Kijelentkezés" text="" color="#ECECEC" to="login" with={{ logout: true }} icon="exit-outline" />
+          <Module title="logout" text="" color="#ECECEC" to="login" with={{ logout: true }} icon="exit-outline" />
       </View>
     );
   }
@@ -134,7 +138,7 @@
             setOpen(false)
         }}>
         <Row>
-          <Text>{title}</Text>
+          <TextFor style={{fontWeight:'500'}} text={title}/>
           {!!number && <Text style={styles.number}>{number}</Text>}
         </Row>
       </Pressable>
@@ -155,7 +159,7 @@
               <Text style={{ marginHorizontal: 12 }}><Icon name={props.icon} size={25} color={isBright(props.color)} /></Text>
               {!!number && <Text style={styles.number}>{number}</Text>}  
             <Col>
-              <Text style={{ fontWeight: 'bold', color: isBright(props.color) }}>{props.title}</Text>
+              <TextFor style={{ fontWeight: 'bold', color: isBright(props.color) }} text={props.title}/>
               <Text style={{ color: isBright(props.color) }}>{props.text}</Text>
             </Col>
           </Row>
@@ -184,7 +188,9 @@
         justifyContent:'center',
         padding:10,
         paddingRight:15,
+        marginBottom:10,
         marginLeft:15,
+        marginBottom:-7,
       },
       hover: {
         backgroundColor:'white',
@@ -192,6 +198,7 @@
         borderTopWidth:0,
         borderRadius: 0,
         marginLeft:11,
+        marginBottom:-7,
       }
     }
     else
@@ -203,14 +210,17 @@
         padding:15,
         paddingRight:15,
         borderTopWidth:2,
-        margin:0
+        margin:0,
+        marginBottom:-7,
       },
       hover: {
         backgroundColor:'white',
         borderRadius: 0,
         borderLeftWidth: 0,
         borderRightWidth: 0,
-        margin:0
+        marginBottom:-7,
+        margin:0,
+        marginBottom:-7,
       }
     }
   }
