@@ -22,7 +22,8 @@ const First = ({route,navigation}) => {
           {pages}
       </PagerView>
       <View style={{flex:1, alignItems:'center', justifyContent:'center',padding:10 }}>
-        <Progress.Bar progress={page/(5-1)} width={200} height={10} color='rgba(255,196,0,1)' animationType="timing"/>
+        {page == pages.length-1 && <Button title="Kezdés" color='rgba(255,196,0,1)'/>}
+        <Progress.Bar progress={page/(pages.length-1)} width={300} height={10} color='rgba(255,196,0,1)' animationType="timing"/>
       </View>
     </View>
   );

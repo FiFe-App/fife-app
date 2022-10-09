@@ -2,9 +2,11 @@ import React, {useState} from 'react';
 import { StyleSheet, View, Text, Button, Pressable, TouchableOpacity } from 'react-native';
 import { Pages } from "./pages";
 import * as Progress from 'react-native-progress';
+import { useNavigation } from '@react-navigation/native';
 
 
 const First = () => {
+    const navigation = useNavigation()
     const [page, setPage] = useState(0);
     const [newData, setNewData] = React.useState({
       name: '',
@@ -17,6 +19,8 @@ const First = () => {
     const goTo = (page) => {
       if (page < pages.length && page >= 0)
         setPage(page)
+      if (page == pages.length)
+        navigation.navigate('home')
     }
   return (
     <View style={{flex:1}}>

@@ -7,10 +7,8 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, on
 
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from "firebase/database";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { useDispatch } from 'react-redux';
-import { getUid, login as sliceLogin } from '../userReducer';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { login as sliceLogin, logout as sliceLogout } from '../userReducer';
 import { Platform } from 'react-native';
 
 
@@ -39,51 +37,34 @@ export default ({ children }) => {
 
     const init = async () => {
         if (!app?.apps?.length) {
-            //getUid();
-            AsyncStorage.getItem('uid').then(uid=>console.log(uid))
 
-            console.log("main uef")
             const appNew = initializeApp(firebaseConfig);
-            /*const appcheck = initializeAppCheck(appNew, 
-                { provider: new ReCaptchaV3Provider('6LcSls0bAAAAAKWFaKLih15y7dPDqp9qMqFU1rgG'),
-                isTokenAutoRefreshEnabled: true}
-            )*/
 
             setApp(appNew)
             setDatabase(getDatabase(appNew))
             setAuth(getAuth(appNew))
             setApi({
-                    login,loadUid,register,facebookLogin
+                    login,loadUid,register,facebookLogin,logout
                 })
             return appNew;
         }
     }
 
+    const logout = () => {
+        dispatch(sliceLogout())
+    }
+
     const login = async (email, password) => {
-        console.log(Platform.OS);
         let newEmail = email
         let newPass = password
-        if (email == undefined && password == undefined) {
-            if (Platform.OS == 'android') {
-                newEmail = 'a@gmail.com'
-                newPass = 'aaaaaa'
-            } else {
-                newEmail = "macos.acos@gmail.com"
-                newPass = "LEGOlego2000"
-            }
-        } 
-        console.log('newEmail',newEmail);
         let response = null
         if (!auth) {
             const retApp = await init()
             const a = getAuth(retApp)
             await signInWithEmailAndPassword(a, newEmail, newPass)
             .then((userCredential) => {
-                console.log('signed in as ',userCredential.user.email);
                 dispatch(sliceLogin(userCredential.user.uid))
-
                 response = {success:true}
-                
             })
             .catch((error) => {
                 const errorCode = error.code;

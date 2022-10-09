@@ -1,8 +1,11 @@
 
 
 import MapView, { Marker } from 'react-native-maps';
+import { LatLng, LeafletView } from 'react-native-leaflet-view';
 
-import React, { useEffect, useContext, useState } from 'react';
+
+
+import React, { useEffect, useContext, useState, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Text, Platform, View, Button, Pressable, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Dimensions } from 'react-native';
@@ -52,6 +55,23 @@ const mapData = [
 ]
 
 export const Maps = () => {
+
+  const mapboxToken = "sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
+  const [WebViewLeaflet, setWebViewLeaflet] = useState(null);
+  const mapInit = {
+    baseLayerName: 'OpenStreetMap',  // the name of the layer, this will be seen in the layer selection control
+    baseLayerIsChecked: 'true',  // if the layer is selected in the layer selection control
+    layerType: 'TileLayer',  // Optional: a MapLayerType enum specifying the type of layer see "Types of Layers" below. Defaults to TILE_LAYER
+    baseLayer: true,
+    // url of tiles
+    url: `https://api.tiles.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=${mapboxToken}`,
+    // attribution string to be shown for this layer
+    attribution:
+      '&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors'
+  }
+
+
+
 
   const [selectedMap,setSelectedMap] = useState(null) 
 
@@ -168,15 +188,12 @@ export const Maps = () => {
           </View>                
           {maplist}
         </View>
-        <MapView style={localStyles.map} region={region}>
-          {markers.map((marker, index) => (
-            <Marker
-              key={index}
-              coordinate={marker.latlng}
-              pinColor={marker.color}
-            />
-          ))}
-        </MapView>
+        <LeafletView
+          mapLayers={[
+            { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' }
+            ]}
+            // The rest of your props, see the list below
+        />
         {selected &&
           <LocationData location={selected} />}
       </View>

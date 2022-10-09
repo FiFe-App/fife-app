@@ -7,7 +7,7 @@ import { Loading, LoadImage } from './Components'
 import { FirebaseContext } from '../firebase/firebase';
 import { SearchBar } from './Components';
 import { ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { TextFor } from '../textService/textService';
+import { TextFor, AutoPrefix } from '../textService/textService';
 
 export const Search = ({ navigation, route }) => {
     const {database, app, auth} = useContext(FirebaseContext);
@@ -15,40 +15,44 @@ export const Search = ({ navigation, route }) => {
     
     const [array, setArray] = React.useState([]);
     const [isMapView, setIsMapView] = useState(false);
+    const categories = [
+        {
+            path: 'user',
+            keys: ['name','username',{key:profession,subKeys:['name','description']}]
+        }
+    ]
 
     useEffect(() => {
         if (database) {
-            console.log(key);
-            const newArray = [];
-            const dbRef = dRef(database,'/users');
-            onValue(dbRef, (snapshot) => {
-                if (snapshot.exists())
-                snapshot.forEach((childSnapshot) => {
-                    const childKey = childSnapshot.key;
-                    const childData = childSnapshot.child('data').val();
-
-                    let found = null
-                    let index = null
-                    
-                    if (childData.name && childData.name.toLowerCase().includes(key.toLowerCase())) found = childData.username
-                    if (childData.username && childData.username.toLowerCase().includes(key.toLowerCase())) found = childData.username
-                    if (childData.profession && childData.profession.filter((e,i)=>{
-                        if (e.name.toLowerCase().includes(key.toLowerCase()) ||
-                        e.description.toLowerCase().includes(key.toLowerCase()))
-                        {
-                            index = i
-                            return true
-                        }
-                        return false
-                    }).length) found = childData.profession[index].name
-
-                    if (found)    
-                        newArray.push(<Item key={childKey} title={childData.name} text={found} uid={childKey} />);
+            categories.forEach(element => {
+                const dbRef = query(dRef(database,'/'+element.path), orderByChild('name'));
+                onValue(dbRef, (snapshot) => {
+                    if (snapshot.exists())
+                    snapshot.forEach((childSnapshot) => {
+                        const childKey = childSnapshot.key;
+                        const childData = childSnapshot.child('data').val();
+    
+                        let found = null
+                        let index = null
+                        
+                        if (childData.name && childData.name.toLowerCase().includes(key.toLowerCase())) found = childData.username
+                        if (childData.username && childData.username.toLowerCase().includes(key.toLowerCase())) found = childData.username
+                        if (childData.profession && childData.profession.filter((e,i)=>{
+                            if (e.name.toLowerCase().includes(key.toLowerCase()) ||
+                            e.description.toLowerCase().includes(key.toLowerCase()))
+                            {
+                                index = i
+                                return true
+                            }
+                            return false
+                        }).length) found = childData.profession[index].name
+    
+                        if (found)    
+                        setArray([...array,<Item key={childKey} title={childData.name} text={found} uid={childKey} />]);
+                    });
                 });
-                setArray(newArray)
             });
         }
-        //setArray(getData(route.params.key))
     }, [database])
 
     return(
@@ -66,7 +70,7 @@ export const Search = ({ navigation, route }) => {
                 (array.length == 0 
                     ?   <View>
                             <TextFor style={styles.noResultText} text="no_result"/>
-                            <Text style={styles.noResultSubText}>0 találat volt erre: {key}</Text>
+                            <Text style={styles.noResultSubText}>{AutoPrefix(key)} kifejezés nem hozott eredményt.</Text>
                         </View>
                     :   <ScrollView style={{height:'100%'}}>{array}</ScrollView>)
                 : <Loading color="#f5d142" />}

@@ -104,6 +104,11 @@ const LoginScreen = ({ navigation, route }) => {
           onPress={() =>
             signIn(email, password, onChangeLoginError)
           } />
+          <Text style={{margin:20,fontSize:20}}>Először vagy itt?</Text>
+          <Button style={styles.headline} title="Regisztráció" color="black"
+          onPress={() =>
+            navigation.navigate('about')
+          } />
         </LinearGradient>
   
     );

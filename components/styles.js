@@ -67,7 +67,7 @@ export const styles = StyleSheet.create({
         textAlign: 'center', // <-- the magic
         fontWeight: 'bold',
         fontSize: 18,
-        marginTop: 0,
+        marginTop: 10,
         marginBottom: 5
     },
     error: {
@@ -99,5 +99,14 @@ export const styles = StyleSheet.create({
         textAlign:'center',
         width:20,
         height:20,
-    }
+    },
+    list: {
+        alignItems: "center",
+        borderColor: "rgb(240,240,240)",
+        backgroundColor: 'white',
+        borderBottomWidth: 2,
+        borderTopWidth: 1,
+        padding: 12,
+        marginTop: -1,
+    },
 });

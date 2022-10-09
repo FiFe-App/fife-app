@@ -1,6 +1,6 @@
 
 import { Professions, Links } from '../Edit';
-import { StyleSheet, View, Text, Button } from 'react-native';
+import { StyleSheet, View, Text, Button, Platform } from 'react-native';
 
 export const Pages = ({newData,setNewData}) => {
     return [
@@ -42,7 +42,9 @@ export const Pages = ({newData,setNewData}) => {
         </View>,
         <View style={styles.page} key="6">
           <Text style={styles.title}>Szép munka! </Text>
+          { Platform.OS == 'web' && <>
           <iframe src="https://giphy.com/embed/BBNYBoYa5VwtO" width="480" height="360" frameBorder="0" className="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/cat-shocked-cats-BBNYBoYa5VwtO">via GIPHY</a></p>
+          </>}
         </View>
 ]}
 

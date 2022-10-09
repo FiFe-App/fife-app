@@ -5,21 +5,18 @@ import { Text, View, Button, TextInput, StyleSheet, Dimensions } from 'react-nat
 // routes
 
 import { styles } from '../styles'
-import css from './Login.module.css'
 
 // fonts
 import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
-import { useFonts as useFontsRaleway, Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
-import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
-import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
+import { Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
 
 import { LinearGradient } from "expo-linear-gradient";
 import { FirebaseContext } from '../../firebase/firebase';
-import { getAuth, signOut, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, onAuthStateChanged } from "firebase/auth";
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const LoginScreen = ({ navigation, route }) => {
-  const [canLogin, setCanLogin] = React.useState(route.params?.logout ? route.params.logout : false);
+  const [canLogin, setCanLogin] = React.useState(route.params?.logout || false);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const {app, auth, user, api}  = useContext(FirebaseContext);
@@ -33,32 +30,6 @@ const LoginScreen = ({ navigation, route }) => {
             console.log('auto singed in');
           }
         })
-      if (false) {
-        onAuthStateChanged(auth,function (user) {
-          if (user && !canLogin) {
-            //api.login(user)
-            navigation.push('home')
-          } else {
-            setCanLogin(true)
-            signOut(auth).then(() => {
-              console.log('signed Out');
-            }).catch((error) => {
-              // An error happened.
-            })
-          }
-        });
-  
-        setPersistence(auth, browserSessionPersistence)
-        .then(() => {
-          //
-          console.log('auto sign in');
-          signIn(email, password,'auto sign in');
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-        });
-      }
     }, []);
   
   
@@ -74,10 +45,11 @@ const LoginScreen = ({ navigation, route }) => {
             {!showLogin ?
             <Text onClick={()=>{setShowLogin(true);setShowRegister(false)}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer'}]}>Bejelentkezés</Text>:
             <LoginForm/>}
+            <RegisterForm/>
           </View>
           <View style={{flex:1,alignItems:'flex-end',marginTop:'10%'}}>
             {!showRegister ?
-            <Text onClick={()=>{setShowLogin(false);setShowRegister(true)}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer'}]}>Regisztráció</Text>:
+            <Text onClick={()=>{setShowLogin(false);navigation.navigate('about')}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer'}]}>Regisztráció</Text>:
             <RegisterForm/>}  
           </View>      
         </View>
@@ -92,13 +64,15 @@ const  LoginForm = () => {
   const [username, onChangeUsername] = React.useState("");
   const [password, onChangePassword] = React.useState("");
   const [loginError, onChangeLoginError] = React.useState("");
-  const {app, auth, user, api}  = useContext(FirebaseContext);
+  const {api}  = useContext(FirebaseContext);
+  const user = useSelector((state) => state.user)
 
   const signIn = (email, password, printMessage) => {
     console.log('sign in');
     api.login(email,password).then((res) => {
       if (res?.success) {
         navigation.push('home') 
+        console.log('user',user);
       } else {
         onChangeLoginError(res?.error)
       }
@@ -114,7 +88,7 @@ const  LoginForm = () => {
           style={styles.searchInput}
           onChangeText={onChangeUsername}
           editable
-          placeholder="Felhasználónév"
+          placeholder="Email-cím"
         />
         <TextInput
           style={styles.searchInput}
@@ -195,7 +169,7 @@ const RegisterForm = () => {
       </View>
       <Text style={styles.error} >{loginError}</Text>
       <Button style={styles.headline} title="Regisztráció" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
-        signUp(email, password, onChangeLoginError)
+        signUp(email,password)
       } />
       <Button title="Facebook Bejelentkezés"  onPress={fbLogin} color="#4267B2"/>
     </View>

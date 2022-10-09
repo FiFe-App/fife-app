@@ -1,4 +1,4 @@
-import { LoadImage, Loading, Row } from '../Components'
+import { LoadImage, Loading, Row, NewButton } from '../Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 
@@ -145,15 +145,6 @@ export const Profile = ({ navigation, route }) => {
   else return (<Loading color={"#f5d142"}/>)
 }
 
-  function NewButton(props) {
-    const color = props?.color || "#FFC372";
-    return (
-      <Pressable style={[localStyles.newButton, { backgroundColor: color }]} onPress={props.onPress}>
-            <Text style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{props.title}</Text>
-      </Pressable>
-    );
-  }
-
   function Section(props){
     const openAnim = React.useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
     const [open, setOpen] = React.useState(false)
@@ -195,17 +186,6 @@ export const Profile = ({ navigation, route }) => {
       color: "black",
       fontSize:16,
       padding: 16,
-    },
-    newButton:{
-      width:'100%',
-      margin:10,
-      marginHorizontal: 20,
-      paddingVertical:10,
-      paddingHorizontal:20,
-      alignItems: 'center',
-      justifyContent: "center",
-      maxWidth: 500,
-      borderWidth:2
     },
     verticleLine: {
       height: '100%',

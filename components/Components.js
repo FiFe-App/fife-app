@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Text, Animated, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { Text, Animated, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Platform, Dimensions } from 'react-native';
 import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
 import Icon from 'react-native-vector-icons/Ionicons'
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,6 +7,9 @@ import { useForm, Controller } from "react-hook-form";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { global } from './global';
 import { styles as newStyles } from './styles';
+
+
+//Dimensions.get('window');
 
 const Loading = (props) => {
   const sweepAnim = useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
@@ -73,6 +76,92 @@ const LoadImage = (props) => {
     
 }
 
+function NewButton({color = "#FFC372",title,onPress}) {
+  return (
+    <Pressable style={[styles.newButton, { backgroundColor: color }]} onPress={onPress}>
+          <Text style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{title}</Text>
+    </Pressable>
+  );
+}
+
+
+class Slideshow extends React.Component {
+  width = 500
+
+  constructor(props) {
+    super(props);
+    this.scrollView = React.createRef();
+    this.scrollX = new Animated.Value(0) // this will be the scroll location of our ScrollView
+
+  }
+
+  render() {
+    // position will be a value between 0 and photos.length - 1 assuming you don't scroll pass the ends of the ScrollView
+    let position = Animated.divide(this.scrollX, this.width);
+    return (
+      <View style={{ justifyContent: 'center', alignItems: 'center'}}>
+        <View style={{ width: this.width, height: this.width/2, flexDirection:'row' }}>
+          <View style={{justifyContent:'center',padding:20}}>
+            <Pressable onPress={()=>{
+              this.scrollX.setValue(this.scrollX._value-this.width)
+              this.scrollView.current.scrollTo({ x: -this.scrollX._value, y: 0, animated: true })
+            }}>
+              <Icon name="arrow-back" size={30}/>
+            </Pressable>
+          </View>
+          <ScrollView
+            ref={this.scrollView}
+            horizontal={true}
+            pagingEnabled={true} // animates ScrollView to nearest multiple of it's own this.width
+            showsHorizontalScrollIndicator={false}
+            // the onScroll prop will pass a nativeEvent object to a function
+            onScroll={Animated.event( // Animated.event returns a function that takes an array where the first element...
+              [{ nativeEvent: { contentOffset: { x: this.scrollX } } }] // ... is an object that maps any nativeEvent prop to a variable
+            )} // in this case we are mapping the value of nativeEvent.contentOffset.x to this.scrollX
+            scrollEventThrottle={16} // this will ensure that this ScrollView's onScroll prop is called no faster than 16ms between each function call
+            >
+            {this.props.photos.map((source, i) => { // for every object in the photos array...
+              return ( // ... we will return a square Image with the corresponding object as the source
+                <Image
+                  key={i} // we will use i for the key because no two (or more) elements in an array will have the same index
+                  style={{ width: this.width, height: this.width/2 }}
+                  source={source}
+                />
+              );
+            })}
+          </ScrollView>
+          <View style={{justifyContent:'center',padding:20}}>
+            <Pressable onPress={()=>{
+              this.scrollX.setValue(this.scrollX._value+this.width)
+              this.scrollView.current.scrollTo({ x: this.scrollX._value, y: 0, animated: true })
+            }}>
+              <Icon name="arrow-forward" size={30}/>
+            </Pressable>
+          </View>
+        </View>
+        <View
+          style={{ flexDirection: 'row' }} // this will layout our dots horizontally (row) instead of vertically (column)
+          >
+          {this.props.photos.map((_, i) => { // the _ just means we won't use that parameter
+            let opacity = position.interpolate({
+              inputRange: [i - 1, i, i + 1], // each dot will need to have an opacity of 1 when position is equal to their index (i)
+              outputRange: [0.3, 1, 0.3], // when position is not i, the opacity of the dot will animate to 0.3
+              // inputRange: [i - 0.50000000001, i - 0.5, i, i + 0.5, i + 0.50000000001], // only when position is ever so slightly more than +/- 0.5 of a dot's index
+              // outputRange: [0.3, 1, 1, 1, 0.3], // is when the opacity changes from 1 to 0.3
+              extrapolate: 'clamp' // this will prevent the opacity of the dots from going outside of the outputRange (i.e. opacity will not be less than 0.3)
+            });
+            return (
+              <Animated.View // we will animate the opacity of the dots so use Animated.View instead of View here
+                key={i} // we will use i for the key because no two (or more) elements in an array will have the same index
+                style={{ opacity, height: 10, width: 10, backgroundColor: '#595959', margin: 8, borderRadius: 5 }}
+              />
+            );
+          })}
+        </View>
+      </View>
+    );
+  }
+}
 
 function Row(props) {
   return (
@@ -91,16 +180,12 @@ function Col(props) {
 }
 
 function FAB(props){
-  const {onPress, color='blue', color2='white', icon, size=50} = props
+  const {onPress, color='blue', icon, size=50} = props
   
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={onPress} style={styles.touchableOpacityStyle}>
-      <LinearGradient colors={[color, color2]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} 
-        style={[styles.floatingButtonStyle,{width: size, height: size, borderRadius: size}]}>
-        <View >
-          <Icon name={icon} size={size} color="#fff" />
-        </View>
-      </LinearGradient>
+    <TouchableOpacity activeOpacity={0.7} onPress={onPress}
+     style={[styles.touchableOpacityStyle,styles.floatingButtonStyle,{backgroundColor:color, width: size, height: size, borderRadius: size}]}>
+      <Icon name={icon} size={size} color="#fff" />
     </TouchableOpacity>
   )
 }
@@ -210,12 +295,12 @@ const SearchBar = (props) => {
     </Pressable>
   );
   return (
-    <View style={{alignSelf:'center',flexGrow:1}}>
-      <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center',width:'100%'}}>
+    <View style={{alignSelf:'center',flexWrap:'wrap',flexGrow:1}}>
+      <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, value } }) => (
             <TextInput
-              style={[newStyles.searchInput,{flex:4}]}
+              style={[newStyles.searchInput,{flex:1}]}
               onBlur={onBlur}
               autoCapitalize='none'
               onChangeText={onChange}
@@ -229,7 +314,7 @@ const SearchBar = (props) => {
           name="text"
         />
 
-        <Pressable onPress={handleSubmit(onSubmit)}style={{flex:1,}} >
+        <Pressable onPress={handleSubmit(onSubmit)}style={{width:30}} >
           <Icon name="search-outline" size={25} color="black" />
         </Pressable>
       </View>
@@ -252,12 +337,14 @@ const OpenNav = ({open,children,style}) => {
 
 export {
   LoadImage,
+  Slideshow,
   Loading,
   Row,
   Col,
   FAB,
   SearchBar,
-  OpenNav
+  OpenNav,
+  NewButton
 }
 
 const styles = StyleSheet.create({
@@ -287,5 +374,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor:'crimson'
+  },
+  newButton:{
+    width:'100%',
+    paddingVertical:10,
+    paddingHorizontal:20,
+    alignItems: 'center',
+    justifyContent: "center",
+    borderWidth:2
   },
 });

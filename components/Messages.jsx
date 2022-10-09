@@ -14,7 +14,7 @@ export const Messages = ({route,navigation}) => {
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
     const width = Dimensions.get('window').width
-    const [selected, setSelected] = useState(null);
+    const [selected, setSelected] = useState(route?.params?.selected);
 
     const getRandom = () => {
         const dbRef = ref(database,`users`);
@@ -62,16 +62,21 @@ export const Messages = ({route,navigation}) => {
 
         }
       }, [database]);
+
+      useEffect(() => {
+        if (selected && width <= 900)
+            navigation.navigate("chat", {uid:selected});
+      }, [selected]);
     return (
     <View style={{flex:1, flexDirection:'row'}}>
         <ScrollView style={{flex:1}}>
             {!!list.length && list.map((e,i)=>{
                 return (
-                    <Item title={e?.name} text={e?.last} uid={e?.uid} key={i} setSelected={setSelected}/>
+                    <Item title={e?.name} selected={selected == e?.uid} text={e?.last} uid={e?.uid} key={i} setSelected={setSelected}/>
                 )
             })}
         </ScrollView>
-        {(width > 1120) &&
+        {(width > 900) &&
             <View style={{flex:2}}>
                 <Chat propUid={selected}/>
             </View>
@@ -80,18 +85,19 @@ export const Messages = ({route,navigation}) => {
     )
 }
 
-function Item({title,text,uid,setSelected}) {
+function Item({title,text,uid,selected,setSelected}) {
     const navigation = useNavigation();
     const width = Dimensions.get('window').width
+    
     const onPress = () => {
-        if (Platform.OS == 'web' && width > 1120)
+        if (width > 900)
             setSelected(uid)
         else 
             navigation.navigate("chat", {uid:uid});
     }
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: '#fdfdfd'}]}>
+        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fdfdfd' : '#f6f6f6'}]}>
             <LoadImage style={styles.listIcon} uid={uid}/>
             <View style={{marginLeft: 5}}>
               <Text style={{ fontWeight: 'bold',flex: 1, }}>{title}</Text>

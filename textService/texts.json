@@ -1,6 +1,8 @@
 {
     "web_title": ["a közösség","minden egyben","cicák","kultúra","művészet","online"],
     "no_result": ["Nincs találat","Hupsz! Nem találtunk semmit.","Próbáld meg más megfogalmazásban!"],
+    "sale": ["Cserebere","Adok-veszek"],
+    "buy_item": ["Megveszem","Kell nekem"],
     "places": ["Térképek","Mi merre van","Hol vagyok"],
     "profile": ["Profil","Én"],
     "help_needed": ["Egyedül nem merek elmenni","Valaki segítene eltévedni?"],

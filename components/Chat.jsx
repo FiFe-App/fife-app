@@ -34,7 +34,7 @@ export const Chat = ({route, navigation, propUid}) => {
             const newMessageRef = push(messageListRef);
             const newMessageRef2 = push(messageListRef2);
             set(newMessageRef, {
-                text: message,
+                text: message || 'buzi vagyok',
                 uid: uid,
                 time: Date.now()
             })
@@ -150,7 +150,6 @@ const styles = StyleSheet.create({
     messageText: {
         padding: 4,
         paddingHorizontal:10,
-        borderRadius: 20,
         color: 'white',
         maxWidth: '80%',
         fontSize:20
