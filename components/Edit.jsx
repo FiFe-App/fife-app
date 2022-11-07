@@ -1,6 +1,6 @@
 
 import React, { useEffect, useContext, useState } from 'react';
-import { Text, View, Button, TextInput, Image, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { Text, View, Button, Image, Pressable, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { styles } from './styles'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
@@ -11,12 +11,15 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import * as ImagePicker from 'expo-image-picker';
 import { getDatabase, set, get, ref as databaseRef, onChildAdded, remove, query, equalTo } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Loading } from './Components';
+import { Auto, Loading, NewButton, TextInput } from './Components';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import ImageModal from 'react-native-image-modal';
 
-const themeColor = 'rgba(255,196,0,1)';//#ba9007
-//const themeColor = '#fcf3d4';
-const bgColor = '#ffffff'
+const themeColor = '#000';//#ba9007
+const color2 = '#fcf3d4'//'#FFC372'
+//const themeColor = '#fcf3d4';FFC372
+const bgColor = '#F2EFE6'
+const width = Dimensions.get('window').width;
 
 export const Edit = ({ navigation, route }) => {
   const uid = useSelector((state) => state.user.uid)
@@ -41,6 +44,7 @@ export const Edit = ({ navigation, route }) => {
     })
   }
 
+
   const pickImage = async () => {
       // No permissions request is necessary for launching the image library
       let result = await ImagePicker.launchImageLibraryAsync({
@@ -54,6 +58,10 @@ export const Edit = ({ navigation, route }) => {
           setImage(result.uri)
           setChanged(true)
       }
+  }
+
+  const deleteImage = () => {
+    setImage(require('./../assets/profile.jpeg'))
   }
 
   const uploadImage = async () => {
@@ -98,7 +106,6 @@ export const Edit = ({ navigation, route }) => {
     if (database) {
       get(databaseRef(database,'users/'+uid+'/data')).then(snapshot=>{
         if (snapshot.exists()) {
-          console.log(snapshot.val());
           let newData = snapshot.val()
           setData(newData)
           setNewData(newData)
@@ -132,15 +139,18 @@ export const Edit = ({ navigation, route }) => {
     } 
   }, [newData?.username]);
 
+
+  function deepEqual(x, y) {
+    return (x && y && typeof x === 'object' && typeof y === 'object') ?
+      (Object.keys(x).length === Object.keys(y).length) &&
+        Object.keys(x).reduce(function(isEqual, key) {
+          return isEqual && deepEqual(x[key], y[key]);
+        }, true) : (x === y);
+  }
+
   useEffect(() => {
     if (navigation && newData) {
-      navigation.setOptions({
-        headerRight: () => (
-          <TouchableOpacity onPress={save} style={{margin:20}}>
-            <Text><Icon name="save" color="black" size={25}/></Text>
-          </TouchableOpacity>
-        ),
-      });
+      if (deepEqual(newData,data))
       //console.log('newData',newData);
       setLoading(false)
     } 
@@ -177,55 +187,69 @@ export const Edit = ({ navigation, route }) => {
   return (
     <View style={{flex:1}}>
     <ScrollView>
-      <View style={localStyle.imageContainer}>
-        <Pressable onPress={pickImage} style={{flex:1,alignItems:'center'}}>
-          {!image ? <ActivityIndicator size='large' color='rgba(255,196,0,1)'/> :
-          <Image source={image} style={localStyle.image} />}
-        </Pressable>
-      </View>
-      <View style={localStyle.container}>
-        <Header title="Felhasználónév" icon="ios-finger-print"/>
-        <View style={{flexDirection:'row',alignItems:'center',marginLeft:5}}>
-          {usernameValid && <Icon name="checkmark-circle" size={25} color="green"/>}
-          {!usernameValid && <Icon name="close-circle" size={25} color="red"/>}
+      <Auto style={localStyle.container}>
+        <View style={{flex:1,marginHorizontal: width > 900 ? 20 : 0}}>
+          <View style={localStyle.imageContainer}>
+            <View style={{alignItems:'center',borderWidth:2,marginRight:-2}}>
+              {!image ? <ActivityIndicator size='large' color='rgba(255,196,0,1)'/> :
+              <ImageModal source={image} style={localStyle.image} 
+              renderFooter={()=><Text style={{color:'white'}}>abc</Text>}
+              resizeMode="contain"/>}
+            </View>
+            <View >
+              <TouchableOpacity onPress={pickImage} style={[localStyle.smallButton,{marginBottom:-2}]}>
+                <Icon name='cloud-upload-outline' size={25}></Icon>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={deleteImage} style={localStyle.smallButton}>
+                <Icon name='close-outline' size={40}></Icon>
+              </TouchableOpacity>
+            </View>
+            <View style={{flex:1,paddingHorizontal: 5}}>
+              <NewButton title="Mentsd el a profilod" onPress={save} />
+            </View>
+          </View>
+          <Header title="Felhasználónév" icon="ios-finger-print" helpText="Ez az egyedi azonosítód a felhasználók közt"/>
+          <View style={[{flexDirection:'row',alignItems:'center'}]}>
+            <Icon style={{position:"absolute",alignSelf:'center',top:3,left:7}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={usernameValid ? "green" : "red"}/>
+            <TextInput
+              style={[localStyle.input,{paddingLeft:50,flex:1,borderColor: data.username == newData.username ? 'green' : 'orange'}]}
+              onChangeText={(e)=>{setNewData({...newData, username: e})}}
+              editable
+              placeholder="Add meg a felhasználóneved"
+              defaultValue={data.username}
+            />
+          </View>
+            {!usernameValid && !!newData.username && <Text style={[localStyle.label,{color:'red'}]}>Nem lehet ez a felhasználóneved!</Text>}
+
+          <Header title="Név" icon="person" helpText="A teljes neved, vagy ahogy szeretnéd hogy szólítsanak"/>
           <TextInput
-            style={[localStyle.input,{flex:1,borderColor: data.username == newData.username ? 'green' : 'orange'}]}
-            onChangeText={(e)=>{setNewData({...newData, username: e})}}
+            style={localStyle.input}
+            onChangeText={(e)=>setNewData({...newData, name: e})}
             editable
-            placeholder="Add meg a felhasználóneved"
-            defaultValue={data.username}
+            placeholder="Név"
+            defaultValue={data.name}
+          />
+          <Header title="Rólad" icon="ellipsis-horizontal" helpText="Bármilyen infó, amit fontosnak tartasz, hogy tudjanak rólad"/>
+          <TextInput
+            style={localStyle.input}
+            onChangeText={(e)=>setNewData({...newData, bio: e})}
+            editable
+            numberOfLines={5}
+            multiline
+            placeholder="Rólam"
+            defaultValue={data.bio}
           />
         </View>
-          {!usernameValid && !!newData.username && <Text style={[localStyle.label,{color:'red'}]}>Nem lehet ez a felhasználóneved!</Text>}
-
-        <Header title="Név" icon="person"/>
-        <TextInput
-          style={localStyle.input}
-          onChangeText={(e)=>setNewData({...newData, name: e})}
-          editable
-          placeholder="Név"
-          defaultValue={data.name}
-        />
-        <Header title="Bio" icon="ellipsis-horizontal"/>
-        <TextInput
-          style={localStyle.input}
-          onChangeText={(e)=>setNewData({...newData, bio: e})}
-          editable
-          multiline
-          numberOfLines={5}
-          placeholder="Rólam"
-          defaultValue={data.bio}
-        />
-        <Header title="Helyzet" icon="location-sharp"/>
-        <Text>{newData?.location?.name}</Text>
-        <Professions data={newData} setData={setNewData}/>
-        <Links data={newData} setData={setNewData}/>
-      </View>
+        <View style={{marginHorizontal: width > 900 ? 20 : 0,flex:1}}>
+          <Header title="Helyzet" icon="location-sharp" helpText="Olyan helyet vagy környéket adj meg, ahol általában szoktál lenni"/>
+          <Map/>
+          <Text>{newData?.location?.name}</Text>
+          <Professions data={newData} setData={setNewData}/>
+          <Links data={newData} setData={setNewData}/>
+        </View>
+      </Auto>
 
     </ScrollView>
-      <TouchableOpacity onPress={save} style={{margin:20,alignItems:'center'}}>
-        <Text><Icon name="save" color="black" size={25}/></Text>
-      </TouchableOpacity>
     </View>
   )
 
@@ -255,22 +279,22 @@ export const Professions = (props) => {
     setData({...data,profession:null})
   }
   return (
-    <View style={{width:'100%',flex:1}}>
-      <Header title="Ehhez értek" icon="thumbs-up" centered={centered}/>
-      <ScrollView>
+    <View style={{width:'100%',marginBottom:5}}>
+      <Header title="Ehhez értek" icon="thumbs-up" centered={centered} helpText=""/>
+      <ScrollView style={{flex:3}}>
       {list && !!list.length && list.map((e,i)=>
         <View key={i}  style={localStyle.profession}>
           <View style={{flexDirection:'row'}}>
-            <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
+            <View style={{width:50,justifyContent:'center',alignItems:'center'}}>
               <Pressable onPress={()=>remove(i)}>
                 <Text><Icon name="trash" color={themeColor} size={25}/></Text>
               </Pressable>
             </View>
-            <View style={{flex:4}}>
+            <View style={{flex:1,justifyContent:'center'}}>
               <TextInput style={localStyle.input} placeholder="kategória" onChangeText={(val)=>set(val,i,'name')} value={list[i].name}/>
-              <TextInput style={localStyle.input} placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={list[i].description} multiline numberOfLines={1}/>
+              <TextInput style={localStyle.input} placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={list[i].description} multiline numberOfLines={2}/>
             </View>
-            <View style={{flex:2,justifyContent:'center'}}>
+            <View style={{width:100,justifyContent:'flex-end'}}>
               <Pressable style={{width:100,height:100,margin:5,backgroundColor:'lightblue',alignItems:'center',justifyContent:'center'}}>
                 <Text>Új kép</Text>
               </Pressable>
@@ -282,9 +306,9 @@ export const Professions = (props) => {
       {!list?.length && <Text style={localStyle.label}>Van valami amiben jó vagy? </Text>}
       </ScrollView>
       <View>
-        <Pressable style={[localStyle.adder,centered ? {borderRadius:30} : {}]} onPress={addNew}>
+        <Pressable style={[localStyle.adder,centered ? {borderRadius:0} : {}]} onPress={addNew}>
           <Text style={localStyle.text}>
-            <Icon name="md-add" color={bgColor} size={40}/>
+            <Icon name="md-add" color={0} size={40}/>
           </Text>
         </Pressable>
       </View>
@@ -314,13 +338,13 @@ export const Links = (props) => {
     setData({...data,links:null})
   }
   return (
-    <View style={{width:'100%',flex:1}}>
+    <View style={{width:'100%'}}>
       <Header title="Elérhetőségeim" icon="at-sharp" centered={centered}/>
-      <ScrollView>
+      <ScrollView style={{flex:3}}>
       {list && !!list.length && list.map((e,i)=>
         <View key={i}  style={localStyle.profession}>
           <View style={{flexDirection:'row'}}>
-            <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
+            <View style={{width:50,justifyContent:'center',alignItems:'center'}}>
               <Pressable onPress={()=>remove(i)}>
                 <Text><Icon name="trash" color={themeColor} size={25}/></Text>
               </Pressable>
@@ -336,25 +360,88 @@ export const Links = (props) => {
       {!list?.length && <Text style={localStyle.label}>Milyen elérhetőségeid vannak?</Text>}
       </ScrollView>
       <View>
-        <Pressable style={[localStyle.adder,centered ? {borderRadius:30} : {}]} onPress={addNew}>
-          <Text style={localStyle.text}>+</Text>
+        <Pressable style={[localStyle.adder,centered ? {borderRadius:0} : {}]} onPress={addNew}>
+          <Text style={localStyle.text}>
+            <Icon name="md-add" color={0} size={40}/>
+          </Text>
         </Pressable>
       </View>
     </View>)
 }
 
+const Map = () => {
+  const [map, setMap] = useState(null);
+
+  useEffect(() => {
+    if (map) {
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(map);
+    }
+  }, [map]);
+
+  useEffect( () => { 
+    return
+    let link = document.getElementById("link")
+    let script = document.getElementById("script")
+    if (!document.getElementById("link") && !document.getElementById("script")) {
+      link = document.createElement("link");
+      link.id = "link"
+      link.rel = "stylesheet";
+      link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
+      link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+      link.crossOrigin=""
+
+      script = document.createElement("script");
+      script.id = "script"
+      script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
+      script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
+      script.crossOrigin=""
+
+      document.head.appendChild(link);
+      document.body.appendChild(script);
+    } else {
+
+    }
+
+    script.onload = () => {
+      setMap(L.map('map').setView([47.4983, 19.0408], 13));
+    }
+  })
+  return null;
+  return (<div id="map" style={{height:200,borderWidth:2,borderStyle:'solid',marginTop:-2,marginBottom:5}}></div>)
+}
+
 const Header = (props) => {
-  const {icon,title,centered} = props
-  const color = themeColor
+  const {icon,title,centered,helpText} = props
+  const color = color2
+  const [help, setHelp] = useState(false);
   return (
-    <View style={[localStyle.adder,{flexDirection:'row',backgroundColor:color},centered ? {borderRadius:30} : {}]}>
+    <>
+    <View style={[localStyle.adder,{flexDirection:'row',borderWidth:2},centered ? {borderRadius:30} : {}]}>
       <View style={[localStyle.plusContainer,{color: color}]}>
-        <Text style={localStyle.plusText}><Icon name={icon} size={25} color={color}/></Text>
+        <Text style={localStyle.plusText}><Icon name={icon} size={25} color={0}/></Text>
       </View>
+      {(width > 900 || !help) && 
       <View style={localStyle.textContainer}>
-        <Text style={localStyle.text}>{title}</Text>
-      </View>
+        <View style={{flex:1}}>
+          <Text style={[localStyle.text]}>{title}</Text>
+        </View>
+        { helpText &&
+        <TouchableOpacity onPress={()=>setHelp(!help)}>
+          <Icon name={ help ? "help-circle" : "help-circle-outline"} size={25}/>
+        </TouchableOpacity>}
+      </View>}
+
     </View>
+    {(help && helpText) && 
+    <View style={[localStyle.adder,{flexDirection:'row',borderWidth:2},centered ? {borderRadius:30} : {}]}>
+      <View style={localStyle.textContainer}>
+        <Text style={localStyle.text}>{helpText}</Text>
+      </View>
+
+    </View>}
+    </>
   )
 }
 
@@ -362,63 +449,64 @@ const localStyle = StyleSheet.create ({
   container: { 
     textAlign:'left',
     backgroundColor: bgColor,
-    paddingLeft:20
+    padding: width > 900 ? 50 : 5
   },
   image: {
     resizeMode: 'cover',
     aspectRatio: 1,
     height:150,
-    borderRadius: 150,
     backgroundColor:bgColor
   },
   imageContainer: {
     backgroundColor: bgColor,
-    padding:10,
-    flexDirection: 'row'
+    flexDirection: 'row',
+    marginBottom:5
   },
   imagePadding: {
     flex:1,
     backgroundColor: themeColor
   },
   input: {
-    margin: 5,
+    paddingVertical: 5,
     borderColor: themeColor,
     borderWidth: 2,
     borderRadius: 0,
+    marginBottom:5,
     color:themeColor,
+    backgroundColor:'white',
     fontWeight: "600",
-    backgroundColor: bgColor,
-    padding: 10
+    padding: 10,
+    paddingVertical:10
   },
   adder: {
-    backgroundColor: themeColor,
-    borderRadius: 0,
-    borderTopLeftRadius: 30,
-    borderBottomLeftRadius: 30,
-    marginVertical: 10,
+    backgroundColor: 'white',
+    borderWidth:2,
+    //marginTop: 10,
+    marginBottom:-2,
     alignItems: 'center'
   },
   plusContainer: {
-    backgroundColor: bgColor,
-    borderRadius: 25,
+    backgroundColor: 'white',
     justifyContent: "center",
     textAlign: 'center',
     alignItems:'center',
-    margin: 2,
-    width: 40,
-    height: 40,
+    borderWidth:2,
+    margin:-2,
+    width: 43,
+    height: 43,
   },
   textContainer: {
-    justifyContent: 'center'
+    alignItems:'center',
+    flexDirection:'row',
+    flex:1
   },
   text: {
-    textAlign:'center',
-    color: bgColor,
-    margin: 10
+    color: 'black',
+    margin: 10,
   },
   profession: {
     paddingLeft: 0,
-    flex:1
+    marginTop:5
   },
   divider: {
     height:2,
@@ -428,5 +516,16 @@ const localStyle = StyleSheet.create ({
     marginLeft: 20,
     marginVertical: 10,
     fontSize: 16,
+  },
+  smallButton: {
+    paddingVertical:10,
+    paddingHorizontal:20,
+    alignItems: 'center',
+    justifyContent: "center",
+    borderWidth:2,
+    flex:1,
+    width:150/2,
+    backgroundColor:'white'
+
   }
 })

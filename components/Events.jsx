@@ -5,7 +5,7 @@ import { styles } from './styles'
 import { useNavigation, StackActions } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
 import { getDatabase, ref as dRef, child, onValue, get } from "firebase/database";
-import { Loading, LoadImage, FAB, Row } from './Components'
+import { Loading, ProfileImage, FAB, Row } from './Components'
 import { ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'
 

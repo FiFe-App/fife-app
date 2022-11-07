@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"
 import { Text } from "react-native"
+import { useSelector } from "react-redux";
   
 export const TextFor = ({style,text}) => {
     
     const texts = require('./texts.json');
     const arr = texts?.[text]
-    const on = true//useSelector((state) => state.user?.fancyText)
+    const on = useSelector((state) => state.user?.settings.fancyText)
     const [r, setR] = useState(0);
     useEffect(() => {
         setR(Math.floor(Math.random() * (arr?.length)))
@@ -53,7 +54,7 @@ function urlify(text) {
   }
   
   String.prototype.lastVowel = function() {
-    last = '';
+    let last = '';
     for (let i = 0; i < this.length; i++) {
       if (isVowel(this[i])) {
         last = this[i];
@@ -75,10 +76,10 @@ function urlify(text) {
   }
   
   function ToHigh(vowel){
-    vowel = vowel.toLowerCase();
-    low = "aóo";
-    high =  "eőe";
-    i = low.indexOf(vowel);
+    vowel.toLowerCase();
+    const low = "aóo";
+    const high =  "eőe";
+    let i = low.indexOf(vowel);
     if (i >= 0)
       return high.slice(i,i+1)
     else return vowel;
@@ -86,9 +87,9 @@ function urlify(text) {
   
   function toLong(vowel){
     vowel = vowel.toLowerCase();
-    short = "aeoöuü";
-    long =  "áéóőúű";
-    i = short.indexOf(vowel);
+    const short = "aeoöuü";
+    const long =  "áéóőúű";
+    let i = short.indexOf(vowel);
     if (i >= 0)
       return long.slice(i,i+1)
     else return vowel;
@@ -104,8 +105,8 @@ function urlify(text) {
   }
   
   function getPitch(word){
-    high = 0;
-    low = 0;
+    let high = 0;
+    let low = 0;
     for (let i = 0; i < word.length; i++) {
       if (isVowel(word[i])) {
         if (isCharHigh(word[i])) high++;
@@ -118,11 +119,11 @@ function urlify(text) {
     return "none";
   }
   
-  function toldalek(str,toldalek){
+  export function toldalek(str,toldalek){
     if (str == '' || toldalek == '' || str.length < 3) return "...";
     str = str.trim();
   
-    pitch = getPitch(str);
+    let pitch = getPitch(str);
     if (pitch != "low" && !(pitch == 'mixed' && !isCharHigh(str.lastVowel()))) {
       toldalek = wordToHigh(toldalek);
     }
@@ -153,6 +154,8 @@ function urlify(text) {
 
 export function elapsedTime(date) {
     
+  if (!date) return null;
+  
   let str = 'másodperce'
   let elapsed = Date.now()-date
   elapsed /= 1000

@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { Text, Animated, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Platform, Dimensions } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { Text, Animated, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput as RNTextInput, TouchableOpacity, ActivityIndicator, Platform, Dimensions } from 'react-native';
 import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
 import Icon from 'react-native-vector-icons/Ionicons'
 import { LinearGradient } from "expo-linear-gradient";
@@ -39,48 +39,65 @@ const Loading = (props) => {
   return (
     <View style={{ flexDirection: "row" }}>
       <Animated.View style={[{ flex: (1) }]} />
-      <Animated.View style={[{ flex: sweepAnim, opacity: (fadeAnim), backgroundColor: props.color, height: 5 }]} />
+      <Animated.View style={[{ flex: sweepAnim, opacity: (fadeAnim), backgroundColor: props.color, height: props?.height || 5 }]} />
       <Animated.View style={[{ flex: (1) }]} />
     </View>
   );
 }
 
-const LoadImage = (props) => {
+const getUri = async (path) => {
+  const storage = getStorage();
+  const imgRef = sRef(storage, path);
+  console.log('path',path);
+  let returnValue = null 
+  await getDownloadURL(imgRef).then(
+    uri=>{
+      returnValue = uri
+    }
+  )
+  console.log(returnValue);
+  return returnValue
+} 
+
+const ProfileImage = (props) => {
   const defaultUrl = require('../assets/profile.jpeg');
   const [url, setUrl] = React.useState(null);
   const [loaded, setLoaded] = React.useState(false);
   const storage = getStorage();
-  const imgRef = sRef(storage, `profiles/${props.uid}/profile.jpg`);
+  const imgRef = sRef(storage, props?.uid ? `profiles/${props.uid}/profile.jpg` : props.uid);
 
   useEffect(() => {
-    if (imgRef)
+    setLoaded(false)
       getDownloadURL(imgRef)
       .then((url) => {
         setUrl(url);
+        setLoaded(true)
       })
       .catch((error) => {
         setUrl(defaultUrl)
+        setLoaded(true)
       });
-  }, [props.url]);
+  }, [props]);
 
   var size = 40;
   if (props.size) size = props.size;
 
-  return <View style={[{ margin: 5 }, props.style]}>
-    { !loaded &&
-    <ActivityIndicator style={{position:'absolute', width: size, height: size}} color='rgba(255,175,0,0.7)' />}
+  return <View style={[props.style,{width: size, height: size}]}>
+    { !loaded ?
+    <ActivityIndicator style={{position:'absolute', width: size, height: size}} color='rgba(255,175,0,0.7)' />:
     <Image style={{width: size, height: size}}
-      source={{ uri: url }}  onLoad={() => setLoaded(true)}/>
+      resizeMode="cover"
+      source={{ uri: url }} onLoad={() => setLoaded(true)} onError={()=>{setUrl(defaultUrl)}}/>}
     
     </View>;
     
 }
 
-function NewButton({color = "#FFC372",title,onPress}) {
+function NewButton({color = "#FFC372",title,onPress,disabled}) {
   return (
-    <Pressable style={[styles.newButton, { backgroundColor: color }]} onPress={onPress}>
+    <TouchableOpacity style={[styles.newButton, { backgroundColor: disabled ? '#d6b17f' : color }]} onPress={onPress} disabled={disabled}>
           <Text style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{title}</Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 
@@ -179,12 +196,22 @@ function Col(props) {
   );
 }
 
+function Auto({children,style}) {
+  
+  const width = Dimensions.get('window').width
+  return (
+    <View style={[{flexDirection: width <= 900 ? 'column' : 'row',width:'100%',height:'100%',flex:1},style]}>
+      {children}
+    </View>
+  )
+}
+
 function FAB(props){
   const {onPress, color='blue', icon, size=50} = props
   
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}
-     style={[styles.touchableOpacityStyle,styles.floatingButtonStyle,{backgroundColor:color, width: size, height: size, borderRadius: size}]}>
+     style={[styles.touchableOpacityStyle,styles.floatingButtonStyle,{backgroundColor:color, width: size, height: size}]}>
       <Icon name={icon} size={size} color="#fff" />
     </TouchableOpacity>
   )
@@ -299,7 +326,7 @@ const SearchBar = (props) => {
       <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, value } }) => (
-            <TextInput
+            <RNTextInput
               style={[newStyles.searchInput,{flex:1}]}
               onBlur={onBlur}
               autoCapitalize='none'
@@ -335,16 +362,32 @@ const OpenNav = ({open,children,style}) => {
   )
 }
 
+const TextInput = (props) => {
+  const [isFocused, setIsFocused] = useState(false);
+  return (
+    <RNTextInput
+      {...props}
+      placeholderTextColor="grey"
+      style={[props.style, isFocused && {backgroundColor:'#fbf7f0'},Platform.OS === "web" && {outline: "none" }]}
+      onBlur={() => setIsFocused(false)}
+      onFocus={() => setIsFocused(true)}
+    />
+  );
+};
+
 export {
-  LoadImage,
+  ProfileImage,
+  getUri,
   Slideshow,
   Loading,
   Row,
   Col,
+  Auto,
   FAB,
   SearchBar,
   OpenNav,
-  NewButton
+  NewButton,
+  TextInput
 }
 
 const styles = StyleSheet.create({
@@ -370,17 +413,16 @@ const styles = StyleSheet.create({
   },
   floatingButtonStyle: {
     resizeMode: 'contain',
-    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor:'crimson'
   },
   newButton:{
-    width:'100%',
-    paddingVertical:10,
-    paddingHorizontal:20,
+    flex:1,
     alignItems: 'center',
     justifyContent: "center",
-    borderWidth:2
+    borderWidth:2,
+    marginTop:-2,
+    marginLeft:-2
   },
 });

@@ -1,13 +1,16 @@
-import React, {useState} from 'react';
-import { StyleSheet, View, Text, Button, Pressable, TouchableOpacity } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import { StyleSheet, View, Text, Button, Pressable, TouchableOpacity, Dimensions } from 'react-native';
 import { Pages } from "./pages";
 import * as Progress from 'react-native-progress';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { ScrollView } from 'react-native-web';
 
 
-const First = () => {
+const First = ({scrollView}) => {
     const navigation = useNavigation()
-    const [page, setPage] = useState(0);
+    const route = useRoute()
+    const width = Dimensions.get('window').width
+    const [page, setPage] = useState(route.params?.p || 0);
     const [newData, setNewData] = React.useState({
       name: '',
       username: '',
@@ -15,27 +18,46 @@ const First = () => {
       profession: [],
       links: [],
     });
-    const pages = Pages({newData, setNewData})
+    const [pageData, setPageData] = useState(null);
+    const [backDisabled, setBackDisabled] = useState(true);
+    const [nextDisabled, setNextDisabled] = useState(false);
+    const pages = Pages({newData, setNewData,pageData, setPageData})
     const goTo = (page) => {
       if (page < pages.length && page >= 0)
         setPage(page)
       if (page == pages.length)
-        navigation.navigate('home')
+        navigation.navigate('home');
     }
+
+    useEffect(() => {
+      console.log('pageData',pageData);
+
+      //setNextDisabled(!pageData || Object.values(pageData[page]).some(p=>p==false))
+      setBackDisabled(page == 0)
+    }, [pageData,page]);
+
+    useEffect(() => {
+      if (page != null) {
+        navigation.setParams({
+          p: page,
+        });
+        
+      }
+    }, [page]);
   return (
-    <View style={{flex:1}}>
-      <View style={{ flex: 5, alignItems:'center', justifyContent:'flex-start',padding:100 }}>
+    <View style={{height:Dimensions.get('window').height}}>
+      <ScrollView style={{ flex: 5, padding:  width > 900 ? 100 : 2, paddingTop: 20 }} contentContainerStyle={{alignItems:'center', justifyContent:'flex-start'}}>
           {pages[page]}
-      </View>
+      </ScrollView>
       <View style={{flexDirection:'row',height:10}}>
-        <View style={{backgroundColor:'rgba(255,196,0,1)',width:page/(pages.length-1)*100+'%'}}/>
+        <View style={{backgroundColor:'rgba(255,196,0,0.7)',width:page/(pages.length-1)*100+'%'}}/>
         <View style={{backgroundColor:'none',width:100-page/(pages.length-1)*100+'%'}}/>
       </View>
       <View style={{ flex: 2, flexDirection:'row' }}>
-        <TouchableOpacity style={styles.button} onPress={()=>goTo(page-1)}>
-          <Text style={styles.buttonText}>Vissza</Text>
+        <TouchableOpacity style={[styles.button]} onPress={()=>backDisabled ? scrollView.scrollTo({ x: 0, y: 0, animated: true }) : goTo(page-1)}>
+          <Text style={styles.buttonText}>{backDisabled ? "Bejelentkezés" : "Vissza"}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={()=>goTo(page+1)}>
+        <TouchableOpacity style={[styles.button,nextDisabled && {backgroundColor:'#ffe385'}]} onPress={()=>goTo(page+1)} disabled={nextDisabled}>
           <Text style={styles.buttonText}>{page == pages.length-1 ? 'Befejezés' : 'Tovább'}</Text>
         </TouchableOpacity>
       </View>

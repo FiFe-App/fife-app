@@ -1,4 +1,4 @@
-import { LoadImage, Loading, Row } from '../Components'
+import { ProfileImage, Loading, Row } from '../Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 import React, { useEffect, useContext, useState } from 'react';
@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
   selectedLocation: {
     padding:10,
     borderColor: '#f9f9f9',
+    flex:1,
     borderWidth:1
   }
 })

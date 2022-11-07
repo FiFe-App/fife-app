@@ -1,4 +1,4 @@
-import { LoadImage, Loading } from './Components'
+import { ProfileImage, Loading } from './Components'
 import { getDatabase, ref, child, push, get, set, onValue } from "firebase/database";
 import { getAuth } from "firebase/auth";
 import React, { useContext, useEffect } from 'react';

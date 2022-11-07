@@ -13,8 +13,6 @@ export const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         flexWrap: 'wrap',
-        alignItems: 'center', // if you want to fill rows left to right
-        justifyContent: 'space-around',
         backgroundColor: 'white'
     },
     title: {
@@ -49,7 +47,6 @@ export const styles = StyleSheet.create({
         backgroundColor: "white",
         padding: 10,
         fontWeight: "500",
-        width: 200
     },
     fixToText: {
         flexDirection: 'row',

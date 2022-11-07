@@ -52,6 +52,7 @@ const mapaData = [
   }
 ]
 
+
 export const Maps = () => {
     const {database} = useContext(FirebaseContext);
     const [mapOptions,setMapOptions] = useState({
@@ -70,6 +71,7 @@ export const Maps = () => {
     const [maplist,setMapList] = useState(null)
     const [search, setSearch] = React.useState('');
     const [filterList,setFilterList] = useState(null);
+    const [greenIcon, setGreenIcon] = useState(null);
     const defaultFilterList = [
       {name: 'ABC',function: (prop='name') => ((a,b)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))},
       {name: 'CBA',function: (prop='name') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))},
@@ -107,6 +109,14 @@ export const Maps = () => {
 
       script.onload = () => {
         setMap(L.map('map').setView([47.4983, 19.0408], 13));
+        setGreenIcon(L.icon({
+          iconUrl: require('../../assets/marker.webp'),
+        
+          iconSize:     [38, 38], // size of the icon
+          iconAnchor:   [22, 38], // point of the icon which will correspond to marker's location
+          shadowAnchor: [4, 62],  // the same for the shadow
+          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+        }));
       }
 
       async function getData() {
@@ -118,12 +128,6 @@ export const Maps = () => {
       
     }, []);
 
-
-    useEffect(() => {
-      console.log(ids);
-    }, [ids]);
-    //useEffect(()=>setFilterList(reFilterList()),[filter])
-
     useEffect(() => {
       if (map) {
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -133,10 +137,10 @@ export const Maps = () => {
     }, [map]);
 
     useEffect(()=>{
-      if ( map && mapData) {
+      if ( map && mapData && selectedMap) {
         markers.forEach((m) =>map.removeLayer(m))
         mapData.find(e=>(e.name==selectedMap)).locations.forEach((location,index) => {
-          const marker = L.marker([location.lat, location.lng]).addTo(map)
+          const marker = L.marker([location.lat, location.lng],selected==location ? {icon: greenIcon } : {}).addTo(map)
           marker.bindPopup("<b>"+location.name+"</b><br>"+location.description)
           marker.on('click',() => {
             setSelected(location)
@@ -146,9 +150,7 @@ export const Maps = () => {
           setMarkers(old=>[...old,marker])
         });
       }
-
-
-    },[selectedMap])
+    },[selectedMap,selected])
 
     useEffect(()=>{
       const searchL = search.toLowerCase()
@@ -156,30 +158,47 @@ export const Maps = () => {
       setMapList(
         mapData.sort(filter.function('name')).map((map,index) => {
           if (
-            map.name.toLowerCase().includes(searchL) || 
+            map?.name?.toLowerCase().includes(searchL) || 
             !searchL || 
-            map.locations.find(e=>e.name.toLowerCase().includes(searchL) || 
-            e.description.toLowerCase().includes(searchL))
+            map?.locations?.find(e=>e?.name.toLowerCase().includes(searchL) || 
+            e?.description?.toLowerCase().includes(searchL))
           ) {
             
-            const placeList = map.locations.map((place,index2)=>{
-              if (place.name.toLowerCase().includes(searchL) || place.description.toLowerCase().includes(searchL) || !searchL)
+            const placeList = map?.locations?.map((place,index2)=>{
+              if (place?.name?.toLowerCase().includes(searchL) || place?.description?.toLowerCase().includes(searchL) || !searchL)
               return (
                 <Pressable style={[localStyles.mapLink,{left:10,marginHorizontal:40,borderColor:selected==place ? map.color : 'black'}]} 
-                           key={"place"+index2} onPress={()=>{setSelected(place); setIds({...ids,locationId:mapData.find(e=>e.name == selectedMap).locations.findIndex(e=>e.name==place.name)})}}>
+                           key={"place"+index2} onPress={()=>{
+                              if (selected==place) {
+                                setSelected(null)
+                                setIds({mapId:null,locationId:null})
+                              }
+                              else {
+                                setSelected(place);
+                                setIds({...ids,locationId:mapData.find(e=>e.name == selectedMap).locations.findIndex(e=>e.name==place.name)})
+                              }
+                            }}>
                   <Text style={{color:selected==place ? map.color : 'black'}}>{place.name}</Text>
                 </Pressable>)
             })
             return(
               <View key={index} style={{justifyContent:'flex-end'}}>
-                  <Pressable  onPress={()=>{setSelectedMap(map.name);setIds({...ids,mapId:mapData.findIndex(e=>e.name==map.name)})}} 
+                  <Pressable  onPress={()=>{
+                    if (selectedMap==map.name) {
+                      setSelectedMap(null);
+                      setIds({mapId:null,locationId:null})
+                    } else {
+                      setSelectedMap(map.name);
+                      setIds({...ids,mapId:mapData.findIndex(e=>e.name==map.name)})
+                    }
+                  }}
                   style={[localStyles.mapLink,selectedMap==map.name ? {borderColor:map.color} : {}]}>
                     <Icon style={{ marginHorizontal: 12 }}name='map' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
                     <Text style={selectedMap==map.name ?  {color:map.color} : {}}>{map.name}</Text>
                     <Icon style={{ marginHorizontal: 12, flex:1, textAlign:'right' }} name='arrow-forward' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
                   </Pressable>
                   {selectedMap == map.name && 
-                  <ScrollView style={{maxHeight:300}}>
+                  <ScrollView >
                     {placeList}
                   </ScrollView>}
               </View>
@@ -215,9 +234,9 @@ export const Maps = () => {
           <View style={{textAlign:'right',marginHorizontal:50}}>
             {filterList}  
           </View>      
-          <View style={{flex:1}}>
+          <ScrollView style={{flex:2}}>
             {maplist || <ActivityIndicator size="large" />}
-          </View>          
+          </ScrollView>          
           <LocationData location={selected} locationId={ids.locationId} mapId={ids.mapId}/>
         </View>
         <div id="map" style={localStyles.map}></div>
@@ -257,7 +276,6 @@ const localStyles = {
         margin: 5,
         borderColor: "black",
         borderWidth: 2,
-        borderRadius: 10,
         backgroundColor: "white",
         padding: 10,
         fontWeight: "bold",
@@ -286,7 +304,6 @@ const localStyles = {
       marginHorizontal: 30,
       borderColor: 'black',
       borderWidth:1,
-      borderRadius: 6,
       flexDirection: 'row',
       justifyContent: 'start',
       alignItems: 'center'

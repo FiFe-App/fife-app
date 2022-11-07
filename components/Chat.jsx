@@ -1,10 +1,10 @@
 import { useState, useContext, useEffect } from "react";
-import {View, Text, TextInput, Pressable, ScrollView, StyleSheet, TouchableOpacity} from 'react-native'
+import {View, Text, Pressable, ScrollView, StyleSheet, TouchableOpacity} from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
 import { ref, child, get, set, onValue, onChildAdded, push, off } from "firebase/database";
 import Icon from 'react-native-vector-icons/Ionicons'
-import { Loading, LoadImage } from "./Components";
+import { Loading, ProfileImage, TextInput } from "./Components";
 import { removeUnreadMessage } from '../userReducer';
 
 export const Chat = ({route, navigation, propUid}) => {
@@ -28,19 +28,20 @@ export const Chat = ({route, navigation, propUid}) => {
 
     const send = () => {
         console.log(message);
-        if (database) {
+        if (database && message) {
             const messageListRef = ref(database, `users/${uid}/messages/${uid2}`);
             const messageListRef2 = ref(database, `users/${uid2}/messages/${uid}`);
             const newMessageRef = push(messageListRef);
             const newMessageRef2 = push(messageListRef2);
             set(newMessageRef, {
-                text: message || 'buzi vagyok',
+                text: message,
                 uid: uid,
                 time: Date.now()
             })
             set(child(messageListRef,'read'),null).then(e=>{
                 console.log('set!!!!');
             })
+            set(child(messageListRef,'last'),{message:message,from:uid,date:Date.now()})
             set(newMessageRef2, {
                 text: message,
                 uid: uid,
@@ -49,6 +50,7 @@ export const Chat = ({route, navigation, propUid}) => {
             set(child(messageListRef2,'read'),null).then(e=>{
                 console.log('set!!!!');
             })
+            set(child(messageListRef2,'last'),{message:message,from:uid,date:Date.now()})
             setMessage('');
             if (input)
                 input.focus()
@@ -56,10 +58,10 @@ export const Chat = ({route, navigation, propUid}) => {
     }
 
     useEffect(() => {
-        if (scrollView) {
+        if (scrollView && uid2) {
             scrollView.scrollToEnd({animated:false})
         }
-    }, [scrollView,messages]);
+    }, [messages,scrollView]);
     
     useEffect(() => {
         console.log(route?.params);
@@ -70,7 +72,7 @@ export const Chat = ({route, navigation, propUid}) => {
                 onValue(profileListRef, (snapshot) => {
                     setHeader(
                         <TouchableOpacity onPress={()=>navigation.navigate('profile',{uid:uid2})} style={{flexDirection:'row',alignItems:'center',margin:5,padding:10}}>
-                            <LoadImage style={styles.listIcon} uid={uid2}/>
+                            <ProfileImage style={styles.listIcon} uid={uid2}/>
                             <Text style={{margin:5,fontSize:16,fontWeight:'400'}}>{snapshot.child('name').val()}</Text>
                         </TouchableOpacity>
                     )
@@ -81,7 +83,7 @@ export const Chat = ({route, navigation, propUid}) => {
             setMessages([])
             set(child(messageListRef,'read'),true)
             onChildAdded(messageListRef, (data) => {
-                if (data.key != 'read')
+                if (data.key != 'read' && data.key != 'date' && data.key != 'last')
                     setMessages(old => [...old,data.val()])
             });
             dispatch(removeUnreadMessage(uid2))
@@ -100,6 +102,7 @@ export const Chat = ({route, navigation, propUid}) => {
         <View style={{flex:1}}>
             {header && header}
             <ScrollView 
+            snapToEnd
             ref={(scroll) => {setScrollView(scroll)}}
             style={{flex:1,backgroundColor:'white'}} contentContainerStyle={styles.messages}>
                 {messages.map((e,i)=> {
@@ -110,16 +113,16 @@ export const Chat = ({route, navigation, propUid}) => {
             </ScrollView>
         </View> : 
         <View style={{flex:1, backgroundColor:'white'}}>
-            <Loading color="blue"/>
+            <Loading color="rgba(255,175,0,0.7)"/>
         </View>}
         <View style={styles.input}>
-            <TextInput 
+            <TextInput
                 style={styles.textInput} 
                 onChangeText={setMessage}
                 value={message}
                 placeholder="Írj valami kedveset..."
                 onSubmitEditing={send}
-                ref={input}
+                ref={(i)=>setInput(i)}
             />
             <Pressable onPress={send} style={styles.textButton}>
                 <Icon name="send" color="white" size={20}/>

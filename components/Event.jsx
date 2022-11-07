@@ -1,4 +1,4 @@
-import { LoadImage, Loading, Row, Col } from './Components'
+import { ProfileImage, Loading, Row, Col } from './Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 import { getAuth } from "firebase/auth";
@@ -85,7 +85,7 @@ export const Event = ({ navigation, route }) => {
     <View>
       <Row style={{alignItems: 'center',justifyContent: "center"}}>
         <Row style={{flex:1,justifyContent: "center",alignItems: 'center'}}>
-          <LoadImage  uid={finalUid} size={50}/>
+          <ProfileImage  uid={finalUid} size={50}/>
           <Text style={[styles.subTitle]}>{'profile.name'}</Text>
         </Row>
       </Row>

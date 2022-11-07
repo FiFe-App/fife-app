@@ -6,7 +6,7 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ref, child, get, set, onValue, onChildAdded, off } from "firebase/database";
+import { ref, child, get, set, onValue, onChildAdded, off, limitToFirst, query, orderByChild, limitToLast } from "firebase/database";
 // routes
 import { HomeScreen, LogoTitle } from './components/HomeScreen';
 
@@ -29,6 +29,7 @@ import { Maps } from "./components/Maps/Maps";
 // fonts
 import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
 import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -48,7 +49,8 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { useSelector } from 'react-redux'
 
 import { useDispatch } from 'react-redux';
-import { setUnreadMessage } from './userReducer';
+import { init, removeUnreadMessage, setUnreadMessage } from './userReducer';
+import { toldalek } from './textService/textService';
 
 
 //SplashScreen.preventAutoHideAsync();
@@ -71,10 +73,6 @@ export default function App(props) {
   const notificationListener = useRef();
   const responseListener = useRef();
   const linking = useState({prefixes: [prefix]})
-
-  useEffect(() => {
-    
-  }, []);
 
   useEffect(() => {
     if (Platform.OS == 'android') {
@@ -130,25 +128,21 @@ const PopUps = () => {
     console.log('remove');
   }
 
-
   useEffect(() => {
     if (database) {
-
         const dbRef = ref(database,`users/${uid}/messages`);
         const userRef = ref(database,`users`);
 
-        let allUnread = 0
         onChildAdded(dbRef, (childSnapshot) => {
+            console.log('new message:',childSnapshot.val());
             const childKey = childSnapshot.key;
             const read = childSnapshot.child('read').val() 
-            console.log('chat',childKey);
-            if (!read) {
+            const last = childSnapshot.child('last').val() 
+            if (!read && last?.from != uid) {
               get(child(userRef,childKey+'/data/name')).then((snapshot) => {
                   const name = snapshot.val()
-                  console.log('messager added',name);
-                  setPopups(old=>[...old,{uid:childKey,name:name}])
+                  setPopups(old=>[...old,{uid:childKey,name:name,text:last?.message}])
                 });
-                console.log('unread++',allUnread);
                 dispatch(setUnreadMessage(childKey))
             }
         });
@@ -161,9 +155,12 @@ const PopUps = () => {
     <View>
       {
       popups.map((popup,index)=>
+      
         <Popup 
-          title={'Új üzenet '+popup.name} 
+          title={popup.name + ' üzenetet küldött neked!'} 
+          description={popup.text}
           key={index} 
+          index={index}
           handleClose={()=>removePopup(index)}
           handlePress={()=>console.log('clicked')}
         />)
@@ -171,18 +168,20 @@ const PopUps = () => {
     </View>)
 }
 
-const Popup = ({title,description,handlePress,handleClose}) => {
+const Popup = ({title,description,handlePress,handleClose,index}) => {
   return (
     <Pressable 
       onPress={handlePress}
-      style={{position:'absolute',bottom:10,right:10,width:300,borderWidth:2,height:100,backgroundColor:'white',padding:20}}>
+      style={{position:'absolute',bottom:10+105*index,right:10,width:300,borderWidth:2,height:100,backgroundColor:'white',padding:20}}>
       <View style={{flexDirection:'row'}}>
         <Text style={{fontWeight:'bold',flexGrow:1}}>{title}</Text>
         <Pressable onPress={handleClose}>
-          <Text>X</Text>
+          <Text>
+            <Icon name='close' size={25}/>
+          </Text>
         </Pressable>
       </View>
-      <Text>Hello</Text>
+      <Text>{description}</Text>
     </Pressable>
   )
 }
@@ -204,17 +203,22 @@ const Show = (props) => {
 
 const Navigator = () => {
   const user = useSelector((state) => state.user);
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    //dispatch(init());
+  }, []);
 
   return (
     <Stack.Navigator initialRouteName="login" screenOptions={{ header: () => <LogoTitle />, title:"FiFe App"}}>
         <>
           <Stack.Screen name="login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="about" component={First} options={{ headerShown: false }} />
           {user?.uid && <>
           <Stack.Screen name="home" component={HomeScreen} />
           <Stack.Screen name="search" component={Search} />
 
           <Stack.Screen name="profile" component={Profile} options={{ title: "Profil" }} />
-          <Stack.Screen name="about" component={First} options={{ headerShown: false }} />
           <Stack.Screen name="edit-profile" component={Edit} options={{ title: "Profil szerkesztése" }} />
           <Stack.Screen name="messages" component={Messages} options={{ title: "Beszélgetések" }} />
           <Stack.Screen name="chat" component={Chat} options={{ title: "Beszélgetés" }} />

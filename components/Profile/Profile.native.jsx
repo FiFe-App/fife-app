@@ -1,4 +1,4 @@
-import { LoadImage, Loading, Row } from '../Components'
+import { ProfileImage, Loading, Row } from '../Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 
@@ -89,7 +89,7 @@ export const Profile = ({ navigation, route }) => {
   return(
     <View>
       <Row style={{justifyContent: "center",alignItems: 'center',margin:10}}>
-        <LoadImage uid={uid} size={50}/>
+        <ProfileImage uid={uid} size={50}/>
         <AutoSizeText
           fontSize={32}
           numberOfLines={1}

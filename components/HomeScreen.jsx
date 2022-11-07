@@ -118,7 +118,7 @@
   const Menu = ({ navigation, route }) => {
     return(
       <View style={styles.modules}>
-          <Module title="Segélykérés" text="" color="#ffb0b0" to={"help"} icon="alert-outline" flat/>
+          {/*<Module title="Segélykérés" text="" color="#ffb0b0" to={"help"} icon="alert-outline" flat/>*/}
           <Module title="profile" text="" color="#D8FFCD" to={"profile"} icon="person-outline" />
           <Module title="messages" color="#CDEEFF" icon="mail-outline" to={"messages"} number={'unreadMessage'}/>
           <Module title="sale" color="#fffbc9" icon="shirt-outline" to={"sale"}/>
@@ -158,7 +158,7 @@
 
   function Module(props) {
     const { flat } = props;
-    const number = props?.number ? useSelector((state) => state.user[props.number]).length : 0
+    const number = useSelector((state) => state.user)[props?.number]?.length || 0
     const navigation = useNavigation();
     const onPress = (to) => {
       navigation.push(to, props.with);
@@ -166,7 +166,7 @@
     return (
       <TouchableOpacity onPress={() => onPress(props.to)}>
         <View style={moduleStyle(props.color,flat)}>
-          <Row style={{height: '100%' }}>
+          <Row style={{height: '80%' }}>
               <Text style={{ marginHorizontal: 12 }}><Icon name={props.icon} size={25} color={isBright(props.color)} /></Text>
               {!!number && <Text style={styles.number}>{number}</Text>}  
             <Col>
@@ -182,12 +182,11 @@
 
   var moduleStyle = function(color,flat) {
     return {
-      width: flat ? widthPercentageToDP(97) : widthPercentageToDP(47),
-      height: flat ? heightPercentageToDP(10) : heightPercentageToDP(27),
+      width: flat ? widthPercentageToDP(97) : widthPercentageToDP(50),
+      flex:1,
       
-      marginVertical: 3,
       backgroundColor: color,
-      borderWidth: 2,
+      borderWidth: 1,
       padding: 10,
     }
   }

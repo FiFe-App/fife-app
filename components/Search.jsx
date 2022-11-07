@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View, Pressable, Image } from 'react-native';
 import { global } from './global'
 import { useNavigation, StackActions } from '@react-navigation/native';
-import { getDatabase, ref as dRef, child, onValue, get } from "firebase/database";
-import { Loading, LoadImage } from './Components'
+import { getDatabase, ref as dRef, child, onValue, get, query, orderByChild } from "firebase/database";
+import { Loading, ProfileImage } from './Components'
 import { FirebaseContext } from '../firebase/firebase';
 import { SearchBar } from './Components';
 import { ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
@@ -15,17 +15,21 @@ export const Search = ({ navigation, route }) => {
     
     const [array, setArray] = React.useState([]);
     const [isMapView, setIsMapView] = useState(false);
-    const categories = [
+    /*const categories = [
         {
             path: 'user',
             keys: ['name','username',{key:profession,subKeys:['name','description']}]
         }
-    ]
+    ]*/
+
+    useEffect(() => {
+        console.log(array);
+    }, [array]);
 
     useEffect(() => {
         if (database) {
-            categories.forEach(element => {
-                const dbRef = query(dRef(database,'/'+element.path), orderByChild('name'));
+            //categories.forEach(element => {
+                const dbRef = query(dRef(database,'/users'), orderByChild('name'));
                 onValue(dbRef, (snapshot) => {
                     if (snapshot.exists())
                     snapshot.forEach((childSnapshot) => {
@@ -34,7 +38,11 @@ export const Search = ({ navigation, route }) => {
     
                         let found = null
                         let index = null
-                        
+
+                        if (key=='all') {
+                            found = childData.username
+                            console.log(found);
+                        }
                         if (childData.name && childData.name.toLowerCase().includes(key.toLowerCase())) found = childData.username
                         if (childData.username && childData.username.toLowerCase().includes(key.toLowerCase())) found = childData.username
                         if (childData.profession && childData.profession.filter((e,i)=>{
@@ -48,10 +56,10 @@ export const Search = ({ navigation, route }) => {
                         }).length) found = childData.profession[index].name
     
                         if (found)    
-                        setArray([...array,<Item key={childKey} title={childData.name} text={found} uid={childKey} />]);
+                        setArray(oldarray=>[...oldarray,<Item key={childKey} title={childData.name} text={found} uid={childKey} />]);
                     });
                 });
-            });
+            //});
         }
     }, [database])
 
@@ -86,7 +94,7 @@ function Item({title,text,uid}) {
     }
     return (
         <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row"}]}>
-            <LoadImage style={styles.listIcon} uid={uid}/>
+            <ProfileImage style={styles.listIcon} uid={uid}/>
             <View style={{marginLeft: 5}}>
               <Text style={{ fontWeight: 'bold',flex: 1, }}>{title}</Text>
               <Text style={{ flex:1, }}>{text}</Text>

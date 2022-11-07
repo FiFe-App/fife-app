@@ -6,9 +6,9 @@ import firebaseConfig from './firebaseConfig';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, FacebookAuthProvider, signInWithPopup, fetchSignInMethodsForEmail } from "firebase/auth";
 
 import { initializeApp } from 'firebase/app';
-import { getDatabase } from "firebase/database";
+import { get, getDatabase, ref } from "firebase/database";
 import { useDispatch } from 'react-redux';
-import { login as sliceLogin, logout as sliceLogout } from '../userReducer';
+import { login as sliceLogin, logout as sliceLogout, setSettings, setUserData } from '../userReducer';
 import { Platform } from 'react-native';
 
 
@@ -63,7 +63,24 @@ export default ({ children }) => {
             const a = getAuth(retApp)
             await signInWithEmailAndPassword(a, newEmail, newPass)
             .then((userCredential) => {
-                dispatch(sliceLogin(userCredential.user.uid))
+                const user = userCredential.user
+                dispatch(setUserData({
+                    email:user.email,
+                    emailVerified:user.emailVerified,
+                    providerData:user.providerData,
+                    createdAt:user.createdAt,
+                    lastLoginAt:user.lastLoginAt
+                }))
+                console.log(userCredential);
+
+                dispatch(sliceLogin(user.uid))
+                const dbRef = ref(getDatabase(retApp),'users/' + user.uid + "/settings");
+                get(dbRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    dispatch(setSettings(snapshot.val()))
+                }
+                
+                })
                 response = {success:true}
             })
             .catch((error) => {

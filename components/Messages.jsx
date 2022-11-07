@@ -3,18 +3,21 @@ import {View, Text, TouchableOpacity, ScrollView, Platform, Dimensions} from 're
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
 import { ref, child, get, set, onValue, onChildAdded, off } from "firebase/database";
-import { LoadImage } from './Components'
+import { ProfileImage } from './Components'
 import { useNavigation } from '@react-navigation/native';
 import { styles } from "./styles";
 import { Chat } from "./Chat";
 import { widthPercentageToDP,  heightPercentageToDP} from 'react-native-responsive-screen';
+import { elapsedTime } from "../textService/textService";
+
+const width = Dimensions.get('window').width
 
 export const Messages = ({route,navigation}) => {
     const [list, setList] = useState([]);
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
-    const width = Dimensions.get('window').width
     const [selected, setSelected] = useState(route?.params?.selected);
+    const unreadMessages = useSelector((state) => state.user.unreadMessage)
 
     const getRandom = () => {
         const dbRef = ref(database,`users`);
@@ -34,29 +37,34 @@ export const Messages = ({route,navigation}) => {
                             getRandom()
                             return;
                         } else 
-                        navigation.navigate('chat',{uid:childSnapshot.key});
+                        navigation.navigate('messages',{selected:childSnapshot.key});
                     }
                 })
             }
         })
     }
+
+    useEffect(() => {
+        setList(list.sort((a,b)=>(a.date > b.date ? -1 : 1)))
+    }, [list]);
     
     useEffect(() => {
         if (database) {
             if (route?.params?.random) getRandom()
-
-            console.log('uid',uid);
-
             const dbRef = ref(database,`users/${uid}/messages`);
+
             const userRef = ref(database,`users`);
 
             onChildAdded(dbRef, (childSnapshot) => {
                 const childKey = childSnapshot.key;
-                console.log('chat',childKey);
+                console.log(unreadMessages);
+                const read = !unreadMessages?.includes(childKey)
+                console.log('read',read);
+                const last = childSnapshot.child('last').val() || null
                 get(child(userRef,childKey+'/data/name')).then((snapshot) => {
                     const name = snapshot.val()
                     console.log('messager added',name);
-                    setList(old=>[...old,{uid:childKey,name:name}])
+                    setList(old=>[...old,{uid:childKey,name:name,read:read,last:last}])
                   });
             });
 
@@ -64,15 +72,19 @@ export const Messages = ({route,navigation}) => {
       }, [database]);
 
       useEffect(() => {
-        if (selected && width <= 900)
-            navigation.navigate("chat", {uid:selected});
+        if (selected && width <= 900) {
+            navigation("chat", {uid:selected});
+        }else
+            navigation.setParams({
+                selected: selected,
+            });
       }, [selected]);
     return (
     <View style={{flex:1, flexDirection:'row'}}>
         <ScrollView style={{flex:1}}>
             {!!list.length && list.map((e,i)=>{
                 return (
-                    <Item title={e?.name} selected={selected == e?.uid} text={e?.last} uid={e?.uid} key={i} setSelected={setSelected}/>
+                    <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={i} setSelected={setSelected}/>
                 )
             })}
         </ScrollView>
@@ -85,11 +97,14 @@ export const Messages = ({route,navigation}) => {
     )
 }
 
-function Item({title,text,uid,selected,setSelected}) {
+function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
     const navigation = useNavigation();
     const width = Dimensions.get('window').width
+    const [newMessage, setNewMessage] = useState(newMessageProp);
+    const elapsed = elapsedTime(last?.date)
     
     const onPress = () => {
+        setNewMessage(false)
         if (width > 900)
             setSelected(uid)
         else 
@@ -98,11 +113,13 @@ function Item({title,text,uid,selected,setSelected}) {
 
     return (
         <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fdfdfd' : '#f6f6f6'}]}>
-            <LoadImage style={styles.listIcon} uid={uid}/>
-            <View style={{marginLeft: 5}}>
+            <ProfileImage style={styles.listIcon} uid={uid}/>
+            <View style={{marginLeft: 5,flexGrow:1}}>
               <Text style={{ fontWeight: 'bold',flex: 1, }}>{title}</Text>
-              <Text style={{ flex:2, }}>{text}</Text>
+              <Text style={{ flex:2, }}>{last?.message}<Text style={{color:'grey'}}> - {elapsed}</Text></Text>
             </View>
+            {!!newMessage &&
+             <View style={{marginHorizontal:30,width:10,height:10,borderRadius:10,backgroundColor:'orange',justifyContent:'flex-end'}}/>}
         </TouchableOpacity>
     );
     

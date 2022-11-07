@@ -3,6 +3,7 @@
     "no_result": ["Nincs találat","Hupsz! Nem találtunk semmit.","Próbáld meg más megfogalmazásban!"],
     "sale": ["Cserebere","Adok-veszek"],
     "buy_item": ["Megveszem","Kell nekem"],
+    "item_header": ["Új cserebere poszt létrehozása","Adj el, vagy vegyél valamit!","Hirdess!"],
     "places": ["Térképek","Mi merre van","Hol vagyok"],
     "profile": ["Profil","Én"],
     "help_needed": ["Egyedül nem merek elmenni","Valaki segítene eltévedni?"],

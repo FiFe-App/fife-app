@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { Component, useState, useContext } from 'react';
+import React, { Component, useState, useContext, useEffect } from 'react';
 //import { Image, Text, View, Button, TextInput } from 'react-native';
-import { Text, View, Button, TextInput, StyleSheet, Dimensions } from 'react-native';
+import { Text, View, Button, TextInput, StyleSheet, Dimensions, ScrollView } from 'react-native';
 // routes
 
 import { styles } from '../styles'
@@ -14,12 +14,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import { FirebaseContext } from '../../firebase/firebase';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import Icon from 'react-native-vector-icons/Ionicons'
+import First from '../First/First';
 
 const LoginScreen = ({ navigation, route }) => {
   const [canLogin, setCanLogin] = React.useState(route.params?.logout || false);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const {app, auth, user, api}  = useContext(FirebaseContext);
+  const height = Dimensions.get('window').height;
+  const [scrollView, setScrollView] = useState(null);
 
   
     React.useEffect(() => {
@@ -38,22 +42,31 @@ const LoginScreen = ({ navigation, route }) => {
     });
     return (
       (fontsLoaded) &&
+      <ScrollView 
+      ref={ref=>{setScrollView(ref)}}
+      pagingEnabled={true}
+      scrollsToTop={false}
+      scrollEventThrottle={100}
+      automaticallyAdjustContentInsets={false}
+      directionalLockEnabled={true}
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}>
       <LinearGradient colors={["rgba(255,196,0,1)", "rgba(255,242,207,1)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={localStyle.container}>
-        <Text style={{fontSize:'12.85vw', fontFamily:'Raleway_800ExtraBold',color:'white',flex:3,marginTop:100}}>FiFe. A közösség</Text>
-        <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'flex-start',flex:5,width:'100%',display:'flex'}}>
-          <View style={{flex:1}}>
+        <Text style={{fontSize:'12.85vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>FiFe. A közösség</Text>
+        <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
             {!showLogin ?
-            <Text onClick={()=>{setShowLogin(true);setShowRegister(false)}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer'}]}>Bejelentkezés</Text>:
+            <Text onClick={()=>{setShowLogin(true);setShowRegister(false)}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer',borderWidth:5,backgroundColor:'rgba(255,196,0,1)'}]}>Bejelentkezés</Text>:
             <LoginForm/>}
-            <RegisterForm/>
-          </View>
-          <View style={{flex:1,alignItems:'flex-end',marginTop:'10%'}}>
-            {!showRegister ?
-            <Text onClick={()=>{setShowLogin(false);navigation.navigate('about')}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer'}]}>Regisztráció</Text>:
-            <RegisterForm/>}  
-          </View>      
+        </View>
+        <View style={{alignItems:'center', justifyContent:'center',flex:1,cursor:'pointer'}} onClick={()=>{scrollView.scrollToEnd(true)}}>
+          <Text style={{fontSize:30}}>Mi ez?</Text>
+          <Icon name="chevron-down-outline" size={30}/>
         </View>
       </LinearGradient>
+      <View style={{height:'100%'}}>
+        <First scrollView={scrollView}/>
+      </View>
+      </ScrollView>
       
     );
   };
@@ -82,7 +95,7 @@ const  LoginForm = () => {
     
   }
   return (
-    <View style={{justifyContent:'center',alignSelf:'center',flex:1}}>
+    <View style={{justifyContent:'center',alignSelf:'center',flex:1,maxWidth:300}}>
       <View style={{flexWrap:'wrap'}}>
         <TextInput
           style={styles.searchInput}
@@ -97,6 +110,7 @@ const  LoginForm = () => {
             textContentType="password"
             secureTextEntry
             placeholder="Jelszó"
+            onSubmitEditing={()=>signIn(username, password, onChangeLoginError)}
         />
       </View>
       <Text style={styles.error} >{loginError}</Text>
@@ -106,7 +120,7 @@ const  LoginForm = () => {
     </View>
   )
 }
-const RegisterForm = () => {
+export const RegisterForm = ({setData}) => {
   const navigation = useNavigation()
   const [email, onChangeEmail] = React.useState("");
   const [password, onChangePassword] = React.useState("");
@@ -120,7 +134,8 @@ const RegisterForm = () => {
     api.register(email,password).then((res) => {
       console.log('res',res);
       if (res?.success) {
-        navigation.push('home') 
+        //navigation.push('home') 
+        setData(true)
       } else {
         onChangeLoginError(res?.error)
       }
@@ -142,7 +157,7 @@ const RegisterForm = () => {
     })
   }
   return (
-    <View style={{justifyContent:'center',alignSelf:'center',flex:1}}>
+    <View style={{alignSelf:'center',flex:1}}>
       <View style={{flexWrap:'wrap'}}>
         <TextInput
           style={styles.searchInput}
@@ -176,20 +191,52 @@ const RegisterForm = () => {
   )
 }
 
+export const MoreInfoForm = ({setData}) => {
+  const navigation = useNavigation()
+  const [name, onChangeName] = useState('');
+  const [bio, onChangeBio] = useState('');
+  const [loginError, onChangeLoginError] = React.useState("");
+  const {app, auth, user, api}  = useContext(FirebaseContext);
+
+  useEffect(() => {
+    console.log(name & bio);
+    setData(name && bio)
+  }, [name,bio]);
+  return (
+    <View style={{alignSelf:'center',flex:1}}>
+      <View style={{flexWrap:'wrap'}}>
+        <TextInput
+          style={styles.searchInput}
+          onChangeText={onChangeName}
+          editable
+          placeholder="Neved"
+        />
+        <TextInput
+          style={[styles.searchInput,{height:200}]}
+          onChangeText={onChangeBio}
+          editable
+          numberOfLines={5}
+          multiline
+          placeholder="Rólad"
+        />
+      </View>
+    </View>
+  )
+}
+
 const localStyle = StyleSheet.create({
   container: {
     alignItems:'center',
     justifyContent:'flex-start',
-    flex:1,
-    margin: -30,
+    height:Dimensions.get('window').height,
 
     backgroundColor: '#fff',
   },
   title: {
     fontFamily: "Raleway_800ExtraBold",
-    fontSize:'6.89vw', 
+    fontSize:'4.0vw', 
     marginHorizontal:27,
-    color:'white',
+    color:'black',
     alignItems:'center'
   }
 })

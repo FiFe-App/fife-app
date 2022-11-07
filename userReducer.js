@@ -6,9 +6,21 @@ export const userReducer = createSlice({
   name: 'user',
   initialState: {
     uid: null,
-    unreadMessage: []
+    userData: null,
+    unreadMessage: [],
+    settings: {
+      randomTalk: false,
+      fancyText: false
+    }
   },
   reducers: {
+    init : async (state) => {
+      if (!state.uid) {
+        const uid = await AsyncStorage.getItem('uid')
+        console.log('async loaded uid',uid);
+        if (uid) state.uid = uid
+      }
+    },
     login: (state,action) => {
       state.uid = action.payload
       AsyncStorage.setItem('uid',action.payload.toString())
@@ -18,6 +30,12 @@ export const userReducer = createSlice({
       state.uid = null
       AsyncStorage.setItem('uid',null)
       console.log('logged out');
+    },
+    setUserData: (state,action) => {
+      state.userData = action.payload;
+    },
+    setSettings: (state,action) => {
+      state.settings = action.payload
     },
     setUnreadMessage: (state,action) => {
       if (!state.unreadMessage.includes(action.payload))
@@ -34,6 +52,6 @@ export const userReducer = createSlice({
   }
 })
 
-export const { login, logout, setUnreadMessage, removeUnreadMessage } = userReducer.actions
+export const { init, login, logout, setUserData, setUnreadMessage, removeUnreadMessage, setSettings} = userReducer.actions
 
 export default userReducer.reducer
