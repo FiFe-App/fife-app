@@ -45,7 +45,8 @@ export const styles = StyleSheet.create({
         borderColor: "black",
         borderWidth: 2,
         backgroundColor: "white",
-        padding: 10,
+        padding: 20,
+        fontSize:20,
         fontWeight: "500",
     },
     fixToText: {
@@ -70,8 +71,12 @@ export const styles = StyleSheet.create({
     error: {
         textAlign: 'center', // <-- the magic
         fontWeight: 'bold',
-        fontSize: 12,
+        fontSize: 20,
         color: "red",
+        borderWidth:2,
+        borderColor:'red',
+        alignSelf:'center',
+        width:'100%',
         margin: 5
     },
     menuLink: {
@@ -88,6 +93,9 @@ export const styles = StyleSheet.create({
         marginLeft:11,
     },
     number: {
+        position:'absolute',
+        right:20,
+        top:30,
         textAlignVertical: 'center',
         marginHorizontal: 12,
         fontSize:15,

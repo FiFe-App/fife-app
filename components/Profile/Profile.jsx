@@ -1,4 +1,4 @@
-import { ProfileImage, Loading, Row, NewButton } from '../Components'
+import { ProfileImage, Loading, Row, NewButton, Auto } from '../Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 
@@ -12,15 +12,19 @@ import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
 
 import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
+import { useWindowSize } from '../../hooks/window';
+
+const bgColor = '#F2EFE6'
 
 export const Profile = ({ navigation, route }) => {
   const {database, app, auth} = useContext(FirebaseContext);
+  const width = useWindowSize().width;
   const myuid = useSelector((state) => state.user.uid)
   const uid = route?.params?.uid || myuid 
   
   const [profile, setProfile] = React.useState(null);
   const [followButtonText, setFollowButtonText] = React.useState("Ajánlom");
-  const [followers, setFollowers] = React.useState(null);
+  const [followers, setFollowers] = React.useState([]);
   const [myProfile, setMyProfile] = React.useState(true);
   const [mapOptions,setMapOptions] = React.useState({
     center: {
@@ -45,26 +49,28 @@ export const Profile = ({ navigation, route }) => {
       getRecList();
       return (followButtonText == 'Ajánlom');
   }
+
+  useEffect(() => {
+    console.log(Object.keys(followers));
+  }, [followers]);
   
   function getRecList(){
     const dbRef = ref(database,'users/' + uid + "/likes");
     onValue(dbRef, (snapshot) => {
       if (snapshot.exists()) {
-        var size = snapshot.size;
-        //if ()
-        setFollowers(snapshot.size);
-        if (snapshot.val()[auth.currentUser.uid] != undefined) {
+        const all = snapshot.val();
+        setFollowers(Object.keys(all));
+        if (all[auth.currentUser.uid] != undefined) {
           setFollowButtonText('Ajánlottam');
         }
-          //snapshot.forEach((childSnapshot) => {});
       }
-      else setFollowers(0);
+      //else setFollowers([]);
     })
   }
   
   useEffect(() => {
     if (database) {
-      setMyProfile(!route?.params?.uid);
+      setMyProfile(myuid == uid);
       getRecList();
       const dbRef = ref(database);
       get(child(dbRef, `users/${uid}/data`)).then((snapshot) => {
@@ -82,17 +88,19 @@ export const Profile = ({ navigation, route }) => {
   }, [database,uid]);
   if (profile)
   return(
-    <View style={{marginRight:-4,backgroundColor:'white',flex:1}}>
-      <Row>
-        <ProfileImage uid={uid} size={150} style={[localStyles.container,{paddingHorizontal:0}]}/>
-        <View style={{flex:2}}>
+    <View style={{marginRight:-4,backgroundColor:bgColor,flex:1}}>
+      <Auto style={{height:'none',flex:'none'}}>
+        <View style={{alignItems:'center'}}>
+          <ProfileImage uid={uid} size={150} style={[localStyles.container,{paddingHorizontal:0}]}/>
+        </View>
+        <View style={{flex:width <= 900 ? 'none' : 2}}>
           <View style={localStyles.fcontainer}><Text style={localStyles.text}>{profile.name}</Text></View>
-          <Row style={{flex:1}}>
+          <Row style={{flex:width <= 900 ? 'none' : 1}}>
             <View style={localStyles.fcontainer}><Text style={localStyles.text}>{profile.username}</Text></View>
-            <View style={localStyles.fcontainer}><Text style={localStyles.text}>Ajánlók: {followers}</Text></View>
+            <View style={localStyles.fcontainer}><Text style={localStyles.text}>Ajánlók: {followers?.length}</Text></View>
           </Row>
         </View>
-        <View style={{flex:1}}>
+        <View style={[localStyles.fcontainer,{flex:width <= 900 ? 'none' : 1}]}>
             { !myProfile && <>
             <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('messages',{selected:uid})}/>
             <NewButton title={followButtonText} onPress={follow}/>
@@ -103,17 +111,14 @@ export const Profile = ({ navigation, route }) => {
             }
 
         </View>
-      </Row>
-      <Row style={{flex:1}}>
-        <View style={{flex:1}}>
+      </Auto>
+      <Auto style={{flex:1}}>
+        <View style={{flex:width <= 900 ? 'none' : 1}}>
           <Section title="Rólam">
-            <View>
             <Text style={localStyles.subText}>{profile.bio}</Text>
-
-            </View>
           </Section>
           
-          <Section title="Helyzetem" flex={1}>
+          <Section title="Helyzetem" flex={width <= 900 ? 'none' : 1}>
             {profile.location ? (
             (Platform.OS !== 'web') ? <MapView style={localStyles.map} />
             : <div id='map' style={localStyles.map} />)
@@ -123,21 +128,23 @@ export const Profile = ({ navigation, route }) => {
             }
           </Section>
         </View>
-        <Section title="Ehhez értek" style={{flex:2}} flex={2}>
-          <View style={[{flex:1}]} >
+        <Section title="Ehhez értek" style={{flex:width <= 900 ? 'none' : 1}} flex={width <= 900 ? 'none' : 2}>
             {profile.profession && profile.profession.map((prof,index) =>
+              <ListItem title={prof.name} key={"prof"+index}>
+                <Text>{prof.description}</Text>
+              </ListItem>
+            )}
+        </Section>
+        <Section title="Elérhetőségeim" flex={width <= 900 ? 'none' : 1}>
+          <View style={[styles.label]}>
+            {profile.links && profile.links.map((prof,index) =>
               <ListItem title={prof.name} key={"prof"+index}>
                 <Text>{prof.description}</Text>
               </ListItem>
             )}
           </View>
         </Section>
-        <Section title="Elérhetőségeim" flex={1}>
-          <View style={[styles.label,{flex:1}]} >
-              <Text style={localStyles.subText}>Elérhetőségeim: @{profile.ig_username}</Text>
-          </View>
-        </Section>
-      </Row>
+      </Auto>
     </View>
   )
   else return (<Loading color={"#f5d142"}/>)
@@ -145,11 +152,11 @@ export const Profile = ({ navigation, route }) => {
 
   function Section(props){
     return(
-      <View style={[props.style,{flex:props?.flex}]}>
-        <View style={[localStyles.container,{height:50}]}>
+      <View style={[props.style,localStyles.container,{flex:props?.flex,padding:20}]}>
+        <View style={[{height:50}]}>
           <Text style={localStyles.sectionText}>{props.title}</Text>
         </View>
-          <Animated.View style={[localStyles.container,{ paddingHorizontal:0, flex: props?.flex, height: props.height }]} >
+          <Animated.View style={[{ paddingHorizontal:0, flex: props?.flex, height: props.height }]} >
           {props.children}
           </Animated.View>
       </View>
@@ -174,11 +181,11 @@ export const Profile = ({ navigation, route }) => {
     }, [openAnim])
     return(
       <View>
-        <Pressable style={[localStyles.fcontainer,{marginRight:-2}]} onPress={onPress}>
+        <Pressable style={[{marginRight:-2}]} onPress={onPress}>
           <Text style={localStyles.subText}>{props.title}</Text>
         </Pressable>
         {open &&
-          <Animated.View style={[localStyles.fcontainer,{ height: openAnim, marginRight:-2 }]} >
+          <Animated.View style={[{ height: openAnim, marginRight:-2 }]} >
           {props.children}
           </Animated.View>
         }
@@ -188,19 +195,18 @@ export const Profile = ({ navigation, route }) => {
 
   const localStyles = {
     fcontainer: {
-      borderWidth:2,
       flex:1,
-      marginTop:-2,
-      marginLeft:-2,
+      marginTop: 5,
+      marginLeft: 5,
+      backgroundColor:'white',
       fontSize:30,
       paddingHorizontal:20,
       justifyContent:'center',
     },
     container: {
-      borderWidth:2,
-      margin:0,
-      marginTop:-2,
-      marginLeft:-2,
+      marginTop: 5,
+      marginLeft: 5,
+      backgroundColor:'white',
       paddingHorizontal:20,
       justifyContent:'center',
     },
@@ -216,13 +222,11 @@ export const Profile = ({ navigation, route }) => {
       padding: 16,
     },
     verticleLine: {
-      height: '100%',
       width: 1,
       backgroundColor: '#909090',
     },
     horizontalLine: {
       height: 1,
-      width: '100%',
       backgroundColor: '#909090',
     },
     section:{
@@ -230,9 +234,9 @@ export const Profile = ({ navigation, route }) => {
       justifyContent: 'center',
       paddingHorizontal:20,
       backgroundColor: 'rgb(245, 209, 66)',
-      borderColor: 'white',
-      borderWidth: 5,
-      marginTop: -1,
+      borderColor: bgColor,
+      marginTop: 5,
+      marginLeft: 5,
       
     },
     sectionText:{

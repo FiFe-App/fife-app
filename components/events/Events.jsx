@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, Text, View, Pressable, Button, Image, Modal } from 'react-native';
-import { global } from './global'
-import { styles } from './styles'
+import { global } from '../global'
+import { styles } from '../styles'
 import { useNavigation, StackActions } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
 import { getDatabase, ref as dRef, child, onValue, get } from "firebase/database";
-import { Loading, ProfileImage, FAB, Row } from './Components'
+import { Loading, ProfileImage, FAB, Row } from '../Components'
 import { ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'
 

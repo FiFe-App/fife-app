@@ -2,22 +2,45 @@ import { useEffect, useState } from "react"
 import { Text } from "react-native"
 import { useSelector } from "react-redux";
   
-export const TextFor = ({style,text}) => {
+export const TextFor = ({style,text,embed}) => {
     
     const texts = require('./texts.json');
     const arr = texts?.[text]
     const on = useSelector((state) => state.user?.settings.fancyText)
     const [r, setR] = useState(0);
+    const [displayText, setDisplayText] = useState(text);
     useEffect(() => {
+        if (!arr) return
+
         setR(Math.floor(Math.random() * (arr?.length)))
-    }, []);
-    if (arr)
-        if (on)
-            return <Text style={style}>{arr[r]}</Text>
+    }, [on]);
+    useEffect(() => {
+      if (!arr) return
+      
+      if (on)
+        if (embed)
+          setDisplayText(arr[r].replace("$", embed))
         else
-            return <Text style={style}>{arr[0]}</Text>
-    else
-        return <Text style={style}>{text}</Text>
+          setDisplayText(arr[r])
+      else 
+        if (embed)
+          setDisplayText(arr[r].replace("$", embed))
+        else
+          setDisplayText(arr[0])
+    }, [r]);
+    return <Text style={style}>{displayText}</Text>
+}
+
+export const getGreeting = () => {
+  const now = new Date();
+  const hour = now.getHours();
+  console.log(hour);
+  if (hour >= 6 && hour < 12)
+    return "greeting_morning"
+  else if (hour >= 18 && hour < 23)
+    return "greeting_evening"
+  else return "greeting_normal"
+
 }
   
 export const AutoPrefix = (text) => {

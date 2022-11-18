@@ -1,12 +1,12 @@
-import { ProfileImage, Loading, Row, Col } from './Components'
+import { ProfileImage, Loading, Row, Col } from '../Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
 import React, { useEffect } from 'react';
 import { Text, Platform, View, Button, Pressable } from 'react-native';
-import {styles} from './styles'
-import { global } from './global'
+import {styles} from '../styles'
+import { global } from '../global'
 import { Animated, Image, Easing } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons'

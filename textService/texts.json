@@ -1,6 +1,11 @@
 {
     "web_title": ["a közösség","minden egyben","cicák","kultúra","művészet","online"],
-    "no_result": ["Nincs találat","Hupsz! Nem találtunk semmit.","Próbáld meg más megfogalmazásban!"],
+
+    "greeting_morning": ["Szép napot, $!","Szia $!","Jó reggelt $!","Milyen szép a mosolyod!"],
+    "greeting_evening": ["Remélem jó napod volt!","Szia $!","Jó estét $!","Pihend ki magad!"],
+    "greeting_normal": ["Szia $!","Szép a fejed!","De jól nézel ki!"],
+
+    "no_result": ["Nincs találat","Bakfitty! Nem találtunk semmit.","Próbáld meg más megfogalmazásban!"],
     "sale": ["Cserebere","Adok-veszek"],
     "buy_item": ["Megveszem","Kell nekem"],
     "item_header": ["Új cserebere poszt létrehozása","Adj el, vagy vegyél valamit!","Hirdess!"],

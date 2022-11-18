@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { Component, useState, useContext, useEffect } from 'react';
 //import { Image, Text, View, Button, TextInput } from 'react-native';
-import { Text, View, Button, TextInput, StyleSheet, Dimensions, ScrollView } from 'react-native';
+import { Text, View, Button, StyleSheet, Dimensions, ScrollView, Pressable, TouchableOpacity, Image } from 'react-native';
 // routes
 
 import { styles } from '../styles'
@@ -15,9 +15,13 @@ import { FirebaseContext } from '../../firebase/firebase';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons'
-import First from '../First/First';
+import First from '../first/First';
+import { TextInput } from '../Components';
+import { useWindowSize } from '../../hooks/window';
+
 
 const LoginScreen = ({ navigation, route }) => {
+  const width = useWindowSize().width;
   const [canLogin, setCanLogin] = React.useState(route.params?.logout || false);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
@@ -35,6 +39,14 @@ const LoginScreen = ({ navigation, route }) => {
           }
         })
     }, []);
+
+    const handleMoreInfo = () => {
+      console.log('more');
+      if (width <= 900)
+        navigation.navigate('about')
+      else
+        scrollView.scrollToEnd(true)
+    }
   
   
     let [fontsLoaded] = useFonts({
@@ -51,21 +63,37 @@ const LoginScreen = ({ navigation, route }) => {
       directionalLockEnabled={true}
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={["rgba(255,196,0,1)", "rgba(255,242,207,1)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={localStyle.container}>
-        <Text style={{fontSize:'12.85vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>FiFe. A közösség</Text>
+      <LinearGradient colors={["rgba(255,196,0,1)", "#fcf3d4"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={localStyle.container}>
+        {width > 900 ?
+          <Text style={{fontSize:'10vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>
+          FiFe. a közösség
+        </Text>
+        : 
+        <Text style={{fontSize:60, fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100,textAlign:'center'}}>
+        <Text style={{fontSize:120}}>FiFe.</Text>
+        {"\n"} a közösség
+        </Text>
+        }
+        
+
+        <View 
+        style={{position:'absolute',right:115,top:102,borderRadius:50,justifyContent:'center',alignItems:'center'}} >
+        <Image source={require('../../assets/logo.png')} style={{width:100,height:100,transform: [{ rotate: "10deg" }]}}/>
+      </View>
         <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
-            {!showLogin ?
+            {!true ?
             <Text onClick={()=>{setShowLogin(true);setShowRegister(false)}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer',borderWidth:5,backgroundColor:'rgba(255,196,0,1)'}]}>Bejelentkezés</Text>:
             <LoginForm/>}
         </View>
-        <View style={{alignItems:'center', justifyContent:'center',flex:1,cursor:'pointer'}} onClick={()=>{scrollView.scrollToEnd(true)}}>
+        <View style={{alignItems:'center', justifyContent:'center',flex:1,cursor:'pointer'}} onClick={handleMoreInfo}>
           <Text style={{fontSize:30}}>Mi ez?</Text>
           <Icon name="chevron-down-outline" size={30}/>
         </View>
       </LinearGradient>
-      <View style={{height:'100%'}}>
-        <First scrollView={scrollView}/>
-      </View>
+      {width > 900 &&
+        <View style={{height:'100%'}}>
+          <First scrollView={scrollView}/>
+        </View>}
       </ScrollView>
       
     );
@@ -73,6 +101,7 @@ const LoginScreen = ({ navigation, route }) => {
 
 
 const  LoginForm = () => {
+  const width = useWindowSize().width;
   const navigation = useNavigation()
   const [username, onChangeUsername] = React.useState("");
   const [password, onChangePassword] = React.useState("");
@@ -95,28 +124,33 @@ const  LoginForm = () => {
     
   }
   return (
-    <View style={{justifyContent:'center',alignSelf:'center',flex:1,maxWidth:300}}>
-      <View style={{flexWrap:'wrap'}}>
-        <TextInput
-          style={styles.searchInput}
-          onChangeText={onChangeUsername}
-          editable
-          placeholder="Email-cím"
-        />
-        <TextInput
-          style={styles.searchInput}
-          onChangeText={onChangePassword}
-          editable
-            textContentType="password"
-            secureTextEntry
-            placeholder="Jelszó"
-            onSubmitEditing={()=>signIn(username, password, onChangeLoginError)}
-        />
+    <View style={{justifyContent:'center',alignSelf:'center',alignItems:"center",flex:1}}>
+      <View style={{flexDirection:'row',flex:1}}>
+        <View style={{flexWrap:'wrap'}}>
+          <TextInput
+            style={[styles.searchInput,{width: width <= 900 ? 200 : 'none'} ]}
+            onChangeText={onChangeUsername}
+            editable
+            placeholder="Email-cím"
+          />
+          <TextInput
+            style={[styles.searchInput,{width: width <= 900 ? 200 : 'none'} ]}
+            onChangeText={onChangePassword}
+            editable
+              textContentType="password"
+              secureTextEntry
+              placeholder="Jelszó"
+              onSubmitEditing={()=>signIn(username, password, onChangeLoginError)}
+          />
       </View>
-      <Text style={styles.error} >{loginError}</Text>
-      <Button style={styles.headline} title="Bejelentkezés" color="black" onPress={() =>
-        signIn(username, password, onChangeLoginError)
-      } />
+      <TouchableOpacity style={{width:70,backgroundColor:'black',justifyContent:'center',alignItems:"center",margin:5}} 
+        onPress={() => signIn(username, password, onChangeLoginError)}>
+        <Icon name="arrow-forward-outline" color="white" size={40}/>
+      </TouchableOpacity>
+      </View>
+      {!!loginError && <View style={styles.error}>
+        <Text style={{color:'red'}} >{loginError}</Text>
+      </View>}
     </View>
   )
 }

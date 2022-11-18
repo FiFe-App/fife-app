@@ -1,69 +1,25 @@
 
 import React, { useEffect, useContext, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Text, Platform, View, Button, Pressable, TextInput } from 'react-native';
+import { Text, Platform, View, Button, Pressable, TextInput, ActivityIndicator, Animated, ScrollView  } from 'react-native';
 import { Dimensions } from 'react-native';
-import { Loading, Row } from '../Components';
+import { Auto, Loading, Row } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
 
 import {getMaps,LocationData} from "./mapService";
 import { FirebaseContext } from '../../firebase/firebase';
-import { ActivityIndicator, ScrollView } from 'react-native-web';
+import * as Location from 'expo-location';
+import { useWindowSize } from '../../hooks/window';
 
-const mapaData = [
-  {
-    name: "turik",
-    locations: [
-      {
-        name: "háda",
-        description: 'ez egy turi',
-        lat: 47.47355815076657,
-        lng: 19.0523721029790424
-      },
-      {
-        name: "humana",
-        description: 'ez egy másik turi',
-        lat: 47.47547816076657,
-        lng: 19.040723069790424
-      }
-    ],
-    rating: 3.5,
-    color: '#9a66c4'
-  },
-  {
-    name: "olcsó helyek",
-    locations: [
-      {
-        name: "kinai",
-        description: 'ez egy olcso',
-        lat: 47.47584325076657,
-        lng: 19.050721029467424
-      },
-      {
-        name: "humana",
-        description: 'ez egy másik olcso',
-        lat: 47.47584325076657,
-        lng: 19.053721029467424
-      }
-    ],
-    rating: 2.5,
-    color: 'green'
-  }
-]
 
 
 export const Maps = () => {
     const {database} = useContext(FirebaseContext);
-    const [mapOptions,setMapOptions] = useState({
-        center: {
-          lat: 47.47585815076657,
-          lng: 19.050721029790424
-        },
-        zoom: 16
-    })
+    const width = useWindowSize().width;
 
     const [selectedMap,setSelectedMap] = useState(null) 
+    const [open, setOpen] = useState(true);
 
     const [map,setMap] = useState(null)
     const [mapData, setMapData] = useState(null);
@@ -72,14 +28,18 @@ export const Maps = () => {
     const [search, setSearch] = React.useState('');
     const [filterList,setFilterList] = useState(null);
     const [greenIcon, setGreenIcon] = useState(null);
+    const [locationIcon, setLocationIcon] = useState(null);
     const defaultFilterList = [
       {name: 'ABC',function: (prop='name') => ((a,b)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))},
       {name: 'CBA',function: (prop='name') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))},
-      {name: 'rating',function: (prop='rating') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))}
+      {name: 'legközelebbi',function: (prop='rating') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))}
     ];
     const [filter, setFilter] = React.useState(defaultFilterList[0]);
     const [selected, setSelected] = React.useState(null);
     const [ids, setIds] = useState({mapId:null,locationId:null});
+    const [location, setLocation] = useState(null);
+    const [errorMsg, setErrorMsg] = useState(null);
+
 
     const reFilterList = () => {
       return defaultFilterList.map((e,index) => {
@@ -107,8 +67,7 @@ export const Maps = () => {
       document.head.appendChild(link);
       document.body.appendChild(script);
 
-      script.onload = () => {
-        setMap(L.map('map').setView([47.4983, 19.0408], 13));
+      script.onload = async () => {
         setGreenIcon(L.icon({
           iconUrl: require('../../assets/marker.webp'),
         
@@ -117,6 +76,16 @@ export const Maps = () => {
           shadowAnchor: [4, 62],  // the same for the shadow
           popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
         }));
+        setLocationIcon(L.icon({
+          iconUrl: require('../../assets/icons/location.svg'),
+        
+          iconSize:     [40, 40], // size of the icon
+          iconAnchor:   [10, 10], // point of the icon which will correspond to marker's location
+          shadowAnchor: [4, 62],  // the same for the shadow
+          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+        }));
+        setMap(L.map('map').setView([47.4983, 19.0408], 13));
+
       }
 
       async function getData() {
@@ -129,10 +98,26 @@ export const Maps = () => {
     }, []);
 
     useEffect(() => {
+    }, [location]);
+
+    useEffect(() => {
       if (map) {
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
+          
+        (async () => {
+          let { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') {
+            setErrorMsg('Permission to access location was denied');
+            return;
+          }
+    
+          let location = await Location.getCurrentPositionAsync({});
+
+          console.log(location);
+          L.marker([location.coords.latitude, location.coords.longitude],{icon: locationIcon }).addTo(map)
+          })()
       }
     }, [map]);
 
@@ -215,33 +200,39 @@ export const Maps = () => {
     },[selected])
 
     return (
-      <View style={{flex:1,flexDirection:'row'}}>
-        <View style={localStyles.side}>
-          <TextInput
-            style={localStyles.searchInput}
-            onChangeText={setSearch}
-            editable
-            placeholder="Keress helyekre, kategóriákra"
-          />
-          <Pressable style={{flexDirection:'row',justifyContent:'space-around',alignItems:'center'}} 
-            onPress={() => setFilterList(filterList ? null : reFilterList)}>
-            <Text>Sorrend:</Text>
-            <Row style={{alignItems:'center'}}>
-              <Text style={{margin:5}}>{filter.name}</Text>
-              <AntDesign name="caretdown" size={10} color="black" />
-            </Row>
-          </Pressable>
-          <View style={{textAlign:'right',marginHorizontal:50}}>
-            {filterList}  
-          </View>      
-          <ScrollView style={{flex:2}}>
-            {maplist || <ActivityIndicator size="large" />}
-          </ScrollView>          
-          <LocationData location={selected} locationId={ids.locationId} mapId={ids.mapId}/>
-        </View>
-        <div id="map" style={localStyles.map}></div>
+      <Auto style={{flex:1}}>
+        {open && <View style={[localStyles.side,{flex: width <= 900 ? 2 : 1}]}>
+          
+            <TextInput
+              style={localStyles.searchInput}
+              onChangeText={setSearch}
+              editable
+              placeholder="Keress helyekre, kategóriákra"
+            />
+            <Pressable style={{flexDirection:'row',justifyContent:'space-around',alignItems:'center'}} 
+              onPress={() => setFilterList(filterList ? null : reFilterList)}>
+              <Text>Sorrend:</Text>
+              <Row style={{alignItems:'center'}}>
+                <Text style={{margin:5}}>{filter.name}</Text>
+                <AntDesign name="caretdown" size={10} color="black" />
+              </Row>
+            </Pressable>
+            <View style={{textAlign:'right',marginHorizontal:50}}>
+              {filterList}  
+            </View>      
+            <ScrollView style={{flex:2}}>
+              {maplist || <ActivityIndicator size="large" />}
+            </ScrollView>          
+            <LocationData location={selected} locationId={ids.locationId} mapId={ids.mapId}/>
+        </View>}
 
-      </View>
+          {width < 900 &&
+          <Pressable style={{borderBottomWidth:2,padding:5,alignItems:'center',justifyContent:'center'}}
+            onPress={()=>setOpen(!open)}>
+            <AntDesign name={!open ? 'caretdown' : 'caretup'} size={20}/>
+          </Pressable>}
+        <div id="map" style={localStyles.map}></div>
+      </Auto>
     )
 }
 
@@ -294,8 +285,9 @@ const localStyles = {
       flex:3,
     },
     side: {
-      flex:1,
       backgroundColor: 'white',
+      //borderWidth:2,
+      marginTop: -2,
       cursor: 'default'
     },
     mapLink: {

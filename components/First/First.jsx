@@ -4,13 +4,16 @@ import { Pages } from "./pages";
 import * as Progress from 'react-native-progress';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ScrollView } from 'react-native-web';
+import Icon from 'react-native-vector-icons/Ionicons'
+import { useWindowSize } from '../../hooks/window';
 
 
 const First = ({scrollView}) => {
     const navigation = useNavigation()
     const route = useRoute()
-    const width = Dimensions.get('window').width
+    const width = useWindowSize().width;
     const [page, setPage] = useState(route.params?.p || 0);
+    const [percent, setPercent] = useState(0);
     const [newData, setNewData] = React.useState({
       name: '',
       username: '',
@@ -18,10 +21,13 @@ const First = ({scrollView}) => {
       profession: [],
       links: [],
     });
+    const [scrollView2, setScrollView2] = useState(null);
     const [pageData, setPageData] = useState(null);
     const [backDisabled, setBackDisabled] = useState(true);
     const [nextDisabled, setNextDisabled] = useState(false);
-    const pages = Pages({newData, setNewData,pageData, setPageData})
+    const [pages, setPages] = useState([]);
+    const allPages = Pages({newData, setNewData,pageData, setPageData});
+    
     const goTo = (page) => {
       if (page < pages.length && page >= 0)
         setPage(page)
@@ -29,10 +35,13 @@ const First = ({scrollView}) => {
         navigation.navigate('home');
     }
 
+    const handleToHome = () => {
+      if (width <= 900)
+        navigation.navigate('login')
+      else
+      scrollView.scrollTo({ x: 0, y: 0, animated: true })
+    }
     useEffect(() => {
-      console.log('pageData',pageData);
-
-      //setNextDisabled(!pageData || Object.values(pageData[page]).some(p=>p==false))
       setBackDisabled(page == 0)
     }, [pageData,page]);
 
@@ -41,26 +50,58 @@ const First = ({scrollView}) => {
         navigation.setParams({
           p: page,
         });
-        
       }
+      //scrollView2.scrollTo({x:(page)*width,y:0,animated:true})
     }, [page]);
+
   return (
-    <View style={{height:Dimensions.get('window').height}}>
-      <ScrollView style={{ flex: 5, padding:  width > 900 ? 100 : 2, paddingTop: 20 }} contentContainerStyle={{alignItems:'center', justifyContent:'flex-start'}}>
-          {pages[page]}
+    <View style={{height:Dimensions.get('window').height,backgroundColor:'#fcf3d4'}}>
+      <ScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{flex:1}}
+        horizontal
+        ref={ref=>{setScrollView2(ref)}}
+        pagingEnabled={true}
+        scrollEventThrottle={50}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
+        onScroll={(e)=>{
+          console.log(e);
+          if (e.nativeEvent.contentOffset.x > percent*width)
+            setPage(Math.floor(e.nativeEvent.contentOffset.x/width))
+          else
+            setPage(Math.ceil(e.nativeEvent.contentOffset.x/width))
+          setPercent(e.nativeEvent.contentOffset.x/width)
+        }}>
+          {
+        allPages.map((p,i)=>{
+          if (i >= page-1 && i <= page+1) return p 
+          return <View style={{width:width,flex:1}}/>
+        })}
       </ScrollView>
-      <View style={{flexDirection:'row',height:10}}>
-        <View style={{backgroundColor:'rgba(255,196,0,0.7)',width:page/(pages.length-1)*100+'%'}}/>
-        <View style={{backgroundColor:'none',width:100-page/(pages.length-1)*100+'%'}}/>
+      <View style={{flexDirection:'row',height:10,position:'absolute',left:0,bottom:0,width:'100%'}}>
+        <View style={{backgroundColor:'rgba(255,255,255,0.5)',width:percent/(allPages.length-1)*100+'%'}}/>
+        <View style={{backgroundColor:'none',width:100-percent/(allPages.length-1)*100+'%'}}/>
       </View>
-      <View style={{ flex: 2, flexDirection:'row' }}>
-        <TouchableOpacity style={[styles.button]} onPress={()=>backDisabled ? scrollView.scrollTo({ x: 0, y: 0, animated: true }) : goTo(page-1)}>
+      <Pressable 
+        style={{position:'absolute',right:50,bottom:50,borderRadius:50,backgroundColor:'rgba(255,255,255,0.6)',width:100,height:100,justifyContent:'center',alignItems:'center'}} 
+        onPress={()=>scrollView2.scrollTo({x:(page+1)*width,y:0,animated:true})}>
+        <Icon name="arrow-forward-outline" size={50}/>
+      </Pressable>
+      <Pressable 
+        style={{position:'absolute',left:50,bottom:50,borderRadius:50,backgroundColor:'rgba(255,255,255,0.6)',width:50,height:50,justifyContent:'center',alignItems:'center'}} 
+        onPress={()=>scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})}>
+        <Icon name="arrow-back-outline" size={30}/>
+      </Pressable>
+      {false && <View style={{ flex: 1, flexDirection:'row' }}>
+        <TouchableOpacity style={[styles.button]} onPress={()=>backDisabled ? handleToHome() : goTo(page-1)}>
           <Text style={styles.buttonText}>{backDisabled ? "Bejelentkezés" : "Vissza"}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.button,nextDisabled && {backgroundColor:'#ffe385'}]} onPress={()=>goTo(page+1)} disabled={nextDisabled}>
           <Text style={styles.buttonText}>{page == pages.length-1 ? 'Befejezés' : 'Tovább'}</Text>
         </TouchableOpacity>
-      </View>
+      </View>}
     </View>
   );
 };

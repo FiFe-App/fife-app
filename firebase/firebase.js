@@ -8,7 +8,7 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, on
 import { initializeApp } from 'firebase/app';
 import { get, getDatabase, ref } from "firebase/database";
 import { useDispatch } from 'react-redux';
-import { login as sliceLogin, logout as sliceLogout, setSettings, setUserData } from '../userReducer';
+import { login as sliceLogin, logout as sliceLogout, setName, setSettings, setUserData } from '../userReducer';
 import { Platform } from 'react-native';
 
 
@@ -78,6 +78,14 @@ export default ({ children }) => {
                 get(dbRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     dispatch(setSettings(snapshot.val()))
+                }
+                
+                })
+                const nameRef = ref(getDatabase(retApp),'users/' + user.uid + "/data/name");
+                get(nameRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    dispatch(setName(snapshot.val()))
+                    console.log(snapshot.val());
                 }
                 
                 })

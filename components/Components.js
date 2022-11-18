@@ -7,6 +7,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { global } from './global';
 import { styles as newStyles } from './styles';
+import { useWindowSize } from '../hooks/window';
 
 
 //Dimensions.get('window');
@@ -48,14 +49,14 @@ const Loading = (props) => {
 const getUri = async (path) => {
   const storage = getStorage();
   const imgRef = sRef(storage, path);
-  console.log('path',path);
+  //console.log('path',path);
   let returnValue = null 
   await getDownloadURL(imgRef).then(
     uri=>{
       returnValue = uri
     }
   )
-  console.log(returnValue);
+  //console.log(returnValue);
   return returnValue
 } 
 
@@ -77,7 +78,7 @@ const ProfileImage = (props) => {
         setUrl(defaultUrl)
         setLoaded(true)
       });
-  }, [props]);
+  }, [props.uid]);
 
   var size = 40;
   if (props.size) size = props.size;
@@ -93,9 +94,9 @@ const ProfileImage = (props) => {
     
 }
 
-function NewButton({color = "#FFC372",title,onPress,disabled}) {
+function NewButton({color = "#FFC372",title,onPress,disabled,style}) {
   return (
-    <TouchableOpacity style={[styles.newButton, { backgroundColor: disabled ? '#d6b17f' : color }]} onPress={onPress} disabled={disabled}>
+    <TouchableOpacity style={[style,styles.newButton, { backgroundColor: disabled ? '#d6b17f' : color, height:50 }]} onPress={onPress} disabled={disabled}>
           <Text style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{title}</Text>
     </TouchableOpacity>
   );
@@ -198,9 +199,9 @@ function Col(props) {
 
 function Auto({children,style}) {
   
-  const width = Dimensions.get('window').width
+  const width = useWindowSize().width;
   return (
-    <View style={[{flexDirection: width <= 900 ? 'column' : 'row',width:'100%',height:'100%',flex:1},style]}>
+    <View style={[{flexDirection: width <= 900 ? 'column' : 'row',width:'100%',height:'100%',flex: width <= 900 ? 'none' : 1},style]}>
       {children}
     </View>
   )
@@ -327,7 +328,7 @@ const SearchBar = (props) => {
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, value } }) => (
             <RNTextInput
-              style={[newStyles.searchInput,{flex:1}]}
+              style={[newStyles.searchInput,{flex:1,fontSize:16,padding:10}]}
               onBlur={onBlur}
               autoCapitalize='none'
               onChangeText={onChange}
@@ -362,18 +363,19 @@ const OpenNav = ({open,children,style}) => {
   )
 }
 
-const TextInput = (props) => {
+const TextInput = React.forwardRef((props,ref) => {
   const [isFocused, setIsFocused] = useState(false);
   return (
     <RNTextInput
       {...props}
+      ref={ref}
       placeholderTextColor="grey"
       style={[props.style, isFocused && {backgroundColor:'#fbf7f0'},Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => setIsFocused(false)}
       onFocus={() => setIsFocused(true)}
     />
   );
-};
+});
 
 export {
   ProfileImage,
@@ -418,7 +420,6 @@ const styles = StyleSheet.create({
     backgroundColor:'crimson'
   },
   newButton:{
-    flex:1,
     alignItems: 'center',
     justifyContent: "center",
     borderWidth:2,

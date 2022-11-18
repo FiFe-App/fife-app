@@ -27,8 +27,6 @@ export const Item = ({route,navigation,data}) => {
     const Spath = 'sale/'+uid+"/profile.jpg"
 
     const save = () => {
-        console.log(imageTexts);
-        return
       setLoading(true)
       console.log('save');
       const messageListRef = dbRef(database, `sale/`);
@@ -79,6 +77,7 @@ export const Item = ({route,navigation,data}) => {
           uploadBytes(ref, blob).then((snapshot) => {
               console.log('Uploaded a blob or file!');
               console.log(snapshot.metadata.size);
+              console.log(index+'. imageDescription',imageTexts[index]);
               set(dbRef(database, dbPath+'/images/'+index), {filename,description:imageTexts[index]});
           }).catch(error=>console.error(error))
         })
@@ -86,9 +85,7 @@ export const Item = ({route,navigation,data}) => {
     };
 
     useEffect(() => {
-      //if (Dimensions.get('window').width > 900)
-        //navigation.navigate('sale')
-        console.log(imageTexts);
+      console.log(imageTexts);
     }, [imageTexts]);
 
     return (
@@ -139,12 +136,12 @@ export const Item = ({route,navigation,data}) => {
 }
 
 const ImageAdder = ({setGlobalImages,globalImageTexts,setGlobalImageTexts}) => {
-  const [images, setImages] = useState(['']);
+  const [images, setImages] = useState([]);
   const pickImage = async () => {
     if (images?.length > 4) return
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -163,7 +160,14 @@ const ImageAdder = ({setGlobalImages,globalImageTexts,setGlobalImageTexts}) => 
   }
 
   const handleTextChange = (text,index) => {
-    console.log(globalImageTexts.map((t,i)=>i))
+    console.log(text);
+    let arr = globalImageTexts;
+    if (arr.length < index)
+      arr.push(text)
+    else
+      arr[index] = text
+    console.log(globalImageTexts);
+    setGlobalImageTexts(globalImageTexts)
   } 
 
   useEffect(() => {

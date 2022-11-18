@@ -14,15 +14,16 @@ import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'fire
 import { Auto, Loading, NewButton, TextInput } from './Components';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import ImageModal from 'react-native-image-modal';
+import { useWindowSize } from '../hooks/window';
 
 const themeColor = '#000';//#ba9007
 const color2 = '#fcf3d4'//'#FFC372'
 //const themeColor = '#fcf3d4';FFC372
 const bgColor = '#F2EFE6'
-const width = Dimensions.get('window').width;
 
 export const Edit = ({ navigation, route }) => {
   const uid = useSelector((state) => state.user.uid)
+  const width = useWindowSize().width;
   const Dpath = 'users/'+uid+'/pro_file'
   const Spath = 'profiles/'+uid+"/profile.jpg"
   const [image, setImage] = useState(null);
@@ -187,7 +188,7 @@ export const Edit = ({ navigation, route }) => {
   return (
     <View style={{flex:1}}>
     <ScrollView>
-      <Auto style={localStyle.container}>
+      <Auto style={[localStyle.container,{padding: width > 900 ? 50 : 5}]}>
         <View style={{flex:1,marginHorizontal: width > 900 ? 20 : 0}}>
           <View style={localStyle.imageContainer}>
             <View style={{alignItems:'center',borderWidth:2,marginRight:-2}}>
@@ -257,6 +258,7 @@ export const Edit = ({ navigation, route }) => {
 
 export const Professions = (props) => {
   const {data,setData} = props
+  const width = useWindowSize().width;
   const centered = props.centered || false
   const [list, setList] = useState(data.profession || []);
 
@@ -276,34 +278,35 @@ export const Professions = (props) => {
   } 
   const remove = (i) => {
     setList(list.filter((item,ei) => ei !== i));
-    setData({...data,profession:null})
+    setData({...data,profession:list.filter((item,ei) => ei !== i)})
   }
   return (
-    <View style={{width:'100%',marginBottom:5}}>
+    <View style={{marginBottom:5,flex:width <= 900 ? 'undefined' : 1}}>
       <Header title="Ehhez értek" icon="thumbs-up" centered={centered} helpText=""/>
-      <ScrollView style={{flex:3}}>
-      {list && !!list.length && list.map((e,i)=>
-        <View key={i}  style={localStyle.profession}>
-          <View style={{flexDirection:'row'}}>
-            <View style={{width:50,justifyContent:'center',alignItems:'center'}}>
-              <Pressable onPress={()=>remove(i)}>
-                <Text><Icon name="trash" color={themeColor} size={25}/></Text>
-              </Pressable>
+      {!list.length && <Text style={localStyle.label}>Van valami amiben jó vagy? </Text>}
+      <ScrollView style={{flex:width <= 900 ? 'undefined' : 1}}>
+        {!!list && !!list.length && list.map((e,i)=>
+          <View key={i}  style={localStyle.profession}>
+            <View style={{flexDirection:'row'}}>
+              <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
+                <Text style={{fontSize:20}}>{i+1}</Text>
+                <Pressable onPress={()=>remove(i)}>
+                  <Icon name="trash" color={themeColor} size={25}/>
+                </Pressable>
+              </View>
+              <View style={{flex:1,justifyContent:'center'}}>
+                <TextInput style={localStyle.input} placeholder="kategória" onChangeText={(val)=>set(val,i,'name')} value={list[i].name}/>
+                <TextInput style={localStyle.input} placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={list[i].description} multiline numberOfLines={2}/>
+              </View>
+              <View style={{width:100,justifyContent:'flex-end'}}>
+                <Pressable style={{width:100,height:100,margin:5,backgroundColor:'lightblue',alignItems:'center',justifyContent:'center'}}>
+                  <Text>Új kép</Text>
+                </Pressable>
+              </View>
             </View>
-            <View style={{flex:1,justifyContent:'center'}}>
-              <TextInput style={localStyle.input} placeholder="kategória" onChangeText={(val)=>set(val,i,'name')} value={list[i].name}/>
-              <TextInput style={localStyle.input} placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={list[i].description} multiline numberOfLines={2}/>
-            </View>
-            <View style={{width:100,justifyContent:'flex-end'}}>
-              <Pressable style={{width:100,height:100,margin:5,backgroundColor:'lightblue',alignItems:'center',justifyContent:'center'}}>
-                <Text>Új kép</Text>
-              </Pressable>
-            </View>
+            {(list.length > i+1) && <View style={localStyle.divider}/>}
           </View>
-          {(list.length > i+1) && <View style={localStyle.divider}></View>}
-        </View>
-      )}
-      {!list?.length && <Text style={localStyle.label}>Van valami amiben jó vagy? </Text>}
+        )}
       </ScrollView>
       <View>
         <Pressable style={[localStyle.adder,centered ? {borderRadius:0} : {}]} onPress={addNew}>
@@ -316,6 +319,7 @@ export const Professions = (props) => {
 }
 
 export const Links = (props) => {
+  const width = useWindowSize().width;
   const {data,setData} = props
   const centered = props.centered || false
   const [list, setList] = useState(data.links || []);
@@ -335,23 +339,24 @@ export const Links = (props) => {
   } 
   const remove = (i) => {
     setList(list.filter((item,ei) => ei !== i));
-    setData({...data,links:null})
+    setData({...data,links:list.filter((item,ei) => ei !== i)})
   }
   return (
-    <View style={{width:'100%'}}>
+    <View style={{width:'100%',flex:width <= 900 ? 'undefined' : 1}}>
       <Header title="Elérhetőségeim" icon="at-sharp" centered={centered}/>
-      <ScrollView style={{flex:3}}>
+      <ScrollView style={{flex: width <= 900 ? 'undefined' : 1}}>
       {list && !!list.length && list.map((e,i)=>
         <View key={i}  style={localStyle.profession}>
           <View style={{flexDirection:'row'}}>
-            <View style={{width:50,justifyContent:'center',alignItems:'center'}}>
+            <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
+              <Text style={{fontSize:20}}>{i+1}</Text>
               <Pressable onPress={()=>remove(i)}>
                 <Text><Icon name="trash" color={themeColor} size={25}/></Text>
               </Pressable>
             </View>
             <View style={{flex:4}}>
-              <TextInput style={localStyle.input} onChangeText={(val)=>set(val,i,'name')} value={list[i].name}/>
-              <TextInput style={localStyle.input} onChangeText={(val)=>set(val,i,'description')} value={list[i].description}/>
+              <TextInput style={localStyle.input} placeholder="leírás" onChangeText={(val)=>set(val,i,'name')} value={list[i].name}/>
+              <TextInput style={localStyle.input} placeholder="link" onChangeText={(val)=>set(val,i,'description')} value={list[i].description}/>
             </View>
           </View>
           {(list.length > i+1) && <View style={localStyle.divider}></View>}
@@ -413,6 +418,7 @@ const Map = () => {
 }
 
 const Header = (props) => {
+  const width = useWindowSize().width;
   const {icon,title,centered,helpText} = props
   const color = color2
   const [help, setHelp] = useState(false);
@@ -427,7 +433,7 @@ const Header = (props) => {
         <View style={{flex:1}}>
           <Text style={[localStyle.text]}>{title}</Text>
         </View>
-        { helpText &&
+        {!!helpText &&
         <TouchableOpacity onPress={()=>setHelp(!help)}>
           <Icon name={ help ? "help-circle" : "help-circle-outline"} size={25}/>
         </TouchableOpacity>}
@@ -448,8 +454,7 @@ const Header = (props) => {
 const localStyle = StyleSheet.create ({
   container: { 
     textAlign:'left',
-    backgroundColor: bgColor,
-    padding: width > 900 ? 50 : 5
+    backgroundColor: bgColor
   },
   image: {
     resizeMode: 'cover',
@@ -516,6 +521,7 @@ const localStyle = StyleSheet.create ({
     marginLeft: 20,
     marginVertical: 10,
     fontSize: 16,
+    textAlign:'center'
   },
   smallButton: {
     paddingVertical:10,

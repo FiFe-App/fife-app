@@ -9,10 +9,11 @@ import { styles } from "./styles";
 import { Chat } from "./Chat";
 import { widthPercentageToDP,  heightPercentageToDP} from 'react-native-responsive-screen';
 import { elapsedTime } from "../textService/textService";
-
-const width = Dimensions.get('window').width
+import { useWindowSize } from "../hooks/window";
 
 export const Messages = ({route,navigation}) => {
+    const width = useWindowSize().width;
+    
     const [list, setList] = useState([]);
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
@@ -61,6 +62,7 @@ export const Messages = ({route,navigation}) => {
                 const read = !unreadMessages?.includes(childKey)
                 console.log('read',read);
                 const last = childSnapshot.child('last').val() || null
+                if (childKey != uid)
                 get(child(userRef,childKey+'/data/name')).then((snapshot) => {
                     const name = snapshot.val()
                     console.log('messager added',name);
@@ -99,7 +101,7 @@ export const Messages = ({route,navigation}) => {
 
 function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
     const navigation = useNavigation();
-    const width = Dimensions.get('window').width
+    const width = useWindowSize().width;
     const [newMessage, setNewMessage] = useState(newMessageProp);
     const elapsed = elapsedTime(last?.date)
     

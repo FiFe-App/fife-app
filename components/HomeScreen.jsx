@@ -3,7 +3,7 @@
 
   import { useHover } from 'react-native-web-hooks';
 
-  import { Text, View, TextInput, ScrollView, Pressable, Button, TouchableOpacity, Dimensions} from 'react-native';
+  import { Text, View, TextInput, ScrollView, Pressable, Button, TouchableOpacity, Dimensions, Image} from 'react-native';
   import { SafeAreaView } from 'react-native-safe-area-context';
   import { widthPercentageToDP,  heightPercentageToDP} from 'react-native-responsive-screen';
 
@@ -15,36 +15,26 @@
   import { LinearGradient } from "expo-linear-gradient";
   import { Animated } from "react-native";
   import { global } from './global';
-  import { Row, Col } from './Components'
+  import { Row, Col, Auto } from './Components'
   import Icon from 'react-native-vector-icons/Ionicons'
 
   import { SearchBar, OpenNav } from "./Components"
   import { FirebaseContext } from '../firebase/firebase';
   import { useSelector } from 'react-redux'
-  import { child, get, ref } from 'firebase/database';
+  import { child, get, onChildAdded, ref, off, onValue } from 'firebase/database';
 
   import { useDispatch } from 'react-redux';
-  import { TextFor } from '../textService/textService';
+  import { getGreeting, TextFor } from '../textService/textService';
+import { setUnreadMessage } from '../userReducer';
+import { useWindowSize } from '../hooks/window';
   const Stack = createNativeStackNavigator();
 
   export const HomeScreen = ({ navigation, route }) => {
     const {database, app, auth} = useContext(FirebaseContext);
-    const uid = route?.params?.uid || useSelector((state) => state.user.uid)
+    const width = useWindowSize().width;
+    const uid = useSelector((state) => state.user.uid)
     
     const dispatch = useDispatch()
-
-    useEffect(() => {
-      if (database) {
-        const dbRef = ref(database);
-        get(child(dbRef, `users/${uid}/data`)).then((snapshot) => {
-          if (!snapshot.exists()) {
-            navigation.push('about')
-          }
-        }).catch((error) => {
-          console.error(error);
-        });
-      }
-    }, [database]);
 
     let [fontsLoaded] = useFonts({
       AmaticSC_700Bold
@@ -59,7 +49,9 @@
   export function LogoTitle() {
     const {api} = useContext(FirebaseContext);
     const navigation = useNavigation();
-    const width = Dimensions.get('window').width
+    const route = useRoute();
+
+    const width = useWindowSize().width;
     const unreadMessage = useSelector((state) => state.user.unreadMessage)
     const [open, setOpen] = useState(false);
 
@@ -73,7 +65,9 @@
         <SafeAreaView>
           <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
             { navigation.canGoBack && 
-              <Pressable onPress={()=>navigation.goBack()} style={{justifyContent:'center',alignItems:'center',flex:1}}><Icon name='arrow-back' size={30} color="#000"/></Pressable>
+              <Pressable onPress={()=>navigation.goBack()} style={{justifyContent:'center',alignItems:'center',flex:1}}>
+                {route.name != 'home' && <Icon name='arrow-back' size={30} color="#000"/>}
+              </Pressable>
             }
             <Pressable onPress={()=>navigation.navigate('home')}>
               { width >  1230 && <Text style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe. <TextFor text="web_title"/></Text>}
@@ -116,6 +110,30 @@
   }
 
   const Menu = ({ navigation, route }) => {
+    const name = useSelector((state) => state.user.name)
+    const width = useWindowSize().width;
+    const [greeting, setGreeting] = useState(getGreeting);
+    return (
+      <ScrollView style={{flex:1}} contentContainerStyle={{flex:1}}>
+        <LinearGradient colors={['#8cfd7555', "#2ac6fd55"]} style={{flex:2,justifyContent:'flex-end'}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} >
+        <Row style={{alignItems:'center',paddingLeft:50,paddingVertical:20}}>
+          <Text style={{fontSize:40}}><TextFor text={greeting} embed={name}/></Text>
+          <Smiley/>
+        </Row>
+        </LinearGradient>
+        <Auto style={{flex:3,zIndex:-1}}>
+          <Row style={{flex: width <= 900 ? 'none' : 1,padding:20,flexWrap:'wrap'}}>
+            <Module title="profile" text="" color="#D8FFCD" to={"profile"} icon="person-outline" />
+            <Module title="messages" color="#CDEEFF" icon="mail-outline" to={"messages"} number={'unreadMessage'}/>
+            <Module title="sale" color="#fffbc9" icon="shirt-outline" to={"sale"}/>
+            <Module title="places" color="#f4e6d4" icon="map-outline" to={"maps"}/>
+            <Module title="Beállítások" text="" color="#FDCDFF" icon="flower-outline" />
+            <Module title="Unatkozom" text="" color="#FF9D9D" to={"new"} icon="bulb-outline" />
+          </Row>
+          <Messages style={{flex: width <= 900 ? 'none' : 1,padding:30}}/>
+        </Auto>
+      </ScrollView>
+    );
     return(
       <View style={styles.modules}>
           {/*<Module title="Segélykérés" text="" color="#ffb0b0" to={"help"} icon="alert-outline" flat/>*/}
@@ -129,9 +147,193 @@
     );
   }
 
+  const Smiley = () => {
+    const size = useRef(new Animated.Value(1)).current 
+
+    const handleGrow = () => {
+      if (size._value > 60) 
+      Animated.timing(
+        size,
+        {
+          toValue: 1,
+          duration: 1000,
+        }
+      ).start();
+      else
+      Animated.timing(
+        size,
+        {
+          toValue: size._value*3,
+          duration: 1000,
+        }
+      ).start();
+    }
+    return (
+
+      <Animated.View                 // Special animatable View
+      style={{
+        marginLeft:30,
+        transform: [{ scale: size }]
+      }}
+    >
+      <Pressable onPress={handleGrow}>
+        <Image source={require('../assets/logo.png')} style={{position:'absolute',top:-22,left:-15,width:50,height:50,zIndex:10}}/>
+      </Pressable>
+    </Animated.View>
+    )
+  }
+
+  const Messages = ({style}) => {
+
+    const [notifications, setNotifications] = useState([
+      {title:'Új üzenet Ákostól!',text:'Szia!!',link:'messages',params:{selected:'PM2T0TVoaeZIVxuoAPPrVBofwQE2'}}
+    ]);
+    const {database, app, auth} = useContext(FirebaseContext);
+    const navigator = useNavigation()
+    const uid = useSelector((state) => state.user.uid)
+    const dispatch = useDispatch()
+
+    const removePopup = (index) => {
+      setPopups(popups.filter((p,i)=>i!=index))
+      console.log('remove');
+    }
+
+    useEffect(() => {
+      return
+      getMessages(ROOM_ID, (messages) => {
+        setData(messages);
+      });
+      const refToRoom = ref(getDatabase(app), `messages/room_${ROOM_ID}`);
+      const myQuery = query(refToRoom);
+      
+      // wrap your function inside setTimeout
+       setTimeout(() => {
+      
+        onChildAdded(
+          myQuery,(data) => {
+            console.log(data);
+          },
+          (error) => {
+            console.log(error);
+          }
+        );
+        return myQuery.off('child_added');
+      }, 1000) //add this ,1000 mean 1 second delay.
+    }, []);
+    useEffect(() => {
+      if (database) {
+          const dbRef = ref(database,`users/${uid}/messages`);
+          const userRef = ref(database,`users`);
+
+          console.log('onChilAdded attatched');
+
+          const getMessages = () => {
+            //console.log('listening');
+            onChildAdded(dbRef, (childSnapshot) => {
+              console.log('new message:',childSnapshot.val());
+              const childKey = childSnapshot.key;
+              console.log(childKey
+                );
+              const read = childSnapshot.child('read').val() 
+              const last = childSnapshot.child('last').val() 
+              if (!read && last?.from != uid) {
+                get(child(userRef,childKey+'/data/name')).then((snapshot) => {
+                    const name = snapshot.val()
+                    setNotifications(old=>[...old,{link:'chat/'+childKey,title:'Új üzenet '+name+'tól',text:last?.message}])
+                  });
+                  dispatch(setUnreadMessage(childKey))
+              }
+          });
+
+          setTimeout(() => {
+            //getMessages()
+          }, 1000)
+
+          return off(dbRef,'child_added')
+          } 
+
+          getMessages()
+
+
+
+      }
+    }, [database]);
+    return (
+      <View style={style}>
+        <Text style={{fontSize:40}}>Értesítések</Text>
+        <ScrollView>
+          {notifications.map(
+            (n,i)=><Row key={'msg'+i} style={{backgroundColor:'white',padding:20,margin:5}}>
+                  <Auto>
+                    <Text style={{fontWeight:'bold'}}>{n.title}</Text>
+                    {n?.text && <Text>{': '+n.text}</Text>}
+                  </Auto>
+                  <Pressable onPress={()=>navigator.navigate(n.link,n.params)}>
+                    <Icon name="arrow-forward-outline" size={15}/>
+                  </Pressable>
+              </Row>)}
+
+        </ScrollView>
+      </View>
+    )
+  }
+
+  const Help = () => {
+    function MouseOver(event) {
+      event.target.style.backgroundColor = '#fff';
+    }
+
+    function MouseOut(event) {
+      event.target.style.backgroundColor = '#ff9a9c';
+    }
+    return (
+      <View onMouseOver={MouseOver} onMouseOut={MouseOut} 
+      style={{position:'absolute',bottom:-370,left:0,width:'100%', height:400,backgroundColor: '#ff9a9c'}}>
+      </View>
+    )
+  }
+
+const PopUps = () => {
+
+
+  return (
+    <View>
+      {
+      popups.map((popup,index)=>
+      
+        <Popup 
+          title={popup.name + ' üzenetet küldött neked!'} 
+          description={popup.text}
+          key={index} 
+          index={index}
+          handleClose={()=>removePopup(index)}
+          handlePress={()=>console.log('clicked')}
+        />)
+      }
+    </View>)
+}
+
+const Popup = ({title,description,handlePress,handleClose,index}) => {
+  return (
+    <Pressable 
+      onPress={handlePress}
+      style={{position:'absolute',bottom:10+105*index,right:10,width:300,borderWidth:2,height:100,backgroundColor:'white',padding:20}}>
+      <View style={{flexDirection:'row'}}>
+        <Text style={{fontWeight:'bold',flexGrow:1}}>{title}</Text>
+        <Pressable onPress={handleClose}>
+          <Text>
+            <Icon name='close' size={25}/>
+          </Text>
+        </Pressable>
+      </View>
+      <Text>{description}</Text>
+    </Pressable>
+  )
+}
+
   const MenuLink = ({title,link,number,setOpen,onPress}) => {
     const ref = useRef(null);
-    const width = Dimensions.get('window').width
+    const width = useWindowSize().width;
 
     const isHovered = useHover(ref);
     const navigation = useNavigation()
@@ -151,7 +353,7 @@
         }}>
 
           <TextFor style={{fontWeight:'500'}} text={title}/>
-          {!!number && <Text style={styles.number}>{number}</Text>}
+          {!!number && <Text style={[styles.number,{right:50,top:60}]}>{number}</Text>}
       </Pressable>
     )
   }
@@ -164,30 +366,27 @@
       navigation.push(to, props.with);
     }
     return (
-      <TouchableOpacity onPress={() => onPress(props.to)}>
-        <View style={moduleStyle(props.color,flat)}>
-          <Row style={{height: '80%' }}>
-              <Text style={{ marginHorizontal: 12 }}><Icon name={props.icon} size={25} color={isBright(props.color)} /></Text>
-              {!!number && <Text style={styles.number}>{number}</Text>}  
-            <Col>
-              <TextFor style={{ fontWeight: 'bold', color: isBright(props.color) }} text={props.title}/>
-              <Text style={{ color: isBright(props.color) }}>{props.text}</Text>
-            </Col>
-          </Row>
-        </View>
-      </TouchableOpacity>
+        <TouchableOpacity style={moduleStyle(props.color,flat)} onPress={() => onPress(props.to)}>
+          <Row>
+            <TextFor style={{ fontWeight: 'bold', color: isBright(props.color) }} text={props.title}/>
+          </Row> 
+            <Icon name={props.icon} size={50} style={{alignSelf:'center'}} color={isBright(props.color)} />
+            {!!number && <Text style={styles.number}>{number}</Text>}  
+        </TouchableOpacity>
     );
     
   }
 
   var moduleStyle = function(color,flat) {
     return {
-      width: flat ? widthPercentageToDP(97) : widthPercentageToDP(50),
-      flex:1,
       
       backgroundColor: color,
-      borderWidth: 1,
+      justifyContent:'center',
+      margin:10,
       padding: 10,
+      paddingHorizontal:30,
+      height:100,
+      width:150
     }
   }
 

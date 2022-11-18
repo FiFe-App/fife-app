@@ -6,6 +6,7 @@ export const userReducer = createSlice({
   name: 'user',
   initialState: {
     uid: null,
+    name: null,
     userData: null,
     unreadMessage: [],
     settings: {
@@ -43,15 +44,17 @@ export const userReducer = createSlice({
     },
     removeUnreadMessage: (state,action) => {
       let arr = state.unreadMessage
-      console.log('arr',arr);
       if (arr?.length)
         state.unreadMessage = arr.filter(function(item) {
           return item !== action.payload
         })
+    },
+    setName: (state,action) => {
+      state.name = action.payload
     }
   }
 })
 
-export const { init, login, logout, setUserData, setUnreadMessage, removeUnreadMessage, setSettings} = userReducer.actions
+export const { init, login, logout, setName, setUserData, setUnreadMessage, removeUnreadMessage, setSettings} = userReducer.actions
 
 export default userReducer.reducer
