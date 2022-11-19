@@ -13,6 +13,7 @@ import { FirebaseContext } from '../../firebase/firebase';
 
 import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
 import { useWindowSize } from '../../hooks/window';
+import { Map } from '../Edit';
 
 const bgColor = '#F2EFE6'
 
@@ -121,7 +122,7 @@ export const Profile = ({ navigation, route }) => {
           <Section title="Helyzetem" flex={width <= 900 ? 'none' : 1}>
             {profile.location ? (
             (Platform.OS !== 'web') ? <MapView style={localStyles.map} />
-            : <div id='map' style={localStyles.map} />)
+            : <Map data={profile}/>)
             : <View style={{justifyContent:'center',alignItems:'center'}}>
               <Text style={localStyles.subText}>Nincs megadva helyzeted</Text>
             </View>

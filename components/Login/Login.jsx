@@ -154,7 +154,7 @@ const  LoginForm = () => {
     </View>
   )
 }
-export const RegisterForm = ({setData}) => {
+export const RegisterForm = ({setData,dataToAdd}) => {
   const navigation = useNavigation()
   const [email, onChangeEmail] = React.useState("");
   const [password, onChangePassword] = React.useState("");
@@ -162,14 +162,18 @@ export const RegisterForm = ({setData}) => {
   const [loginError, onChangeLoginError] = React.useState("");
   const {app, auth, user, api}  = useContext(FirebaseContext);
 
+  useEffect(() => {
+    console.log(dataToAdd);
+  }, []);
+
   const signUp = (email, password, printMessage) => {
     console.log('sign in');
 
-    api.register(email,password).then((res) => {
+    api.register(email,password,dataToAdd).then((res) => {
       console.log('res',res);
       if (res?.success) {
-        //navigation.push('home') 
-        setData(true)
+        navigation.push('home') 
+        //setData(true)
       } else {
         onChangeLoginError(res?.error)
       }
@@ -217,7 +221,7 @@ export const RegisterForm = ({setData}) => {
         />
       </View>
       <Text style={styles.error} >{loginError}</Text>
-      <Button style={styles.headline} title="Regisztráció" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
+      <Button style={styles.headline} title="Kész!" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
         signUp(email,password)
       } />
       <Button title="Facebook Bejelentkezés"  onPress={fbLogin} color="#4267B2"/>
@@ -234,16 +238,16 @@ export const MoreInfoForm = ({setData}) => {
 
   useEffect(() => {
     console.log(name & bio);
-    setData(name && bio)
+    setData({name,bio})
   }, [name,bio]);
   return (
-    <View style={{alignSelf:'center',flex:1}}>
-      <View style={{flexWrap:'wrap'}}>
+    <View style={{flex:1}}>
+      <View style={{}}>
         <TextInput
           style={styles.searchInput}
           onChangeText={onChangeName}
           editable
-          placeholder="Neved"
+          placeholder="Neved, vagy ahogy szeretnéd, hogy szólítsanak:)"
         />
         <TextInput
           style={[styles.searchInput,{height:200}]}

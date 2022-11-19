@@ -8,6 +8,7 @@ import { Loading, ProfileImage, TextInput } from "./Components";
 import { removeUnreadMessage } from '../userReducer';
 
 export const Chat = ({route, navigation, propUid}) => {
+    const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
     const [header, setHeader] = useState(null);
@@ -87,6 +88,8 @@ export const Chat = ({route, navigation, propUid}) => {
                     setMessages(old => [...old,data.val()])
             });
             dispatch(removeUnreadMessage(uid2))
+            console.log('loaded');
+            setLoading(false)
         }
     }, [database,uid2]);
     
@@ -98,23 +101,20 @@ export const Chat = ({route, navigation, propUid}) => {
 
     return (
     <View style={{flex:1}}>
-        {!!messages.length ? 
         <View style={{flex:1}}>
-            {header && header}
+            {header}
             <ScrollView 
             snapToEnd
             ref={(scroll) => {setScrollView(scroll)}}
             style={{flex:1,backgroundColor:'white'}} contentContainerStyle={styles.messages}>
-                {messages.map((e,i)=> {
-                    return (
-                        <Message text={e.text} isMine={e.uid == uid} key={i}/>
-                    )
-                })}
-            </ScrollView>
-        </View> : 
-        <View style={{flex:1, backgroundColor:'white'}}>
-            <Loading color="rgba(255,175,0,0.7)"/>
-        </View>}
+                
+        {!loading ? 
+        messages.map((e,i)=> {return (<Message text={e.text} isMine={e.uid == uid} key={i}/>)})
+        :   <View style={{flex:1, backgroundColor:'white'}}>
+                <Loading color="rgba(255,175,0,0.7)"/>
+            </View>}
+        </ScrollView>
+        </View>
         <View style={styles.input}>
             <TextInput
                 style={styles.textInput} 

@@ -6,7 +6,7 @@ import firebaseConfig from './firebaseConfig';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, FacebookAuthProvider, signInWithPopup, fetchSignInMethodsForEmail } from "firebase/auth";
 
 import { initializeApp } from 'firebase/app';
-import { get, getDatabase, ref } from "firebase/database";
+import { get, getDatabase, ref, set } from "firebase/database";
 import { useDispatch } from 'react-redux';
 import { login as sliceLogin, logout as sliceLogout, setName, setSettings, setUserData } from '../userReducer';
 import { Platform } from 'react-native';
@@ -54,7 +54,7 @@ export default ({ children }) => {
         dispatch(sliceLogout())
     }
 
-    const login = async (email, password) => {
+    const login = async (email, password, firstLogin) => {
         let newEmail = email
         let newPass = password
         let response = null
@@ -71,6 +71,10 @@ export default ({ children }) => {
                     createdAt:user.createdAt,
                     lastLoginAt:user.lastLoginAt
                 }))
+                if (firstLogin) {
+                    response = {success:true}
+                    return
+                } 
                 console.log(userCredential);
 
                 dispatch(sliceLogin(user.uid))
@@ -134,17 +138,22 @@ export default ({ children }) => {
 
     }
 
-    const register = async (email,password) => {
+    const register = async (email,password,data) => {
         const app = auth ? app : await init()
         let response = null
         const auth = getAuth();
+        const db = getDatabase();
         await createUserWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
+            .then(async (userCredential) => {
                 // Signed in 
                 console.log('signed in as ',userCredential.user.email);
-                dispatch(sliceLogin(userCredential.user.uid))
-                response = {success:true}
-                // ...
+                const LoginRes = await login(email,password,true);
+                if (LoginRes?.success) {
+                    dispatch(sliceLogin(userCredential.user.uid))
+                    await set(ref(db,`users/${userCredential.user.uid}/data`),data).then(()=>{
+                        response = {success:true}
+                    })
+                }
             })
             .catch((error) => {
                 const errorCode = error.code;

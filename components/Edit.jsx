@@ -243,7 +243,7 @@ export const Edit = ({ navigation, route }) => {
         </View>
         <View style={{marginHorizontal: width > 900 ? 20 : 0,flex:1}}>
           <Header title="Helyzet" icon="location-sharp" helpText="Olyan helyet vagy környéket adj meg, ahol általában szoktál lenni"/>
-          <Map/>
+          <Map data={newData} setData={setNewData} editable/>
           <Text>{newData?.location?.name}</Text>
           <Professions data={newData} setData={setNewData}/>
           <Links data={newData} setData={setNewData}/>
@@ -374,7 +374,8 @@ export const Links = (props) => {
     </View>)
 }
 
-const Map = () => {
+export const Map = ({data,setData,editable}) => {
+  const [location,setLocation] = useState(data?.location || {center:null,zoom:null});
   const [map, setMap] = useState(null);
 
   useEffect(() => {
@@ -382,11 +383,35 @@ const Map = () => {
       L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
               attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(map);
+
+      if (editable) {
+        const circle = L.circleMarker(map.getCenter(), {radius:60,fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
+        map.on('zoom',(ev)=> {
+          const zoom = map.getZoom()
+          setLocation({zoom,center:map.getCenter()})
+        })
+        map.on('move',(ev)=>{
+          const center = map.getCenter();
+          circle.setLatLng(center)
+          setLocation({zoom:map.getZoom(),center:center})
+        });
+      } else {
+        //const circle = L.circleMarker(map.getCenter(), {radius:60,fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
+
+        const circle2 = L.circle(map.getCenter(), {radius:28*map.getZoom(),fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
+      }
+      
     }
   }, [map]);
 
-  useEffect( () => { 
-    return
+  useEffect(() => {
+    console.log(location);
+    if (editable && location.center && location.zoom) {
+      setData({...data,location})
+    }
+  }, [location]);
+
+  useEffect( () => {
     let link = document.getElementById("link")
     let script = document.getElementById("script")
     if (!document.getElementById("link") && !document.getElementById("script")) {
@@ -410,10 +435,10 @@ const Map = () => {
     }
 
     script.onload = () => {
-      setMap(L.map('map').setView([47.4983, 19.0408], 13));
+      setMap(L.map('map').setView(location.center, location.zoom));
     }
   })
-  return null;
+
   return (<div id="map" style={{height:200,borderWidth:2,borderStyle:'solid',marginTop:-2,marginBottom:5}}></div>)
 }
 

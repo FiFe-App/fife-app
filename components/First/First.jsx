@@ -29,9 +29,9 @@ const First = ({scrollView}) => {
     const allPages = Pages({newData, setNewData,pageData, setPageData});
     
     const goTo = (page) => {
-      if (page < pages.length && page >= 0)
+      if (page < allPages.length && page >= 0)
         setPage(page)
-      if (page == pages.length)
+      if (page == allPages.length)
         navigation.navigate('home');
     }
 
@@ -44,6 +44,11 @@ const First = ({scrollView}) => {
     useEffect(() => {
       setBackDisabled(page == 0)
     }, [pageData,page]);
+
+    useEffect(() => {
+      if (scrollView2)
+        scrollView2.scrollTo({x:page*width,y:0,animated:false})
+    }, [scrollView2]);
 
     useEffect(() => {
       if (page != null) {
@@ -67,7 +72,6 @@ const First = ({scrollView}) => {
         showsVerticalScrollIndicator={false}
         scrollEnabled={false}
         onScroll={(e)=>{
-          console.log(e);
           if (e.nativeEvent.contentOffset.x > percent*width)
             setPage(Math.floor(e.nativeEvent.contentOffset.x/width))
           else
@@ -77,7 +81,7 @@ const First = ({scrollView}) => {
           {
         allPages.map((p,i)=>{
           if (i >= page-1 && i <= page+1) return p 
-          return <View style={{width:width,flex:1}}/>
+          return <View style={{width:width,flex:1}} key={'page'+i}/>
         })}
       </ScrollView>
       <View style={{flexDirection:'row',height:10,position:'absolute',left:0,bottom:0,width:'100%'}}>
@@ -94,6 +98,7 @@ const First = ({scrollView}) => {
         onPress={()=>scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})}>
         <Icon name="arrow-back-outline" size={30}/>
       </Pressable>
+
       {false && <View style={{ flex: 1, flexDirection:'row' }}>
         <TouchableOpacity style={[styles.button]} onPress={()=>backDisabled ? handleToHome() : goTo(page-1)}>
           <Text style={styles.buttonText}>{backDisabled ? "Bejelentkezés" : "Vissza"}</Text>
