@@ -69,6 +69,7 @@ export const Chat = ({route, navigation, propUid}) => {
         console.log('chat with',uid2);
         if (database && uid2) {
             if (navigation) {
+                console.log('header');
                 const profileListRef = ref(database, `users/${uid2}/data`);
                 onValue(profileListRef, (snapshot) => {
                     setHeader(
@@ -77,6 +78,7 @@ export const Chat = ({route, navigation, propUid}) => {
                             <Text style={{margin:5,fontSize:16,fontWeight:'400'}}>{snapshot.child('name').val()}</Text>
                         </TouchableOpacity>
                     )
+                    console.log('header set');
                 });
             }
             const messageListRef = ref(database, `users/${uid}/messages/${uid2}`);

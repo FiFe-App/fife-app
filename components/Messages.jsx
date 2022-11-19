@@ -74,7 +74,7 @@ export const Messages = ({route,navigation}) => {
       }, [database]);
 
       useEffect(() => {
-        if (selected && width <= 900) {
+        if (selected && Dimensions.get('window').width <= 900) {
             navigation.navigate("chat", {uid:selected});
         }else
             navigation.setParams({

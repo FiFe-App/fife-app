@@ -35,7 +35,7 @@ export const Search = ({ navigation, route }) => {
                     snapshot.forEach((childSnapshot) => {
                         const childKey = childSnapshot.key;
                         const childData = childSnapshot.child('data').val();
-    
+                        
                         let found = null
                         let index = null
 
@@ -43,7 +43,7 @@ export const Search = ({ navigation, route }) => {
                             found = childData.username
                             console.log(found);
                         }
-                        if (childData.name && childData.name.toLowerCase().includes(key.toLowerCase())) found = childData.username
+                        if (childData.name && childData.name.toLowerCase().includes(key.toLowerCase())) found = childData.name
                         if (childData.username && childData.username.toLowerCase().includes(key.toLowerCase())) found = childData.username
                         if (childData.profession && childData.profession.filter((e,i)=>{
                             if (e.name.toLowerCase().includes(key.toLowerCase()) ||
