@@ -141,7 +141,7 @@ class Slideshow extends React.Component {
             {this.props.photos.map((source, i) => { // for every object in the photos array...
               return ( // ... we will return a square Image with the corresponding object as the source
                 <Image
-                  key={i} // we will use i for the key because no two (or more) elements in an array will have the same index
+                  key={'image'+i} // we will use i for the key because no two (or more) elements in an array will have the same index
                   style={{ width: this.width, height: this.width/2 }}
                   source={source}
                 />

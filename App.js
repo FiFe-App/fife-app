@@ -52,6 +52,7 @@ import { useSelector } from 'react-redux'
 import { useDispatch } from 'react-redux';
 import { init, removeUnreadMessage, setUnreadMessage } from './userReducer';
 import { toldalek } from './textService/textService';
+import { Helmet } from 'react-helmet';
 
 
 //SplashScreen.preventAutoHideAsync();
@@ -76,6 +77,7 @@ export default function App(props) {
   const linking = useState({prefixes: [prefix]})
 
   useEffect(() => {
+
     if (Platform.OS == 'android') {
     registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
 
@@ -103,6 +105,7 @@ export default function App(props) {
 
     return (
           <Provider store={store}>
+            <MetaHeader />
             <PersistGate loading={<Text>Loading...</Text>} persistor={persistor}>
               <FirebaseProvider>
                 <SafeAreaProvider>
@@ -131,6 +134,17 @@ const Show = (props) => {
     </Text>
   )
 } 
+
+const MetaHeader = () => {
+
+  if (Platform.OS == 'web') {
+    console.log('theme color');
+    return (<Helmet>
+      <meta name="theme-color" content="#FDEEA2"/>
+    </Helmet>)
+  }
+    
+}
 
 
 const Navigator = () => {

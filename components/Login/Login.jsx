@@ -18,6 +18,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import First from '../first/First';
 import { TextInput } from '../Components';
 import { useWindowSize } from '../../hooks/window';
+import { Helmet } from 'react-helmet';
 
 
 const LoginScreen = ({ navigation, route }) => {
@@ -63,6 +64,10 @@ const LoginScreen = ({ navigation, route }) => {
       directionalLockEnabled={true}
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}>
+
+      <Helmet>
+        <meta name="theme-color" content="rgba(255,196,0,1)"/>
+      </Helmet>
       <LinearGradient colors={["rgba(255,196,0,1)", "#fcf3d4"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={localStyle.container}>
         {width > 900 ?
           <Text style={{fontSize:'10vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>

@@ -27,6 +27,7 @@
   import { getGreeting, TextFor } from '../textService/textService';
 import { setUnreadMessage } from '../userReducer';
 import { useWindowSize } from '../hooks/window';
+import { Helmet } from 'react-helmet';
   const Stack = createNativeStackNavigator();
 
   export const HomeScreen = ({ navigation, route }) => {
@@ -61,7 +62,10 @@ import { useWindowSize } from '../hooks/window';
     }
 
     return (
-      <LinearGradient colors={['#FDE6A2', "#FDF5A2"]} style={{borderBottomWidth:2}} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
+      <LinearGradient colors={['#FDEEA2', "#FDEEA2"]} style={{borderBottomWidth:2}} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
+        <Helmet>
+          <meta name="theme-color" content="#FDEEA2"/>
+        </Helmet>
         <SafeAreaView>
           <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
             { navigation.canGoBack && 
