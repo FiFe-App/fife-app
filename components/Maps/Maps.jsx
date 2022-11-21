@@ -1,24 +1,32 @@
 
 import React, { useEffect, useContext, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Text, Platform, View, Button, Pressable, TextInput, ActivityIndicator, Animated, ScrollView  } from 'react-native';
+import { Text, Platform, View, Button, Pressable, ActivityIndicator, Animated, ScrollView, TextInputBase, Switch  } from 'react-native';
 import { Dimensions } from 'react-native';
-import { Auto, Loading, Row } from '../Components';
+import { Auto, Loading, NewButton, Row, TextInput } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
+
 
 import {getMaps,LocationData} from "./mapService";
 import { FirebaseContext } from '../../firebase/firebase';
 import * as Location from 'expo-location';
 import { useWindowSize } from '../../hooks/window';
+import { push, ref, set } from 'firebase/database';
 
 
+const defaultFilterList = [
+  {name: 'ABC',function: (prop='name') => ((a,b)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))},
+  {name: 'CBA',function: (prop='name') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))},
+  {name: 'legközelebbi',function: (prop='rating') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))}
+];
 
 export const Maps = () => {
+    //#region state
     const {database} = useContext(FirebaseContext);
     const width = useWindowSize().width;
 
-    const [selectedMap,setSelectedMap] = useState(null) 
+    const [selectedMap,setSelectedMap] = useState({name:null,id:null}) 
     const [open, setOpen] = useState(true);
 
     const [map,setMap] = useState(null)
@@ -27,20 +35,21 @@ export const Maps = () => {
     const [maplist,setMapList] = useState(null)
     const [search, setSearch] = React.useState('');
     const [filterList,setFilterList] = useState(null);
+    const [settings, setSettings] = useState({secure:true});
     const [greenIcon, setGreenIcon] = useState(null);
     const [locationIcon, setLocationIcon] = useState(null);
-    const defaultFilterList = [
-      {name: 'ABC',function: (prop='name') => ((a,b)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))},
-      {name: 'CBA',function: (prop='name') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))},
-      {name: 'legközelebbi',function: (prop='rating') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))}
-    ];
     const [filter, setFilter] = React.useState(defaultFilterList[0]);
     const [selected, setSelected] = React.useState(null);
     const [ids, setIds] = useState({mapId:null,locationId:null});
     const [location, setLocation] = useState(null);
+
+    const [newPlace, setNewPlace] = useState(null);
+    const [newMarker, setNewMarker] = useState(null);
+
     const [errorMsg, setErrorMsg] = useState(null);
+    //#endregion
 
-
+    //#region uef
     const reFilterList = () => {
       return defaultFilterList.map((e,index) => {
         if (e.name != filter.name)
@@ -53,19 +62,28 @@ export const Maps = () => {
     }
 
     useEffect( () => {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
-      link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
-      link.crossOrigin=""
-  
-      const script = document.createElement("script");
-      script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
-      script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
-      script.crossOrigin=""
-  
-      document.head.appendChild(link);
-      document.body.appendChild(script);
+      
+      let link = document.getElementById("link")
+      let script = document.getElementById("script")
+      if (!document.getElementById("link") && !document.getElementById("script")) {
+        link = document.createElement("link");
+        link.id = "link"
+        link.rel = "stylesheet";
+        link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
+        link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+        link.crossOrigin=""
+
+        script = document.createElement("script");
+        script.id = "script"
+        script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
+        script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
+        script.crossOrigin=""
+
+        document.head.appendChild(link);
+        document.body.appendChild(script);
+      } else {
+
+      }
 
       script.onload = async () => {
         setGreenIcon(L.icon({
@@ -84,7 +102,9 @@ export const Maps = () => {
           shadowAnchor: [4, 62],  // the same for the shadow
           popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
         }));
-        setMap(L.map('map').setView([47.4983, 19.0408], 13));
+
+        if (!map)
+          setMap(L.map('map').setView([47.4983, 19.0408], 13));
 
       }
 
@@ -96,9 +116,6 @@ export const Maps = () => {
 
       
     }, []);
-
-    useEffect(() => {
-    }, [location]);
 
     useEffect(() => {
       if (map) {
@@ -121,35 +138,66 @@ export const Maps = () => {
       }
     }, [map]);
 
-    useEffect(()=>{
-      if ( map && mapData && selectedMap) {
-        markers.forEach((m) =>map.removeLayer(m))
-        mapData.find(e=>(e.name==selectedMap)).locations.forEach((location,index) => {
-          const marker = L.marker([location.lat, location.lng],selected==location ? {icon: greenIcon } : {}).addTo(map)
-          marker.bindPopup("<b>"+location.name+"</b><br>"+location.description)
-          marker.on('click',() => {
-            setSelected(location)
-            setIds({...ids,locationId:index})
-            marker.getPopup().openPopup();
-          })
-          setMarkers(old=>[...old,marker])
-        });
+    useEffect(() => {
+      console.log(newMarker,newPlace);
+      if (newMarker)
+      if (newPlace) {
+        newMarker.addTo(map);
+        const popup = newMarker.bindPopup("<b>Ezzel be tudod jelölni az új helyet</b>").openPopup();
+        setTimeout(()=>popup.closePopup(), 10000)
+      } else {
+        console.log('remove');
+        map.removeLayer(newMarker)
       }
-    },[selectedMap,selected])
+    }, [newMarker,newPlace]);
+
+    useEffect(()=>{
+      if (map) {
+
+        if (!newMarker) {
+          const newM = L.marker(map.getCenter())
+          map.on('move',()=>{
+            newM.setLatLng(map.getCenter())
+          })
+          setNewMarker(newM);
+
+        }
+        if (mapData && selectedMap.name) {
+          markers.forEach((m) =>map.removeLayer(m))
+         
+          mapData.find((e,mapId)=>
+          (e.name==selectedMap.name))
+          .locations.forEach((location,index) => {
+            if (!settings.secure || location?.likes != null) {
+              const marker = L.marker([location.lat, location.lng],selected==location ? {icon: greenIcon } : {}).addTo(map)
+              marker.bindPopup("<b>"+location.name+"</b><br>"+location.description)
+              marker.on('click',() => {
+                setSelected(location)
+                setIds({...ids,locationId:index})
+                marker.getPopup().openPopup();
+              })
+              setMarkers(old=>[...old,marker])
+            }
+          });
+        }
+      }
+    },[selectedMap,selected,settings,newPlace])
 
     useEffect(()=>{
       const searchL = search.toLowerCase()
       if (mapData)
       setMapList(
-        mapData.sort(filter.function('name')).map((map,index) => {
+        mapData.map((map,index) => {
           if (
             map?.name?.toLowerCase().includes(searchL) || 
             !searchL || 
             map?.locations?.find(e=>e?.name.toLowerCase().includes(searchL) || 
             e?.description?.toLowerCase().includes(searchL))
           ) {
-            
-            const placeList = map?.locations?.map((place,index2)=>{
+            console.log(map);
+            const placeList = map.locations.map((place,index2)=>{
+
+              if (!settings.secure || place?.likes != null) //console.log(null != place.likes);
               if (place?.name?.toLowerCase().includes(searchL) || place?.description?.toLowerCase().includes(searchL) || !searchL)
               return (
                 <Pressable style={[localStyles.mapLink,{left:10,marginHorizontal:40,borderColor:selected==place ? map.color : 'black'}]} 
@@ -160,7 +208,7 @@ export const Maps = () => {
                               }
                               else {
                                 setSelected(place);
-                                setIds({...ids,locationId:mapData.find(e=>e.name == selectedMap).locations.findIndex(e=>e.name==place.name)})
+                                setIds({...ids,locationId:mapData.find(e=>e.name == selectedMap?.name).locations.findIndex(e=>e.name==place.name)})
                               }
                             }}>
                   <Text style={{color:selected==place ? map.color : 'black'}}>{place.name}</Text>
@@ -169,20 +217,20 @@ export const Maps = () => {
             return(
               <View key={index} style={{justifyContent:'flex-end'}}>
                   <Pressable  onPress={()=>{
-                    if (selectedMap==map.name) {
-                      setSelectedMap(null);
+                    if (selectedMap?.name==map.name) {
+                      setSelectedMap({id:null,name:null});
                       setIds({mapId:null,locationId:null})
                     } else {
-                      setSelectedMap(map.name);
-                      setIds({...ids,mapId:mapData.findIndex(e=>e.name==map.name)})
+                      setSelectedMap({id:index+1,name:map.name});
+                      //setIds({...ids,mapId:mapData.findIndex(e=>e.name==map.name)})
                     }
                   }}
-                  style={[localStyles.mapLink,selectedMap==map.name ? {borderColor:map.color} : {}]}>
-                    <Icon style={{ marginHorizontal: 12 }}name='map' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
-                    <Text style={selectedMap==map.name ?  {color:map.color} : {}}>{map.name}</Text>
-                    <Icon style={{ marginHorizontal: 12, flex:1, textAlign:'right' }} name='arrow-forward' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
+                  style={[localStyles.mapLink,selectedMap?.name==map.name ? {borderColor:map.color} : {}]}>
+                    <Icon style={{ marginHorizontal: 12 }}name='map' size={25} color={selectedMap?.name==map.name ?  map.color : "#000"} />
+                    <Text style={selectedMap?.name==map.name ?  {color:map.color} : {}}>{map.name}</Text>
+                    <Icon style={{ marginHorizontal: 12, flex:1, textAlign:'right' }} name='arrow-forward' size={25} color={selectedMap?.name==map.name ?  map.color : "#000"} />
                   </Pressable>
-                  {selectedMap == map.name && 
+                  {selectedMap?.name == map.name && 
                   <ScrollView >
                     {placeList}
                   </ScrollView>}
@@ -191,13 +239,14 @@ export const Maps = () => {
           }
         })
       )
-    },[search,selectedMap,selected,filter,mapData])
+    },[search,selectedMap,selected,filter,settings,mapData])
 
     useEffect(()=>{
       if (map,selected) {
         map.flyTo([selected.lat,selected.lng]);
       }
     },[selected])
+    //#endregion
 
     return (
       <Auto style={{flex:1}}>
@@ -209,21 +258,26 @@ export const Maps = () => {
               editable
               placeholder="Keress helyekre, kategóriákra"
             />
-            <Pressable style={{flexDirection:'row',justifyContent:'space-around',alignItems:'center'}} 
-              onPress={() => setFilterList(filterList ? null : reFilterList)}>
-              <Text>Sorrend:</Text>
-              <Row style={{alignItems:'center'}}>
-                <Text style={{margin:5}}>{filter.name}</Text>
-                <AntDesign name="caretdown" size={10} color="black" />
-              </Row>
-            </Pressable>
-            <View style={{textAlign:'right',marginHorizontal:50}}>
-              {filterList}  
-            </View>      
+
+            <View style={{flexDirection:'row',marginHorizontal:30,marginVertical:5}}>
+              <Text style={{flex:1}}>Ellenőrzött helyek helyek</Text>
+              <Switch
+                  trackColor={{ false: '#767577', true: '#3e3e3e' }}
+                  thumbColor={settings?.secure ? '#f5dd4b' : '#f4f3f4'}
+                  ios_backgroundColor="#3e3e3e"
+                  onValueChange={(e)=>{setSettings({...settings, secure: e})}}
+                  value={settings?.secure}
+                  style={{alignSelf:'flex-end'}}
+              />
+            </View>
             <ScrollView style={{flex:2}}>
               {maplist || <ActivityIndicator size="large" />}
-            </ScrollView>          
-            <LocationData location={selected} locationId={ids.locationId} mapId={ids.mapId}/>
+            </ScrollView>  
+            {selected ?        
+            <LocationData location={selected} locationId={ids.locationId} mapId={selectedMap.id}/>
+            :
+            <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>
+            }
         </View>}
 
           {width < 900 &&
@@ -234,6 +288,47 @@ export const Maps = () => {
         <div id="map" style={localStyles.map}></div>
       </Auto>
     )
+}
+
+const NewPlace = ({setNewPlace,newPlace,selectedMap}) => {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+
+  const {database} = useContext(FirebaseContext);
+
+  useEffect(() => {
+      console.log('map id',selectedMap.id);
+      setNewPlace(open)
+  }, [open]);
+
+  const send = () => {
+    if (title && description && selectedMap.name && newPlace) {
+      console.log('send');
+      const mapListRef = ref(database, 'maps/'+selectedMap.id+'/locations');
+      const newLocationRef = push(mapListRef);
+      set(newLocationRef, {
+        description,
+        name: title,
+        lat: newPlace._latlng.lat,
+        lng: newPlace._latlng.lng
+      });
+    }
+  }
+
+  if (!open) return <NewButton title="Tudok egy új helyet!" onPress={()=>setOpen(true)} style={{padding:10}}/>
+  else return (
+    <View style={{margin:10}}>
+      <Row style={{flex:1,padding:10}}>
+        <Text style={{flexGrow:1}}>Új hely</Text>
+        <Pressable onPress={()=>{setOpen(false)}} style={{}}><Text>Mégse</Text></Pressable>
+      </Row>
+      <TextInput style={localStyles.input} placeholder='Hely neve' onChangeText={setTitle}/>
+      <TextInput style={localStyles.input} placeholder='A helyről' onChangeText={setDescription}/>
+      <Text style={localStyles.input}>{selectedMap ? "Kategória: "+selectedMap?.name : "Válassz ki egy kategóriát fent"}</Text>
+      <NewButton title="Feltöltöm!" onPress={send} disabled={!(title && description && selectedMap)}/>
+    </View>
+  )
 }
 
 
@@ -311,5 +406,17 @@ const localStyles = {
       borderColor: '#f9f9f9',
       borderWidth:1,
 
-    }
+    },
+    input: {
+      paddingVertical: 5,
+      borderColor: 'black',
+      borderWidth: 2,
+      borderRadius: 0,
+      marginBottom:5,
+      color:'black',
+      backgroundColor:'white',
+      fontWeight: "600",
+      padding: 10,
+      paddingVertical:10
+    },
   }

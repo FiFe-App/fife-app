@@ -14,29 +14,32 @@ import { TextFor } from "../../textService/textService";
 export const getMaps = async (db) => {
     
     return get(ref(db,'maps')).then(snapshot => {
-      console.log(snapshot.val());
-      return(snapshot.val())
+      const data = (snapshot.val())
+                  .filter(e=>!!e)
+                  .map(e=>{
+                    return {...e,locations:Object.values(e.locations)}
+                  })
+      console.log(data);
+      return(data)
     })
 }
 export const getHearts = async (db,uid,mapId,locationId) => {
-    
     let list = [];
     let me = false
-    console.log('<3');
-    onValue(ref(db,'maps/' + mapId + "/locations/" + locationId + "/likes/"), (snapshot) => {
+    await get(ref(db,'maps/' + mapId + "/locations/" + locationId + "/likes/"), async (snapshot) => {
+      let mine = false
       snapshot.forEach((childSnapshot) => {
         const childKey = childSnapshot.key;
         if (childKey == uid)
-          me = true
+          mine = true
 
         list.push(childKey)
       });
-    }, {
-      onlyOnce: true
-    });
-
+      return mine
+      });
     console.log('hearts',{all: list, me: me});
-    return {all: list, me: me};
+    return ({all: list, me: me});
+    
 }
 
 export const heartLocation = async (db,uid,mapId,locationId,toHeart) => {
@@ -74,10 +77,15 @@ export const LocationData = (props) => {
 
     useEffect(() => {
       if (location) {
-        getHearts(database,uid,mapId,locationId)    
+        (async ()=>{
+        const hearts = await getHearts(database,uid,mapId,locationId)
+        console.log(hearts);
+        setHearted(hearts?.me)
+        })()
+        
       }
       console.log('uef');
-    }, []);
+    }, [props.locationId,props.mapId]);
 
     if (!location) return null
 
