@@ -8,6 +8,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { global } from './global';
 import { styles as newStyles } from './styles';
 import { useWindowSize } from '../hooks/window';
+import ImageModal from 'react-native-image-modal';
 
 
 //Dimensions.get('window');
@@ -86,8 +87,9 @@ const ProfileImage = (props) => {
   return <View style={[props.style,{width: size, height: size}]}>
     { !loaded ?
     <ActivityIndicator style={{position:'absolute', width: size, height: size}} color='rgba(255,175,0,0.7)' />:
-    <Image style={{width: size, height: size}}
+    <ImageModal style={{width: size, height: size}}
       resizeMode="cover"
+      modalImageResizeMode="center"
       source={{ uri: url }} onLoad={() => setLoaded(true)} onError={()=>{setUrl(defaultUrl)}}/>}
     
     </View>;
@@ -96,7 +98,7 @@ const ProfileImage = (props) => {
 
 function NewButton({color = "#FFC372",title,onPress,disabled,style}) {
   return (
-    <TouchableOpacity style={[style,styles.newButton, { backgroundColor: disabled ? '#d6b17f' : color, height:50 }]} onPress={onPress} disabled={disabled}>
+    <TouchableOpacity style={[styles.newButton, { backgroundColor: disabled ? '#d6b17f' : color, height:50 },style]} onPress={onPress} disabled={disabled}>
           <Text style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{title}</Text>
     </TouchableOpacity>
   );
@@ -423,7 +425,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: "center",
     borderWidth:2,
-    marginTop:-2,
     marginLeft:-2
   },
 });

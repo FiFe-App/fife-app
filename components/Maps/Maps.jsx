@@ -132,21 +132,19 @@ export const Maps = () => {
     
           let location = await Location.getCurrentPositionAsync({});
 
-          console.log(location);
           L.marker([location.coords.latitude, location.coords.longitude],{icon: locationIcon }).addTo(map)
           })()
       }
     }, [map]);
 
     useEffect(() => {
-      console.log(newMarker,newPlace);
+
       if (newMarker)
       if (newPlace) {
         newMarker.addTo(map);
         const popup = newMarker.bindPopup("<b>Ezzel be tudod jelölni az új helyet</b>").openPopup();
         setTimeout(()=>popup.closePopup(), 10000)
       } else {
-        console.log('remove');
         map.removeLayer(newMarker)
       }
     }, [newMarker,newPlace]);
@@ -194,10 +192,9 @@ export const Maps = () => {
             map?.locations?.find(e=>e?.name.toLowerCase().includes(searchL) || 
             e?.description?.toLowerCase().includes(searchL))
           ) {
-            console.log(map);
             const placeList = map.locations.map((place,index2)=>{
 
-              if (!settings.secure || place?.likes != null) //console.log(null != place.likes);
+              if (!settings.secure || place?.likes != null)
               if (place?.name?.toLowerCase().includes(searchL) || place?.description?.toLowerCase().includes(searchL) || !searchL)
               return (
                 <Pressable style={[localStyles.mapLink,{left:10,marginHorizontal:40,borderColor:selected==place ? map.color : 'black'}]} 
@@ -243,15 +240,19 @@ export const Maps = () => {
 
     useEffect(()=>{
       if (map,selected) {
-        map.flyTo([selected.lat,selected.lng]);
+        map.flyTo([selected.lat,selected.lng],16);
       }
     },[selected])
+
+    useEffect(() => {
+      setSelected(null)
+    }, [selectedMap]);
     //#endregion
 
     return (
       <Auto style={{flex:1}}>
         {open && <View style={[localStyles.side,{flex: width <= 900 ? 2 : 1}]}>
-          
+          <ScrollView>
             <TextInput
               style={localStyles.searchInput}
               onChangeText={setSearch}
@@ -270,22 +271,30 @@ export const Maps = () => {
                   style={{alignSelf:'flex-end'}}
               />
             </View>
-            <ScrollView style={{flex:2}}>
+            <ScrollView style={{}}>
               {maplist || <ActivityIndicator size="large" />}
             </ScrollView>  
-            {selected ?        
-            <LocationData location={selected} locationId={ids.locationId} mapId={selectedMap.id}/>
+            </ScrollView>
+        {width > 900 && (selected ?        
+            <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected}  mapId={selectedMap.id}/>
             :
             <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>
-            }
-        </View>}
+            )}
 
+
+            
+        </View>}
           {width < 900 &&
-          <Pressable style={{borderBottomWidth:2,padding:5,alignItems:'center',justifyContent:'center'}}
+          <Pressable style={{borderBottomWidth:2,backgroundColor:'#FFC372',padding:5,alignItems:'center',justifyContent:'center'}}
             onPress={()=>setOpen(!open)}>
             <AntDesign name={!open ? 'caretdown' : 'caretup'} size={20}/>
           </Pressable>}
         <div id="map" style={localStyles.map}></div>
+        {width <= 900 && (selected ?        
+            <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected} mapId={selectedMap.id}/>
+            :
+            <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>
+            )}
       </Auto>
     )
 }
@@ -294,17 +303,24 @@ const NewPlace = ({setNewPlace,newPlace,selectedMap}) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [statusText, setStatusText] = useState('Feltöltöm!');
 
   const {database} = useContext(FirebaseContext);
 
   useEffect(() => {
-      console.log('map id',selectedMap.id);
       setNewPlace(open)
   }, [open]);
 
+  useEffect(() => {
+    if (title || description)
+    setStatusText('Feltöltöm!')
+  }, [description,title]);
+
   const send = () => {
     if (title && description && selectedMap.name && newPlace) {
-      console.log('send');
+      setLoading(true);
+      setStatusText('Kérlek várj...')
       const mapListRef = ref(database, 'maps/'+selectedMap.id+'/locations');
       const newLocationRef = push(mapListRef);
       set(newLocationRef, {
@@ -312,21 +328,26 @@ const NewPlace = ({setNewPlace,newPlace,selectedMap}) => {
         name: title,
         lat: newPlace._latlng.lat,
         lng: newPlace._latlng.lng
+      }).then(e=> {
+        setTitle('');
+        setDescription('')
+        setLoading(false);
+        setStatusText('Feltöltve!')
       });
     }
   }
 
-  if (!open) return <NewButton title="Tudok egy új helyet!" onPress={()=>setOpen(true)} style={{padding:10}}/>
+  if (!open) return <NewButton title="Tudok egy új helyet!" onPress={()=>setOpen(true)} style={{borderWidth:0}}/>
   else return (
     <View style={{margin:10}}>
       <Row style={{flex:1,padding:10}}>
         <Text style={{flexGrow:1}}>Új hely</Text>
         <Pressable onPress={()=>{setOpen(false)}} style={{}}><Text>Mégse</Text></Pressable>
       </Row>
-      <TextInput style={localStyles.input} placeholder='Hely neve' onChangeText={setTitle}/>
-      <TextInput style={localStyles.input} placeholder='A helyről' onChangeText={setDescription}/>
+      <TextInput style={localStyles.input} placeholder='Hely neve' onChangeText={setTitle} value={title} disabled={loading}/>
+      <TextInput style={localStyles.input} placeholder='A helyről' onChangeText={setDescription} value={description} disabled={loading}/>
       <Text style={localStyles.input}>{selectedMap ? "Kategória: "+selectedMap?.name : "Válassz ki egy kategóriát fent"}</Text>
-      <NewButton title="Feltöltöm!" onPress={send} disabled={!(title && description && selectedMap)}/>
+      <NewButton title={statusText} onPress={send} disabled={!(title && description && selectedMap) || loading}/>
     </View>
   )
 }

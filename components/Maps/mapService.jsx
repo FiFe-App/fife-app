@@ -5,7 +5,7 @@ import React, { useEffect, useContext, useState } from 'react';
 
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import { TextFor } from "../../textService/textService";
@@ -20,7 +20,7 @@ export const getMaps = async (db) => {
       const data = (snapshot.val())
                   .filter(e=>!!e)
                   .map(e=>{
-                    return {...e,locations:Object.values(e?.locations || [])}
+                    return {...e,locations:Object.values(e?.locations || []),color:'#'+Math.floor(Math.random()*16777215).toString(16)}
                   })
       return(data)
     })
@@ -72,12 +72,13 @@ export const LocationData = (props) => {
     const width = useWindowSize().width;
     const {database} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
-    const {location,locationId,mapId} = props;
+    const {location,locationId,mapId,setLocation} = props;
     const [heartedList, setHeartedList] = useState(null);
     const [hearted, setHearted] = useState(false);
     const [help, setHelp] = useState(false);
 
     useEffect(() => {
+
       if (location) {
         (async ()=>{
         const hearts = await getHearts(database,uid,mapId,locationId)
@@ -101,8 +102,11 @@ export const LocationData = (props) => {
     }
 
     return (
-      <ScrollView style={[styles.selectedLocation,{flex: width <= 900 ? 'none':1} ]}>
-        <Text style={{fontSize:20,padding:10}}>{location?.name}</Text>
+      <ScrollView style={[styles.selectedLocation,{flex: width <= 900 ? 1 : 'none'} ]}>
+        <Row>
+          <Text style={{fontSize:20,padding:10,flexGrow:1}}>{location?.name}</Text>
+          <Pressable style={{padding:10}} onPress={()=>setLocation(null)}><Text style={{fontSize:20}}>X</Text></Pressable>
+        </Row>
         <Text style={{padding:10}}>{location?.description}</Text>
         <TouchableOpacity onPress={handleHeart} style={{flexDirection:'row',alignItems:'center'}}>
             <Icon name={hearted ? "heart" : "heart-outline"} size={25} color="red" style={{paddingHorizontal:10}}/>
