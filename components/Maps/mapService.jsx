@@ -9,6 +9,9 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import { TextFor } from "../../textService/textService";
+import { widthPercentageToDP } from 'react-native-responsive-screen';
+import { useWindowSize } from '../../hooks/window';
+import { ScrollView } from 'react-native-web';
 
 
 export const getMaps = async (db) => {
@@ -17,9 +20,8 @@ export const getMaps = async (db) => {
       const data = (snapshot.val())
                   .filter(e=>!!e)
                   .map(e=>{
-                    return {...e,locations:Object.values(e.locations)}
+                    return {...e,locations:Object.values(e?.locations || [])}
                   })
-      console.log(data);
       return(data)
     })
 }
@@ -37,7 +39,6 @@ export const getHearts = async (db,uid,mapId,locationId) => {
       });
       return mine
       });
-    console.log('hearts',{all: list, me: me});
     return ({all: list, me: me});
     
 }
@@ -68,6 +69,7 @@ export const helpLocation = async (db,uid,mapId,locationId,toHelp) => {
 }
 
 export const LocationData = (props) => {
+    const width = useWindowSize().width;
     const {database} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
     const {location,locationId,mapId} = props;
@@ -79,12 +81,10 @@ export const LocationData = (props) => {
       if (location) {
         (async ()=>{
         const hearts = await getHearts(database,uid,mapId,locationId)
-        console.log(hearts);
         setHearted(hearts?.me)
         })()
         
       }
-      console.log('uef');
     }, [props.locationId,props.mapId]);
 
     if (!location) return null
@@ -101,7 +101,7 @@ export const LocationData = (props) => {
     }
 
     return (
-      <View style={styles.selectedLocation}>
+      <ScrollView style={[styles.selectedLocation,{flex: width <= 900 ? 'none':1} ]}>
         <Text style={{fontSize:20,padding:10}}>{location?.name}</Text>
         <Text style={{padding:10}}>{location?.description}</Text>
         <TouchableOpacity onPress={handleHeart} style={{flexDirection:'row',alignItems:'center'}}>
@@ -113,7 +113,7 @@ export const LocationData = (props) => {
             <Icon name={help ? "person-add" : "person-add-outline"} size={25} color="green" style={{paddingHorizontal:10}}/>
             <TextFor text="help_needed" />
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     )
   }
 
