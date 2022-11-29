@@ -32,12 +32,12 @@ const First = ({scrollView}) => {
       if (page < allPages.length && page >= 0)
         setPage(page)
       if (page == allPages.length)
-        navigation.navigate('home');
+        navigation.navigate('fooldal');
     }
 
     const handleToHome = () => {
       if (width <= 900)
-        navigation.navigate('login')
+        navigation.navigate('bejelentkezes')
       else
       scrollView.scrollTo({ x: 0, y: 0, animated: true })
     }

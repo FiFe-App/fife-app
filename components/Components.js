@@ -87,7 +87,7 @@ const ProfileImage = (props) => {
   return <View style={[props.style,{width: size, height: size}]}>
     { !loaded ?
     <ActivityIndicator style={{position:'absolute', width: size, height: size}} color='rgba(255,175,0,0.7)' />:
-    <ImageModal style={{width: size, height: size}}
+    <Image style={{width: size, height: size}}
       resizeMode="cover"
       modalImageResizeMode="center"
       source={{ uri: url }} onLoad={() => setLoaded(true)} onError={()=>{setUrl(defaultUrl)}}/>}
@@ -310,7 +310,7 @@ const SearchBar = (props) => {
     global.search = data.text;
     setShowHistory(false);
     console.log('push');
-    navigation.push("search", { key: data.text });
+    navigation.push("kereses", { key: data.text });
   };
   const onBlur = () => {
     setShowHistory(false)
@@ -359,7 +359,7 @@ const SearchBar = (props) => {
 const OpenNav = ({open,children,style}) => {
   if (open)
   return (
-    <View style={style && {position:'relative',elevation:10,width:'100%'}}>
+    <View style={style && {position:'absolute',top:85,width:'100%'}}>
       {children}
     </View>
   )

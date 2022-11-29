@@ -2,12 +2,11 @@ import { useState, useContext, useEffect } from "react";
 import {View, Text, TouchableOpacity, ScrollView, Platform, Dimensions} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
-import { ref, child, get, set, onValue, onChildAdded, off } from "firebase/database";
+import { ref, child, get, set, onValue, onChildAdded, off, onChildChanged, query, orderByChild } from "firebase/database";
 import { ProfileImage } from './Components'
 import { useNavigation } from '@react-navigation/native';
 import { styles } from "./styles";
 import { Chat } from "./Chat";
-import { widthPercentageToDP,  heightPercentageToDP} from 'react-native-responsive-screen';
 import { elapsedTime } from "../textService/textService";
 import { useWindowSize } from "../hooks/window";
 
@@ -38,7 +37,7 @@ export const Messages = ({route,navigation}) => {
                             getRandom()
                             return;
                         } else 
-                        navigation.navigate('messages',{selected:childSnapshot.key});
+                        navigation.navigate('uzenetek',{selected:childSnapshot.key});
                     }
                 })
             }
@@ -46,36 +45,43 @@ export const Messages = ({route,navigation}) => {
     }
 
     useEffect(() => {
+        console.log('list:',list);
         setList(list.sort((a,b)=>(a.date > b.date ? -1 : 1)))
     }, [list]);
-    
+
     useEffect(() => {
-        if (database) {
-            if (route?.params?.random) getRandom()
-            const dbRef = ref(database,`users/${uid}/messages`);
+        const unsubscribe = navigation.addListener('focus', () => {
+            if (database) {
+                if (route?.params?.random) getRandom()
+                const dbRef = ref(database,`users/${uid}/messages`);
+                const userRef = ref(database,`users`);
 
-            const userRef = ref(database,`users`);
+                let arr = []
 
-            onChildAdded(dbRef, (childSnapshot) => {
-                const childKey = childSnapshot.key;
-                console.log(unreadMessages);
-                const read = !unreadMessages?.includes(childKey)
-                console.log('read',read);
-                const last = childSnapshot.child('last').val() || null
-                if (childKey != uid)
-                get(child(userRef,childKey+'/data/name')).then((snapshot) => {
-                    const name = snapshot.val()
-                    console.log('messager added',name);
-                    setList(old=>[...old,{uid:childKey,name:name,read:read,last:last}])
-                  });
-            });
+                setList([])
+                onChildAdded(query(dbRef,orderByChild('date','desc')), (childSnapshot) => {
+                    const childData = childSnapshot.val();
+                    const last = childSnapshot.child('last').val() || null
+                    const read = !unreadMessages?.includes(childKey)
+                    const childKey = childSnapshot.key;
+                    if (last)
+                    get(child(userRef,childKey+'/data/name')).then((snapshot) => {
+                        console.log(snapshot.val());
+                        setList(old=>[...old,{uid:childKey,name:snapshot.val(),read:read,last:last}])
+                    });
+                });
 
-        }
-      }, [database]);
+            }
+        });
+
+        // Return the function to unsubscribe from the event so it gets removed on unmount
+        return unsubscribe;
+    }, [navigation]);
+    
 
       useEffect(() => {
         if (selected && Dimensions.get('window').width <= 900) {
-            navigation.navigate("chat", {uid:selected});
+            navigation.navigate("beszelgetes", {uid:selected});
         }else
             navigation.setParams({
                 selected: selected,
@@ -110,7 +116,7 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
         if (width > 900)
             setSelected(uid)
         else 
-            navigation.navigate("chat", {uid:uid});
+            navigation.push("beszelgetes", {uid:uid});
     }
 
     return (

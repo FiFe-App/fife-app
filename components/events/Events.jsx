@@ -86,7 +86,7 @@ function getData(key, setArray) {
 function Event({ title, text }) {
     const navigation = useNavigation();
     const onPress = () => {
-        navigation.navigate('event')
+        navigation.navigate('esemeny')
     }
 
     return (

@@ -80,7 +80,7 @@ export const Profile = ({ navigation, route }) => {
           setProfile(data);
           console.log(data);
         } else {
-          navigation.push('edit-profile')
+          navigation.push('profil-szerkesztese')
         }
       }).catch((error) => {
         console.error(error);
@@ -103,12 +103,12 @@ export const Profile = ({ navigation, route }) => {
         </View>
         <View style={[localStyles.fcontainer,{flex:width <= 900 ? 'none' : 1}]}>
             { !myProfile && <>
-            <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('messages',{selected:uid})}/>
+            <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('uzenetek',{selected:uid})}/>
             <NewButton title={followButtonText} onPress={follow}/>
             </>
             }
           {myProfile &&
-            <NewButton title={"Módosítás"} onPress={() => navigation.navigate('edit-profile')} />
+            <NewButton title={"Módosítás"} onPress={() => navigation.navigate('profil-szerkesztese')} />
             }
 
         </View>

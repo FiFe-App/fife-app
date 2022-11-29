@@ -1,15 +1,15 @@
 
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
-import { elapsedTime, TextFor } from "../textService/textService"
-import { ProfileImage, NewButton, Row, Slideshow, Loading, TextInput } from "./Components"
-import { styles as gstyles } from "./styles"
+import { elapsedTime, TextFor } from "../../textService/textService"
+import { ProfileImage, NewButton, Row, Slideshow, Loading, TextInput } from "../Components"
+import { styles as gstyles } from "../styles"
 import * as ImagePicker from 'expo-image-picker';
 import { useContext, useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import ImageModal from 'react-native-image-modal';
 import Icon from 'react-native-vector-icons/Ionicons'
 
-import { FirebaseContext } from "../firebase/firebase"
+import { FirebaseContext } from "../../firebase/firebase"
 import { onChildAdded, push, ref as dbRef, set } from "firebase/database"
 import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage"
 
@@ -93,32 +93,33 @@ export const Item = ({route,navigation,data}) => {
       <View style={{flex:1,padding:10}}>
         <Text style={{marginBottom:20,fontSize:25}}><TextFor text="item_header"/></Text>
         <View style={[{flexDirection: "row", backgroundColor: '#fdfdfd'}]}>
-            <View style={{margin: 5,flex:1}}>
-              <TextInput 
-                style={{ fontWeight: 'bold',fontSize:20, borderWidth:2,padding:5,
+          <View style={{margin: 5,flex:1}}>
+            <TextInput 
+              style={{ fontWeight: 'bold',fontSize:20, borderWidth:2,padding:5,
+                      backgroundColor: loading ? 'lightgray' : 'none',
+                      cursor: loading ? 'not-allowed' : 'text'
+                    }} 
+              placeholder="Cím"
+              editable={!loading}
+              selectTextOnFocus={!loading} 
+              value={title}
+              onChangeText={setTitle}/>
+            <Row style={{alignItems:'center'}}>
+              <ProfileImage style={gstyles.listIcon} size={20}uid={uid}/>
+              <Text style={{ fontWeight: 'bold' }}>{name}</Text>
+              <Text> {elapsed}</Text>
+            </Row>
+            <TextInput multiline numberOfLines={5} 
+              style={{ marginVertical:5, borderWidth:2,padding:5,fontSize:20, 
                         backgroundColor: loading ? 'lightgray' : 'none',
                         cursor: loading ? 'not-allowed' : 'text'
-                      }} 
-                placeholder="Cím"
-                editable={!loading}
-                selectTextOnFocus={!loading} 
-                value={title}
-                onChangeText={setTitle}/>
-              <Row style={{alignItems:'center'}}>
-                <ProfileImage style={gstyles.listIcon} size={20}uid={uid}/>
-                <Text style={{ fontWeight: 'bold' }}>{name}</Text>
-                <Text> {elapsed}</Text>
-              </Row>
-              <TextInput multiline numberOfLines={5} 
-                style={{ marginVertical:5, borderWidth:2,padding:5,fontSize:20, 
-                         backgroundColor: loading ? 'lightgray' : 'none',
-                         cursor: loading ? 'not-allowed' : 'text'
-                      }} 
-                placeholder="Leírás" 
-                selectTextOnFocus={!loading} 
-                editable={!loading} 
-                value={text}onChangeText={setText}/>
-            </View>
+                    }} 
+              placeholder="Leírás" 
+              selectTextOnFocus={!loading} 
+              editable={!loading} 
+              value={text}
+              onChangeText={setText}/>
+          </View>
         </View>
         <View style={{alignItems:'flex-start',flex:1}}>
           {!loading && <ImageAdder setGlobalImages={setImages} globalImageTexts={imageTexts} setGlobalImageTexts={setImageTexts}/>}
@@ -135,8 +136,9 @@ export const Item = ({route,navigation,data}) => {
     )
 }
 
-const ImageAdder = ({setGlobalImages,globalImageTexts,setGlobalImageTexts}) => {
+const ImageAdder = ({setGlobalImages,setGlobalImageTexts}) => {
   const [images, setImages] = useState([]);
+  const [texts, setTexts] = useState([]);
   const pickImage = async () => {
     if (images?.length > 4) return
     // No permissions request is necessary for launching the image library
@@ -152,27 +154,27 @@ const ImageAdder = ({setGlobalImages,globalImageTexts,setGlobalImageTexts}) => 
     if (!result.cancelled) {
       setImages([...images,result.uri]);
       setGlobalImages([...images,result.uri]);
+      setTexts([...texts,''])
     }
   };
   const deleteImage = (index) => {
     setImages(images.filter((image,i) => i !== index))
     setGlobalImages(images.filter((image,i) => i !== index))
+    setTexts(texts.filter((text,i) => i !== index))
   }
 
   const handleTextChange = (text,index) => {
-    console.log(text);
-    let arr = globalImageTexts;
-    if (arr.length < index)
-      arr.push(text)
-    else
-      arr[index] = text
-    console.log(globalImageTexts);
-    setGlobalImageTexts(globalImageTexts)
+    console.log(text,index,'of'+texts.length);
+    let arr = texts;
+    console.log(texts.map((e,i)=>i==index ? text : e));
+    setTexts(
+      texts.map((e,i)=>i==index ? text : e))
+    setGlobalImageTexts(arr)
   } 
 
   useEffect(() => {
-    console.log('images',images);
-  }, [images]);
+    console.log('texts',texts);
+  }, [texts]);
   return(
     <ScrollView  style={{width:'100%',paddingTop:2,marginBottom:-2}}>
       {!!images.length && images.map((image,index)=>
@@ -181,7 +183,7 @@ const ImageAdder = ({setGlobalImages,globalImageTexts,setGlobalImageTexts}) => 
           <ImageModal swipeToDismiss={true} modalImageResizeMode="contain" resizeMode="cover" style={styles.square} source={{ uri: image }}/>
           <Pressable style={styles.close} onPress={()=>deleteImage(index)}><Icon name="close" size={20} color="white"/></Pressable>
           <View style={{flex:1,marginLeft:-2}}>
-            <TextInput onChangeText={text=>handleTextChange(text,index)} value={globalImageTexts[index]}
+            <TextInput onChangeText={text=>handleTextChange(text,index)} value={texts[index]}
             style={{borderWidth:2,height:150}} multiline numberOfLines={3} placeholder={"Mondj valamit erről a képről"}/>
           </View>
         </View>

@@ -1,18 +1,18 @@
 import { useState, useContext, useEffect } from "react";
 import {View, Text, TouchableOpacity, ScrollView, Platform, Dimensions, TextInput, Switch, Image} from 'react-native'
 import { useSelector } from 'react-redux'
-import { FirebaseContext } from '../firebase/firebase';
-import { FAB, getUri, Loading, NewButton, ProfileImage, Row } from './Components'
+import { FirebaseContext } from '../../firebase/firebase';
+import { FAB, getUri, Loading, NewButton, ProfileImage, Row } from '../Components'
 import { useNavigation } from '@react-navigation/native';
-import { styles } from "./styles";
-import { Chat } from "./Chat";
+import { styles } from "../styles";
+import { Chat } from "../Chat";
 import { widthPercentageToDP,  heightPercentageToDP} from 'react-native-responsive-screen';
 import { Item as SaleItem} from "./Item";
-import { elapsedTime, search } from "../textService/textService";
+import { elapsedTime, search } from "../../textService/textService";
 import ImageModal from 'react-native-image-modal';
 
-import { ref as dbRef, child, get, set, onValue, onChildAdded, off } from "firebase/database";
-import { useWindowSize } from "../hooks/window";
+import { ref as dbRef, child, get, set, onValue, onChildAdded, off, query, orderByChild, orderByValue } from "firebase/database";
+import { useWindowSize } from "../../hooks/window";
 
 
 export const Sale = ({route,navigation}) => {
@@ -35,7 +35,8 @@ export const Sale = ({route,navigation}) => {
             const saleRef = dbRef(database,`sale`);
             const userRef = dbRef(database,`users`);
 
-            onChildAdded(saleRef, (childSnapshot) => {
+            setList([])
+            onChildAdded(query(saleRef,orderByChild('date','desc')), (childSnapshot) => {
                 const childData = childSnapshot.val();
                 get(child(userRef,childData.owner+'/data/name')).then((snapshot) => {
                     const name = snapshot.val()
@@ -52,6 +53,7 @@ export const Sale = ({route,navigation}) => {
 
     const searchFor = async (withSynonims) => {
         if (list.length) {
+            setSearchResult([])
             setSearchResult(
                 await Promise.all(list.map( async (e,i)=>{
                     return  search(searchText,[e?.data.title,e?.data.description],withSynonims && settings?.synonims)
@@ -120,7 +122,7 @@ export const Sale = ({route,navigation}) => {
             </View>
         }
         {(width <= 900) &&
-        <FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.navigate('item')}/>
+        <FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.navigate('uj-cserebere')}/>
         }
     </View>
     )
@@ -138,15 +140,15 @@ function Item({title,text,uid,name,date,imageNames,index,setSelected}) {
     const getImages = async () => {
 
         if (imageNames?.length) {
+            setImages([])
             setImages(await Promise.all(imageNames.map( async (e,i)=>{
-                return getUri('sale/'+index+'/'+e)
-                .then((ret)=>{
-                    return ret
-                })
+                const fname = e?.filename || e;
+                return {uri: await getUri('sale/'+index+'/'+fname),text: e.description}
             })))
         }
     }
     useEffect(() => {
+        console.log('imageNames',imageNames);
         getImages()
     }, [imageNames]);
 
@@ -162,15 +164,15 @@ function Item({title,text,uid,name,date,imageNames,index,setSelected}) {
         <TouchableOpacity onPress={onPress} style={{flexDirection:'row',width:'100%',alignSelf:'flex-start'}}>
                 {images?.length ?
                     <Image source={images[0]} style={{width:100,height:100,margin:5}}/>
-                    : <ProfileImage style={styles.listIcon} size={100} uid={uid}/>}
+                    : <ProfileImage style={{}} size={100} uid={uid}/>}
                 <View style={{margin: 5,width:'80%'}}>
-                <Text style={{ fontWeight: 'bold',fontSize:20,flex: 1, }}>{title}</Text>
+                <Text style={{ fontWeight: 'bold',fontSize:20 }}>{title}</Text>
                 <Row style={{alignItems:'center'}}>
-                    <ProfileImage style={styles.listIcon} size={20} uid={uid}/>
+                    <ProfileImage style={{margin:5}} size={20} uid={uid}/>
                     <Text style={{ fontWeight: 'bold' }}>{name}</Text>
                     <Text> {elapsed}</Text>
                 </Row>
-                <Text style={{ margin:5,width:'80%' }}>{text}</Text>
+                <OpenableText style={{ margin:5,width:'80%' }} open={open} text={text}/>
                 </View>
         </TouchableOpacity>
             {open &&
@@ -183,19 +185,21 @@ function Item({title,text,uid,name,date,imageNames,index,setSelected}) {
                         resizeMode="center"
                         modalImageResizeMode="contain"
                         imageBackgroundColor="none"
-                        renderFooter={()=><Text>abc</Text>}
+                        renderFooter={()=><View style={{padding:20,backgroundColor:'rgba(0,0,0,0.7)'}}>
+                            <Text style={{color:'white'}}>{image.text}</Text>
+                        </View>}
                         style={{
                             width: 200,
                             height: 200,
                             padding:10
                         }}
-                        source={image}
+                        source={image.uri}
                         />
                         )}
                     </ScrollView>}
                     { uid != myUid ?
                     <Row style={{width:'100%'}}>
-                        <NewButton title={"Írj "+name+"nak"} onPress={()=>navigation.navigate('messages',{selected:uid})}/>
+                        <NewButton title={"Írj "+name+"nak"} onPress={()=>navigation.navigate('beszelgetesek',{selected:uid})}/>
                         <NewButton title="Jelentés" onPress={()=>handleDelete}/>
                     </Row>:
                     <NewButton title="Töröld ki" onPress={()=>handleDelete}/>}
@@ -205,3 +209,11 @@ function Item({title,text,uid,name,date,imageNames,index,setSelected}) {
     
   }
 
+  const OpenableText = ({text,open}) => {
+    const short = '' || text.substring(0,50)
+    if (text.length > 50) {
+        return (
+            <Text>{!!open ? text : short+'...'}</Text>
+        )
+    } else return <Text>{text}</Text>
+  }

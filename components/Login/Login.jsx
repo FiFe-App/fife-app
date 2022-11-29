@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { Component, useState, useContext, useEffect } from 'react';
 //import { Image, Text, View, Button, TextInput } from 'react-native';
-import { Text, View, Button, StyleSheet, Dimensions, ScrollView, Pressable, TouchableOpacity, Image } from 'react-native';
+import { Text, View, Button, StyleSheet, Dimensions, ScrollView, Pressable, TouchableOpacity, Image, Animated, Easing } from 'react-native';
 // routes
 
 import { styles } from '../styles'
@@ -35,7 +35,7 @@ const LoginScreen = ({ navigation, route }) => {
       if (api && !canLogin)
         api.login().then((res)=>{
           if (res?.success) {
-            navigation.push('home') 
+            navigation.push('fooldal') 
             console.log('auto singed in');
           }
         })
@@ -44,7 +44,7 @@ const LoginScreen = ({ navigation, route }) => {
     const handleMoreInfo = () => {
       console.log('more');
       if (width <= 900)
-        navigation.navigate('about')
+        navigation.navigate('az-approl')
       else
         scrollView.scrollToEnd(true)
     }
@@ -79,10 +79,10 @@ const LoginScreen = ({ navigation, route }) => {
         {"\n"} a közösség
         </Text>
         }
-        
+        <Text style={{fontSize:60, fontFamily:'Raleway_800ExtraBold',color:'black',textAlign:'right',width:'70%'}}>BÉTA</Text>
 
         <View 
-        style={{position:'absolute',right:115,top:102,borderRadius:50,justifyContent:'center',alignItems:'center'}} >
+        style={{position:'absolute',right:'7%',top:90,borderRadius:50,justifyContent:'center',alignItems:'center'}} >
         <Image source={require('../../assets/logo.png')} style={{width:100,height:100,transform: [{ rotate: "10deg" }]}}/>
       </View>
         <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
@@ -108,6 +108,7 @@ const LoginScreen = ({ navigation, route }) => {
 const  LoginForm = () => {
   const width = useWindowSize().width;
   const navigation = useNavigation()
+  const [loading, setLoading] = useState(false);
   const [username, onChangeUsername] = React.useState("");
   const [password, onChangePassword] = React.useState("");
   const [loginError, onChangeLoginError] = React.useState("");
@@ -116,9 +117,11 @@ const  LoginForm = () => {
 
   const signIn = (email, password, printMessage) => {
     console.log('sign in');
+    setLoading(true)
     api.login(email,password).then((res) => {
       if (res?.success) {
-        navigation.push('home') 
+        navigation.push('fooldal') 
+        setLoading(false)
         console.log('user',user);
       } else {
         onChangeLoginError(res?.error)
@@ -150,7 +153,9 @@ const  LoginForm = () => {
       </View>
       <TouchableOpacity style={{width:70,backgroundColor:'black',justifyContent:'center',alignItems:"center",margin:5}} 
         onPress={() => signIn(username, password, onChangeLoginError)}>
+        {!loading ?
         <Icon name="arrow-forward-outline" color="white" size={40}/>
+        :<Loading/>}
       </TouchableOpacity>
       </View>
       {!!loginError && <View style={styles.error}>
@@ -177,7 +182,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
     api.register(email,password,dataToAdd).then((res) => {
       console.log('res',res);
       if (res?.success) {
-        navigation.push('home') 
+        navigation.push('fooldal') 
         //setData(true)
       } else {
         onChangeLoginError(res?.error)
@@ -191,7 +196,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
     api.facebookLogin().then((res) => {
       console.log('res',res);
       if (res?.success) {
-        navigation.push('home') 
+        navigation.push('fooldal') 
       } else {
         onChangeLoginError(res?.error)
       }
@@ -266,6 +271,34 @@ export const MoreInfoForm = ({setData}) => {
     </View>
   )
 }
+
+const Loading = () => {
+  const spinValue = new Animated.Value(0);
+
+    // First set up animation 
+    Animated.loop(
+      Animated.timing(
+        spinValue,
+        {
+         toValue: 1,
+         duration: 600,
+         easing: Easing.linear,
+         useNativeDriver: false
+        }
+      )
+     ).start();
+
+  // Next, interpolate beginning and end values (in this case 0 and 1)
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg']
+  })
+
+  return (<Animated.View
+    style={{transform: [{rotate: spin}] }}>
+      <Icon name="arrow-forward-outline" color="white" size={40}/>
+    </Animated.View>)
+} 
 
 const localStyle = StyleSheet.create({
   container: {

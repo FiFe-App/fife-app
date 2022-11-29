@@ -78,7 +78,7 @@ export const Profile = ({ navigation, route }) => {
             zoom: data.location.vzoom
           })*/
         } else {
-          navigation.push('edit-profile')
+          navigation.push('profil-szerkesztese')
         }
       }).catch((error) => {
         console.error(error);
@@ -105,11 +105,11 @@ export const Profile = ({ navigation, route }) => {
       <View style={{justifyContent: "center"}}>
           { !myProfile && <>
           <NewButton title={followButtonText} onPress={follow}/>
-          <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('chat',{uid:uid})}/>
+          <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('beszelgetes',{uid:uid})}/>
           </>
           }
         {myProfile &&
-          <NewButton title={"Módosítás"} onPress={() => navigation.navigate('edit-profile')} />
+          <NewButton title={"Módosítás"} onPress={() => navigation.navigate('profil-szerkesztese')} />
           }
       </View>
 

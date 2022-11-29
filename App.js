@@ -18,8 +18,8 @@ import First from "./components/first/First";
 import { Edit } from "./components/Edit";
 import { Messages } from "./components/Messages";
 import { Chat } from "./components/Chat";
-import { Sale } from "./components/Sale";
-import { Item } from "./components/Item";
+import { Sale } from "./components/sale/Sale";
+import { Item } from "./components/sale/Item";
 import { Events } from "./components/events/Events";
 import { Event } from "./components/events/Event";
 import { NewEvent } from "./components/NewEvent";
@@ -54,8 +54,14 @@ import { init, removeUnreadMessage, setUnreadMessage } from './userReducer';
 import { toldalek } from './textService/textService';
 import { Helmet } from 'react-helmet';
 
+import { getMessaging, onMessage } from "firebase/messaging";
+import { getApp } from 'firebase/app';
+
+
 
 //SplashScreen.preventAutoHideAsync();
+
+//import * as ServiceWorkerRegistration from "./firebase-messaging-sw";
 
 const Stack = createNativeStackNavigator();
 const prefix = Linking.createURL('/');
@@ -99,6 +105,7 @@ export default function App(props) {
   }, []);
 
 
+
   let [fontsLoaded] = useFonts({
     AmaticSC_700Bold,Poppins_200ExtraLight
   });
@@ -108,6 +115,7 @@ export default function App(props) {
             <MetaHeader />
             <PersistGate loading={<Text>Loading...</Text>} persistor={persistor}>
               <FirebaseProvider>
+                <Messaging/>
                 <SafeAreaProvider>
                   <StatusBar style="dark" translucent/>
                   <NavigationContainer linking={linking} fallback={<Text>Loading...</Text>}>
@@ -156,36 +164,53 @@ const Navigator = () => {
   }, []);
 
   return (
-    <Stack.Navigator initialRouteName="login" screenOptions={{ header: () => <LogoTitle />, title:"FiFe App"}}>
+    <Stack.Navigator initialRouteName="bejelentkezes" screenOptions={{ header: () => <LogoTitle />, title:"FiFe App"}}>
         <>
-          <Stack.Screen name="login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="about" component={First} options={{ headerShown: false }} />
-          {user?.uid && <>
-          <Stack.Screen name="home" component={HomeScreen} />
-          <Stack.Screen name="search" component={Search} />
+          <Stack.Screen name="bejelentkezes" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="az-approl" component={First} options={{ headerShown: false }} />
+          {
+          //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
+          }
+            {user?.uid && <>
+          <Stack.Screen name="fooldal" component={HomeScreen} />
+          <Stack.Screen name="kereses" component={Search} />
 
-          <Stack.Screen name="settings" component={Settings} />
+          <Stack.Screen name="beallitasok" component={Settings} />
           
-          <Stack.Screen name="profile" component={Profile} options={{ title: "Profil" }} />
-          <Stack.Screen name="edit-profile" component={Edit} options={{ title: "Profil szerkesztése" }} />
-          <Stack.Screen name="messages" component={Messages} options={{ title: "Beszélgetések" }} />
-          <Stack.Screen name="chat" component={Chat} options={{ title: "Beszélgetés" }} />
+          <Stack.Screen name="profil" component={Profile} options={{ title: "Profil" }} />
+          <Stack.Screen name="profil-szerkesztese" component={Edit} options={{ title: "Profil szerkesztése" }} />
+          <Stack.Screen name="uzenetek" component={Messages} options={{ title: "Beszélgetések" }} />
+          <Stack.Screen name="beszelgetes" component={Chat} options={{ title: "Beszélgetés" }} />
 
-          <Stack.Screen name="events" component={Events} options={{ title: "Események" }} />
-          <Stack.Screen name="event" component={Event} />
-          <Stack.Screen name="new-event" component={NewEvent} options={{ title: "Új esemény" }} />
+          <Stack.Screen name="esemenyek" component={Events} options={{ title: "Események" }} />
+          <Stack.Screen name="esemeny" component={Event} />
+          <Stack.Screen name="uj-esemeny" component={NewEvent} options={{ title: "Új esemény" }} />
 
-          <Stack.Screen name="new" component={New} options={{ title: "Unatkozom" }} />
+          <Stack.Screen name="unatkozom" component={New} options={{ title: "Unatkozom" }} />
           
-          <Stack.Screen name="sale" component={Sale} options={{ title: "Cserebere" }} />
-          <Stack.Screen name="item" component={Item} options={{ title: "Cserebere" }} />
+          <Stack.Screen name="cserebere" component={Sale} options={{ title: "Cserebere" }} />
+          <Stack.Screen name="uj-cserebere" component={Item} options={{ title: "Cserebere" }} />
 
-          <Stack.Screen name="maps" component={Maps} />
+          <Stack.Screen name="terkep" component={Maps} />
           </>}
         </>
       
     </Stack.Navigator>
   )
+}
+
+const Messaging = () => {
+  const {messaging} = useContext(FirebaseContext);
+  useEffect(() => {
+    console.log(!!messaging);
+    if (messaging)
+    onMessage(messaging, (payload) => {
+      console.log('Message received. ', payload);
+      // ...
+    });  
+  }, [messaging]);
+  
+
 }
 
 // Can use this function below, OR use Expo's Push Notification Tool-> https://expo.dev/notifications
@@ -239,3 +264,4 @@ async function registerForPushNotificationsAsync() {
 
   return token;
 }
+

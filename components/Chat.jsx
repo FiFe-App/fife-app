@@ -6,12 +6,14 @@ import { ref, child, get, set, onValue, onChildAdded, push, off } from "firebase
 import Icon from 'react-native-vector-icons/Ionicons'
 import { Loading, ProfileImage, TextInput } from "./Components";
 import { removeUnreadMessage } from '../userReducer';
+import { useNavigation } from "@react-navigation/native";
 
 export const Chat = ({route, navigation, propUid}) => {
     const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
     const [header, setHeader] = useState(null);
+    const nav = navigation || useNavigation()
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
     const [uid2, setUid2] = useState(propUid || route?.params?.uid);
@@ -65,35 +67,38 @@ export const Chat = ({route, navigation, propUid}) => {
     }, [messages,scrollView]);
     
     useEffect(() => {
-        console.log(route?.params);
-        console.log('chat with',uid2);
-        if (database && uid2) {
-            if (navigation) {
-                console.log('header');
-                const profileListRef = ref(database, `users/${uid2}/data`);
-                onValue(profileListRef, (snapshot) => {
-                    setHeader(
-                        <TouchableOpacity onPress={()=>navigation.navigate('profile',{uid:uid2})} style={{flexDirection:'row',alignItems:'center',margin:5,padding:10}}>
-                            <ProfileImage style={styles.listIcon} uid={uid2}/>
-                            <Text style={{margin:5,fontSize:16,fontWeight:'400'}}>{snapshot.child('name').val()}</Text>
-                        </TouchableOpacity>
-                    )
-                    console.log('header set');
+
+        //const unsubscribe = nav.addListener('focus', () => {
+            console.log(route?.params);
+            console.log('chat with',uid2);
+            if (database && uid2) {
+                    console.log('header');
+                    const profileListRef = ref(database, `users/${uid2}/data`);
+                    onValue(profileListRef, (snapshot) => {
+                        setHeader(
+                            <TouchableOpacity onPress={()=>nav.push('profil',{uid:uid2})} style={{flexDirection:'row',alignItems:'center',margin:5,padding:10}}>
+                                <ProfileImage style={styles.listIcon} uid={uid2}/>
+                                <Text style={{margin:5,fontSize:16,fontWeight:'400'}}>{snapshot.child('name').val()}</Text>
+                            </TouchableOpacity>
+                        )
+                        console.log('header set');
+                    });
+                
+                const messageListRef = ref(database, `users/${uid}/messages/${uid2}`);
+                off(messageListRef,'child_added')
+                setMessages([])
+                set(child(messageListRef,'read'),true)
+                onChildAdded(messageListRef, (data) => {
+                    if (data.key != 'read' && data.key != 'date' && data.key != 'last')
+                        setMessages(old => [...old,data.val()])
                 });
+                dispatch(removeUnreadMessage(uid2))
+                console.log('loaded');
+                setLoading(false)
             }
-            const messageListRef = ref(database, `users/${uid}/messages/${uid2}`);
-            off(messageListRef,'child_added')
-            setMessages([])
-            set(child(messageListRef,'read'),true)
-            onChildAdded(messageListRef, (data) => {
-                if (data.key != 'read' && data.key != 'date' && data.key != 'last')
-                    setMessages(old => [...old,data.val()])
-            });
-            dispatch(removeUnreadMessage(uid2))
-            console.log('loaded');
-            setLoading(false)
-        }
-    }, [database,uid2]);
+        //}) 
+        //return unsubscribe
+    }, [database,uid2,navigation]);
     
     if (!uid2) return (
         <View style={{flex:1,backgroundColor:'white',justifyContent:'center',alignItems:'center'}}>

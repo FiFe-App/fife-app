@@ -90,7 +90,7 @@ export const Search = ({ navigation, route }) => {
 function Item({title,text,uid}) {
     const navigation = useNavigation();
     const onPress = () => {
-        navigation.navigate("profile", {uid});
+        navigation.navigate("profil", {uid});
     }
     return (
         <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row"}]}>

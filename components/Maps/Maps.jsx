@@ -65,24 +65,24 @@ export const Maps = () => {
       
       let link = document.getElementById("link")
       let script = document.getElementById("script")
-      if (!document.getElementById("link") && !document.getElementById("script")) {
+      if (!document.getElementById("link")) {
         link = document.createElement("link");
         link.id = "link"
         link.rel = "stylesheet";
         link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
         link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
         link.crossOrigin=""
+        document.head.appendChild(link);
+      }
 
+      if (!document.getElementById("script")) {
         script = document.createElement("script");
         script.id = "script"
         script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
         script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
         script.crossOrigin=""
 
-        document.head.appendChild(link);
         document.body.appendChild(script);
-      } else {
-
       }
 
       script.onload = async () => {

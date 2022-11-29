@@ -11,6 +11,11 @@ import { useDispatch } from 'react-redux';
 import { login as sliceLogin, logout as sliceLogout, setName, setSettings, setUserData } from '../userReducer';
 import { Platform } from 'react-native';
 
+import { getMessaging, getToken, deleteToken } from "firebase/messaging";
+
+const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check");
+
+
 
 // we create a React Context, for this to be accessible
 // from a component later
@@ -23,6 +28,8 @@ export default ({ children }) => {
     const [database,setDatabase] = useState(null)
     const [api,setApi] = useState(null)
     const dispatch = useDispatch()
+    const [messaging, setMessaging] = useState(null);
+
 
     useEffect(()=>{init()},[])
 
@@ -41,6 +48,7 @@ export default ({ children }) => {
             const appNew = initializeApp(firebaseConfig);
 
             setApp(appNew)
+            appCheck(appNew)
             setDatabase(getDatabase(appNew))
             setAuth(getAuth(appNew))
             setApi({
@@ -49,9 +57,59 @@ export default ({ children }) => {
             return appNew;
         }
     }
+    function requestPermission() {
+        console.log('Requesting permission...');
+    }
+
+
+    const initMessaging = async (app,uid) => {
+        const messaging = getMessaging(app);
+        const db = getDatabase(app)
+        await Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            console.log('Notification permission granted.');
+          }
+        })
+        setMessaging(messaging);
+        getToken(messaging, { 
+            vapidKey: 'BInTt__OonGUhBNBdQA57cu-VRHBm6N7vcsJBe_Q3o1Ei_2UgPSfM0ZzxyXsxohdrV_qooAywYzRilIv5OJ6VQE' ,
+            //serviceWorkerRegistration: ''
+        }).then((currentToken) => {
+        if (currentToken) {
+            console.log(currentToken);
+            set(ref(db,'/users/'+uid+'/data/fcm'),{token:currentToken})
+        } else {
+            // Show permission request UI
+            alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás')
+            console.log('No registration token available. Request permission to generate one.');
+            // ...
+        }
+        }).catch((err) => {
+            console.log('An error occurred while retrieving token. ', err);
+            alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás')
+        // ...
+        });
+    }
+
+    const appCheck = (app) => {
+
+        // Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
+        // key is the counterpart to the secret key you set in the Firebase console.
+        const appCheckObj = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider('6LcSls0bAAAAAKWFaKLih15y7dPDqp9qMqFU1rgG'),
+
+        // Optional argument. If true, the SDK automatically refreshes App Check
+        // tokens as needed.
+        isTokenAutoRefreshEnabled: true
+        });
+    }
 
     const logout = () => {
-        dispatch(sliceLogout())
+        const msg = getMessaging()
+        if (msg) {
+            deleteToken(msg).then(e=>console.log('token deleted?',e))
+            dispatch(sliceLogout())
+        }
     }
 
     const login = async (email, password, firstLogin) => {
@@ -78,6 +136,8 @@ export default ({ children }) => {
                 console.log(userCredential);
 
                 dispatch(sliceLogin(user.uid))
+                initMessaging(retApp,user.uid)
+
                 const dbRef = ref(getDatabase(retApp),'users/' + user.uid + "/settings");
                 get(dbRef).then((snapshot) => {
                 if (snapshot.exists()) {
@@ -254,7 +314,7 @@ export default ({ children }) => {
     }
 
     return (
-        <FirebaseContext.Provider value={{app,auth,database,api}}>
+        <FirebaseContext.Provider value={{app,auth,database,api,messaging}}>
             {children}
         </FirebaseContext.Provider>
     )

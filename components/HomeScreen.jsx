@@ -73,21 +73,21 @@ import { Helmet } from 'react-helmet';
                 {route.name != 'home' && <Icon name='arrow-back' size={30} color="#000"/>}
               </Pressable>
             }
-            <Pressable onPress={()=>navigation.navigate('home')}>
+            <Pressable onPress={()=>navigation.navigate('fooldal')}>
               { width >  1230 && <Text style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe. <TextFor text="web_title"/></Text>}
               { width <=  1230 && width > 470 && <Text style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe App</Text>}
             </Pressable>
             { width >  1120 ?
             <View style={{flexDirection:'row',marginRight:20,marginBottom:5,flex:8}}>
-              <Pressable style={{justifyContent:'center',alignItems:'center'}} onPress={()=>navigation.navigate('home')}>
+              <Pressable style={{justifyContent:'center',alignItems:'center'}} onPress={()=>navigation.navigate('fooldal')}>
               </Pressable>
               <SearchBar/>
-              <MenuLink title="profile" text="" color="#509955" link={"profile"} icon="person-outline" />
-              <MenuLink title="messages" color="#0052ff" icon="mail-outline" link={"messages"} number={unreadMessage?.length}/>
-              <MenuLink title="sale" color="#f4e6d4" icon="shirt-outline" link={"sale"}/>
-              <MenuLink title="places" color="#f4e6d4" icon="map" link={"maps"}/>
+              <MenuLink title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
+              <MenuLink title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
+              <MenuLink title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
+              <MenuLink title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
               <MenuLink title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
-              <MenuLink title="Unatkozom" text="" color="#b51d1d" link={"new"} icon="bulb" />
+              <MenuLink title="Unatkozom" text="" color="#b51d1d" link={"untakozom"} icon="bulb" />
               <MenuLink title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
             </View>
             :
@@ -100,13 +100,13 @@ import { Helmet } from 'react-helmet';
             </Row>}
           </View>
           <OpenNav open={open} style={{width:'100%'}}>
-            <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"home"} icon="person-outline" />
-            <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profile"} icon="person-outline" />
-            <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"messages"} number={unreadMessage?.length}/>
-            <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"sale"}/>
-            <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"maps"}/>
+            <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
+            <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
+            <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
+            <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
+            <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
             <MenuLink setOpen={setOpen} title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
-            <MenuLink setOpen={setOpen} title="Unatkozom" text="" color="#b51d1d" link={"new"} icon="bulb" />
+            <MenuLink setOpen={setOpen} title="Unatkozom" text="" color="#b51d1d" link={"unatkozom"} icon="bulb" />
             <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
           </OpenNav>
         </SafeAreaView>
@@ -127,12 +127,12 @@ import { Helmet } from 'react-helmet';
         </LinearGradient>
         <Auto style={{flex:3,zIndex:-1}}>
           <Row style={{flex: width <= 900 ? 'none' : 1,padding:20,flexWrap:'wrap'}}>
-            <Module title="profile" text="" color="#D8FFCD" to={"profile"} icon="person-outline" />
-            <Module title="messages" color="#CDEEFF" icon="mail-outline" to={"messages"} number={'unreadMessage'}/>
-            <Module title="sale" color="#fffbc9" icon="shirt-outline" to={"sale"}/>
-            <Module title="places" color="#f4e6d4" icon="map-outline" to={"maps"}/>
+            <Module title="profile" text="" color="#D8FFCD" to={"profil"} icon="person-outline" />
+            <Module title="messages" color="#CDEEFF" icon="mail-outline" to={"uzenetek"} number={'unreadMessage'}/>
+            <Module title="sale" color="#fffbc9" icon="shirt-outline" to={"cserebere"}/>
+            <Module title="places" color="#f4e6d4" icon="map-outline" to={"terkep"}/>
             <Module title="Beállítások" text="" color="#FDCDFF" icon="flower-outline" />
-            <Module title="Unatkozom" text="" color="#FF9D9D" to={"new"} icon="bulb-outline" />
+            <Module title="Unatkozom" text="" color="#FF9D9D" to={"unatkozom"} icon="bulb-outline" />
           </Row>
           <Messages style={{flex: width <= 900 ? 'none' : 1,padding:30}}/>
         </Auto>
@@ -243,7 +243,7 @@ import { Helmet } from 'react-helmet';
               if (!read && last?.from != uid) {
                 get(child(userRef,childKey+'/data/name')).then((snapshot) => {
                     const name = snapshot.val()
-                    setNotifications(old=>[...old,{link:'chat/'+childKey,title:'Új üzenet '+name+'tól',text:last?.message}])
+                    setNotifications(old=>[...old,{link:'beszelgetes/'+childKey,title:'Új üzenet '+name+'tól',text:last?.message}])
                   });
                   dispatch(setUnreadMessage(childKey))
               }
@@ -423,14 +423,16 @@ const Popup = ({title,description,handlePress,handleClose,index}) => {
         padding:15,
         paddingRight:15,
         borderTopWidth:2,
+        borderBottomWidth:2,
         margin:0,
+        marginTop:-2,
       },
       hover: {
         backgroundColor:'white',
         borderRadius: 0,
         borderLeftWidth: 0,
         borderRightWidth: 0,
-        margin:0,
+        marginTop:-2,
       }
     }
   }

@@ -28,7 +28,7 @@ export const New = ({ navigation, route }) => {
             <View style={{padding:20,maxWidth:500,backgroundColor:'#fff',flex:1,width:'-webkit-fill-available'}}>
                 <View style={{flexDirection:'row', alignItems:'center',marginTop:10}}>
                     <Text style={{flex:1}}>Véletlenszerű profil keresése!</Text>
-                    <Button title="mehet" color="#fdcd4f" onPress={()=>navigation.navigate('messages',{random:true})}/>
+                    <Button title="mehet" color="#fdcd4f" onPress={()=>navigation.navigate('uzenetek',{random:true})}/>
                 </View>
                 <View style={{flexDirection:'row',marginTop:30}}>
                     <Text style={{flex:1}}>Szövegek dinamikus változtatgatása</Text>
@@ -43,7 +43,7 @@ export const New = ({ navigation, route }) => {
                 </View>
                 <View style={{flexDirection:'row', alignItems:'center',marginTop:30}}>
                     <Text style={{flex:1}}>INSTANT BULI!</Text>
-                    <Button title="mehet" color="#fdcd4f" onPress={()=>navigation.navigate('messages',{random:true})}/>
+                    <Button title="mehet" color="#fdcd4f" onPress={()=>navigation.navigate('uzenetek',{random:true})}/>
                 </View>
             </View>    
         </View>

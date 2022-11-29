@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import * as ImagePicker from 'expo-image-picker';
 import { getDatabase, set, get, ref as databaseRef, onChildAdded, remove, query, equalTo } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Auto, Loading, NewButton, TextInput } from './Components';
+import { Auto, Loading, NewButton, Row, TextInput } from './Components';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import ImageModal from 'react-native-image-modal';
 import { useWindowSize } from '../hooks/window';
@@ -27,6 +27,7 @@ export const Edit = ({ navigation, route }) => {
   const Dpath = 'users/'+uid+'/pro_file'
   const Spath = 'profiles/'+uid+"/profile.jpg"
   const [image, setImage] = useState(null);
+  const [dbImage, setDbImage] = useState(null);
   const [changed, setChanged] = useState(false);
   const [loading, setLoading] = useState(true);
   const {database, app, auth} = useContext(FirebaseContext);
@@ -40,11 +41,16 @@ export const Edit = ({ navigation, route }) => {
     getDownloadURL(storageRef(storage, Spath+''))
     .then((url) => {
         setImage({uri: url})
+        setDbImage({uri: url})
     }).catch(error => {
         setImage(require("../assets/profile.jpeg"))
     })
   }
 
+  useEffect(() => {
+    if (image != 'oldimage')
+    console.log('changed');
+  }, [image]);
 
   const pickImage = async () => {
       // No permissions request is necessary for launching the image library
@@ -116,7 +122,7 @@ export const Edit = ({ navigation, route }) => {
             username: '',
             bio: '',
             profession: [],
-            links: [],
+            links: []
           }
           setData(object)
           setNewData(object)
@@ -171,12 +177,13 @@ export const Edit = ({ navigation, route }) => {
         set(databaseRef(database, 'users/' + uid + '/data'), newData)
         .then((e) => {
           console.log(e);
+          setNewData(data)
         }).catch(error => {
           console.error(error);
           console.log(newData);
         });
     } else
-    navigation.navigate('login')
+    navigation.navigate('bejelentkezes')
   }
 
   if (loading)
@@ -193,9 +200,10 @@ export const Edit = ({ navigation, route }) => {
           <View style={localStyle.imageContainer}>
             <View style={{alignItems:'center',borderWidth:2,marginRight:-2}}>
               {!image ? <ActivityIndicator size='large' color='rgba(255,196,0,1)'/> :
-              <ImageModal source={image} style={localStyle.image} 
-              renderFooter={()=><Text style={{color:'white'}}>abc</Text>}
-              resizeMode="contain"/>}
+              <Pressable onPress={pickImage} >
+                <Image source={image} style={localStyle.image} 
+                resizeMode="cover"/>
+              </Pressable>}
             </View>
             <View >
               <TouchableOpacity onPress={pickImage} style={[localStyle.smallButton,{marginBottom:-2}]}>
@@ -206,7 +214,18 @@ export const Edit = ({ navigation, route }) => {
               </TouchableOpacity>
             </View>
             <View style={{flex:1,paddingHorizontal: 5}}>
-              <NewButton title="Mentsd el a profilod" onPress={save} />
+              <NewButton title="Mentsd el a profilod" onPress={save} disabled={deepEqual(newData,data) || deepEqual(image,dbImage)}/>
+              <Row>
+                <Pressable onPress={()=>setImage(require('../assets/profile.jpeg'))}>
+                  <Image source={require('../assets/profile.jpeg')} style={{height:100,width:100}}/>
+                </Pressable>
+                <Pressable onPress={()=>setImage(require('../assets/img-main.jpg'))}>
+                  <Image source={require('../assets/img-main.jpg')} style={{height:100,width:100}}/>
+                </Pressable>
+                <Pressable onPress={()=>setImage(require('../assets/img-prof.jpg'))}>
+                  <Image source={require('../assets/img-prof.jpg')} style={{height:100,width:100}}/>
+                </Pressable>
+              </Row>
             </View>
           </View>
           <Header title="Felhasználónév" icon="ios-finger-print" helpText="Ez az egyedi azonosítód a felhasználók közt"/>
@@ -375,11 +394,13 @@ export const Links = (props) => {
 }
 
 export const Map = ({data,setData,editable}) => {
-  const [location,setLocation] = useState(data?.location || {center:null,zoom:null});
+  const [location,setLocation] = useState(data?.location || {center:[47.4983, 19.0408],zoom:10});
   const [map, setMap] = useState(null);
 
   useEffect(() => {
     if (map) {
+      console.log(location);
+      map.setView(location?.center, location?.zoom)
       L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
               attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(map);
@@ -430,14 +451,25 @@ export const Map = ({data,setData,editable}) => {
 
       document.head.appendChild(link);
       document.body.appendChild(script);
+      console.log('link, script newly loaded');
     } else {
-
+      const mapElement = document.getElementById('map')
+      mapElement.remove()
+      
+      setMap(L.map('map'));
     }
 
     script.onload = () => {
-      setMap(L.map('map').setView(location.center, location.zoom));
+      console.log('mapLoad');
+      setMap(L.map('map'));
     }
-  })
+    return () => {
+      console.log('cleanup');
+
+      //document.remove(mapElement)
+      
+    }
+  },[navigation])
 
   return (<div id="map" style={{height:200,borderWidth:2,borderStyle:'solid',marginTop:-2,marginBottom:5}}></div>)
 }

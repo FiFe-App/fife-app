@@ -26,7 +26,7 @@ const LoginScreen = ({ navigation, route }) => {
       
       api.login(email, password).then((res) => {
         if (res?.success) {
-          navigation.push('home') 
+          navigation.push('fooldal') 
         } else {
           onChangeLoginError(res?.error)
         }
@@ -40,7 +40,7 @@ const LoginScreen = ({ navigation, route }) => {
       if (api && !canLogin)
         api.login().then((res)=>{
           if (res?.success) {
-            navigation.push('home') 
+            navigation.push('fooldal') 
             console.log('auto singed in');
           }
         })
@@ -48,7 +48,7 @@ const LoginScreen = ({ navigation, route }) => {
         onAuthStateChanged(auth,function (user) {
           if (user && !canLogin) {
             //api.login(user)
-            navigation.push('home')
+            navigation.push('fooldal')
           } else {
             setCanLogin(true)
             signOut(auth).then(() => {
@@ -107,7 +107,7 @@ const LoginScreen = ({ navigation, route }) => {
           <Text style={{margin:20,fontSize:20}}>Először vagy itt?</Text>
           <Button style={styles.headline} title="Regisztráció" color="black"
           onPress={() =>
-            navigation.navigate('about')
+            navigation.navigate('az-approl')
           } />
         </LinearGradient>
   

@@ -69,6 +69,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
               <Text style={titleStyle}>Szia! Üdvözöllek a Fiatal Felnőttek alkalmazásában!</Text>
               <Auto key="Auto">
                 <View style={{flex:2}}>
+                  <Text style={[styles.text,{backgroundColor:'rgb(181, 139, 0)',color:'white',fontWeight:'bold',textAlign:'center'}]}>Az alkalmazás még nincs kész, tesztüzemmódban működik az oldal!</Text>
                   <Text style={styles.text}>Az alkalmazás célja a FiFe szellemiség megvalósítása az online térben,
                   vagyis a korrektséget és segítőkészséget becsomagolni egy biztonságot nyújtó környezetbe.
                   Ez egy olyan nonprofit közösségi háló, ahol a tagok új módokon kereshetnek és nyújthatnak segítséget egymásnak.
