@@ -81,7 +81,7 @@
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.8",
     "patch-package": "^6.5.0",
     "react-refresh": "^0.14.0",
-    "sharp-cli": "^3.0.0",
+    "sharp-cli": "^2.1.0",
     "webpack-hot-middleware": "^2.25.2"
   },
   "private": true
