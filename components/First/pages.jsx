@@ -3,7 +3,7 @@ import { Professions, Links } from '../Edit';
 import { StyleSheet, View, Text, Button, Platform,ScrollView, Pressable, Image, FlatList, Dimensions,  } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { MoreInfoForm, RegisterForm } from "../login/Login";
-import { Auto, Col, TextInput } from '../Components';
+import { Auto, B, Col, TextInput } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useRef } from 'react';
 import { useWindowSize } from '../../hooks/window';
@@ -156,7 +156,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                     Amiket beírhatsz:{"\n"}
                       Kategória: 
                       Írd a leírásba, a kategórián belül pontosan mihez értesz, miben tudsz segíteni másoknak, hol tanultad.
-                      És képeket is hozzáfúzhetsz.
+                      És képeket is hozzáfűzhetsz.
                   </Text>
                 </View>
                 <View style={{margin:5,marginTop:-1,flex:width<=900?'none':1}}>
@@ -199,10 +199,6 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
           <iframe src="https://giphy.com/embed/l49JHLpRSLhecYEmI" width="480" height="360" frameBorder="0" className="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/proud-congratulations-so-l49JHLpRSLhecYEmI">via GIPHY</a></p>          </>}
         </ScrollView>
 ]}
-
-const B = ({children}) => {
-  return <Text style={{fontWeight:'bold'}}>{children}</Text>
-}
 
 const styles = StyleSheet.create({
     viewPager: {

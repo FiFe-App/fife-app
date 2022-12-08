@@ -81,10 +81,6 @@ const LoginScreen = ({ navigation, route }) => {
         }
         <Text style={{fontSize:60, fontFamily:'Raleway_800ExtraBold',color:'black',textAlign:'right',width:'70%'}}>BÉTA</Text>
 
-        <View 
-        style={{position:'absolute',right:'7%',top:90,borderRadius:50,justifyContent:'center',alignItems:'center'}} >
-        <Image source={require('../../assets/logo.png')} style={{width:100,height:100,transform: [{ rotate: "10deg" }]}}/>
-      </View>
         <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
             {!true ?
             <Text onClick={()=>{setShowLogin(true);setShowRegister(false)}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer',borderWidth:5,backgroundColor:'rgba(255,196,0,1)'}]}>Bejelentkezés</Text>:

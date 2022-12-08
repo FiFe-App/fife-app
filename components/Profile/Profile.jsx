@@ -3,10 +3,10 @@ import { ProfileImage, Loading, Row, NewButton, Auto } from '../Components'
 import { ref, child, get, set, onValue } from "firebase/database";
 
 import React, { useEffect, useContext } from 'react';
-import { Text, Platform, View, Pressable, Dimensions } from 'react-native';
+import { Text, Platform, View, Pressable, Dimensions, Linking } from 'react-native';
 import {styles} from '../styles'
 import { Animated, Image, Easing } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { Link, useNavigation } from '@react-navigation/native';
 
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
@@ -130,17 +130,21 @@ export const Profile = ({ navigation, route }) => {
           </Section>
         </View>
         <Section title="Ehhez értek" style={{flex:width <= 900 ? 'none' : 1}} flex={width <= 900 ? 'none' : 2}>
-            {profile.profession && profile.profession.map((prof,index) =>
-              <ListItem title={prof.name} key={"prof"+index}>
-                <Text>{prof.description}</Text>
-              </ListItem>
-            )}
+            <View style={{marginLeft:20}}>
+              {profile.profession && profile.profession.map((prof,index) =>
+                <ListItem title={prof.name} key={"prof"+index}>
+                  <Text>{prof.description}</Text>
+                </ListItem>
+              )}
+            </View>
         </Section>
-        <Section title="Elérhetőségeim" flex={width <= 900 ? 'none' : 1}>
+        <Section title="Elérhetőségeim" flex={width <= 900 ? 'none' : 2}>
           <View style={[styles.label]}>
             {profile.links && profile.links.map((prof,index) =>
               <ListItem title={prof.name} key={"prof"+index}>
-                <Text>{prof.description}</Text>
+                <Pressable onPress={()=>Linking.openURL(prof.description)}>
+                  <Text style={{color:'blue'}}>{prof.description}</Text>
+                </Pressable>
               </ListItem>
             )}
           </View>
@@ -165,31 +169,11 @@ export const Profile = ({ navigation, route }) => {
   }
 
   function ListItem(props){
-    const openAnim = React.useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
-    const [open, setOpen] = React.useState(false)
-    const onPress = () => {
-      setOpen(!open);
-      Animated.timing(openAnim, {
-        toValue: 100,
-        easing: Easing.sin,
-        duration: 2000,
-        useNativeDriver: false
-      })
-    }
 
-
-    useEffect(() => {
-    }, [openAnim])
     return(
-      <View>
-        <Pressable style={[{marginRight:-2}]} onPress={onPress}>
-          <Text style={localStyles.subText}>{props.title}</Text>
-        </Pressable>
-        {open &&
-          <Animated.View style={[{ height: openAnim, marginRight:-2 }]} >
-          {props.children}
-          </Animated.View>
-        }
+      <View style={{marginTop:10}}>
+          <Text style={localStyles.subText}><Text style={{fontWeight:'bold'}}>{props.title+' '}</Text>{props.children}</Text>
+          
       </View>
     );
   }
@@ -214,13 +198,11 @@ export const Profile = ({ navigation, route }) => {
     text:{
       fontWeight: 'bold',
       color: "black",
-      fontSize:18,
+      fontSize:25,
       paddingVertical: 8,
     },
     subText: {
-      color: "black",
-      fontSize:16,
-      padding: 16,
+      fontSize: 20
     },
     verticleLine: {
       width: 1,
@@ -242,7 +224,7 @@ export const Profile = ({ navigation, route }) => {
     },
     sectionText:{
       fontWeight: 'bold',
-      fontSize:18,
+      fontSize:22,
 
     },
     map: {

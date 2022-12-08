@@ -93,11 +93,11 @@ const First = ({scrollView}) => {
         onPress={()=>scrollView2.scrollTo({x:(page+1)*width,y:0,animated:true})}>
         <Icon name="arrow-forward-outline" size={50}/>
       </Pressable>
-      <Pressable 
+      {page > 0 && <Pressable 
         style={{position:'absolute',left:50,bottom:50,borderRadius:50,backgroundColor:'rgba(255,255,255,0.6)',width:50,height:50,justifyContent:'center',alignItems:'center'}} 
         onPress={()=>scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})}>
         <Icon name="arrow-back-outline" size={30}/>
-      </Pressable>
+      </Pressable>}
 
       {false && <View style={{ flex: 1, flexDirection:'row' }}>
         <TouchableOpacity style={[styles.button]} onPress={()=>backDisabled ? handleToHome() : goTo(page-1)}>

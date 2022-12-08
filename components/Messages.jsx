@@ -56,8 +56,6 @@ export const Messages = ({route,navigation}) => {
                 const dbRef = ref(database,`users/${uid}/messages`);
                 const userRef = ref(database,`users`);
 
-                let arr = []
-
                 setList([])
                 onChildAdded(query(dbRef,orderByChild('date','desc')), (childSnapshot) => {
                     const childData = childSnapshot.val();
@@ -80,12 +78,15 @@ export const Messages = ({route,navigation}) => {
     
 
       useEffect(() => {
-        if (selected && Dimensions.get('window').width <= 900) {
-            navigation.navigate("beszelgetes", {uid:selected});
-        }else
-            navigation.setParams({
-                selected: selected,
-            });
+        const w = Dimensions.get('window').width;
+        if (route?.params?.selected)
+        if (w <= 900) {
+            navigation.push("beszelgetes", {uid:route.params.selected});
+        }
+        else
+        navigation.setParams({
+                selected: route.params.selected,
+        });
       }, [selected]);
     return (
     <View style={{flex:1, flexDirection:'row'}}>

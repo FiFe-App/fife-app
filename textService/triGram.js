@@ -1,3 +1,5 @@
+import { collection, setDoc, serverTimestamp, updateDoc, doc as Fdoc, arrayUnion } from "firebase/firestore"; 
+
 const GENERATION_OFFSET = new Date('5000-01-01').getTime();
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -28,15 +30,17 @@ export const triGram = txt => {
 // It assumes your record has "title" and/or "desc" present. It will then
 // combine the two fields (so you can search on both) and store it as _smeta.
 // Note the slice, which caps the length of the string
-export const addPost = async (doc) => {
-  const db = getFirestore();
+export const addPost = async (db,doc) => {
   const id = generateId();
   const payload = {
-    ...doc,
-    ...triGram([doc.title || '', doc.desc || ''].join(' ').slice(0, 500))
+    doc//...doc,
+    //...triGram([doc.title || '', doc.description || ''].join(' ').slice(0, 500))
   };
+
+  console.log(payload);
   
   // We set the id manually here to ensure ordering
-  const postRef = doc(db, 'posts', id);
-  await setDoc(postRef, payload);  
+  const postRef = Fdoc(db, 'sale', id);
+  const newDoc = await setDoc(postRef, doc);
+  return newDoc
 };

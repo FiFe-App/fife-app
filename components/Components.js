@@ -379,6 +379,11 @@ const TextInput = React.forwardRef((props,ref) => {
   );
 });
 
+const B = ({children}) => {
+  return <Text style={{fontWeight:'bold'}}>{children}</Text>
+}
+
+
 export {
   ProfileImage,
   getUri,
@@ -391,7 +396,8 @@ export {
   SearchBar,
   OpenNav,
   NewButton,
-  TextInput
+  TextInput,
+  B
 }
 
 const styles = StyleSheet.create({

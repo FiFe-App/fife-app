@@ -16,6 +16,7 @@ export const Chat = ({route, navigation, propUid}) => {
     const nav = navigation || useNavigation()
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
+    const myName = useSelector((state) => state.user.name)
     const [uid2, setUid2] = useState(propUid || route?.params?.uid);
     const [scrollView, setScrollView] = useState(null);
     const [input, setInput] = useState(null);
@@ -44,7 +45,7 @@ export const Chat = ({route, navigation, propUid}) => {
             set(child(messageListRef,'read'),null).then(e=>{
                 console.log('set!!!!');
             })
-            set(child(messageListRef,'last'),{message:message,from:uid,date:Date.now()})
+            set(child(messageListRef,'last'),{message:message,from:uid,fromName:myName,date:Date.now()})
             set(newMessageRef2, {
                 text: message,
                 uid: uid,
@@ -53,7 +54,7 @@ export const Chat = ({route, navigation, propUid}) => {
             set(child(messageListRef2,'read'),null).then(e=>{
                 console.log('set!!!!');
             })
-            set(child(messageListRef2,'last'),{message:message,from:uid,date:Date.now()})
+            set(child(messageListRef2,'last'),{message:message,from:uid,fromName:myName,date:Date.now()})
             setMessage('');
             if (input)
                 input.focus()

@@ -18,7 +18,7 @@ import First from "./components/first/First";
 import { Edit } from "./components/Edit";
 import { Messages } from "./components/Messages";
 import { Chat } from "./components/Chat";
-import { Sale } from "./components/sale/Sale";
+import { Sale } from "./components/sale/SaleOld";
 import { Item } from "./components/sale/Item";
 import { Events } from "./components/events/Events";
 import { Event } from "./components/events/Event";
@@ -168,6 +168,7 @@ const Navigator = () => {
         <>
           <Stack.Screen name="bejelentkezes" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="az-approl" component={First} options={{ headerShown: false }} />
+          <Stack.Screen name="terkep" component={Maps} />
           {
           //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
           }
@@ -191,7 +192,6 @@ const Navigator = () => {
           <Stack.Screen name="cserebere" component={Sale} options={{ title: "Cserebere" }} />
           <Stack.Screen name="uj-cserebere" component={Item} options={{ title: "Cserebere" }} />
 
-          <Stack.Screen name="terkep" component={Maps} />
           </>}
         </>
       

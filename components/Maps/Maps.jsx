@@ -1,6 +1,6 @@
 
 import React, { useEffect, useContext, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Text, Platform, View, Button, Pressable, ActivityIndicator, Animated, ScrollView, TextInputBase, Switch  } from 'react-native';
 import { Dimensions } from 'react-native';
 import { Auto, Loading, NewButton, Row, TextInput } from '../Components';
@@ -21,7 +21,7 @@ const defaultFilterList = [
   {name: 'legközelebbi',function: (prop='rating') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))}
 ];
 
-export const Maps = () => {
+export const Maps = ({navigation, route}) => {
     //#region state
     const {database} = useContext(FirebaseContext);
     const width = useWindowSize().width;
@@ -60,65 +60,77 @@ export const Maps = () => {
         )
       })
     }
+    useFocusEffect(
+      React.useCallback(() => {
+        console.log('maps loading');
+        let link = document.getElementById("link")
+        let script = document.getElementById("script")
+        if (!document.getElementById("link") && !document.getElementById("script")) {
+          link = document.createElement("link");
+          link.id = "link"
+          link.rel = "stylesheet";
+          link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
+          link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+          link.crossOrigin=""
 
-    useEffect( () => {
-      
-      let link = document.getElementById("link")
-      let script = document.getElementById("script")
-      if (!document.getElementById("link")) {
-        link = document.createElement("link");
-        link.id = "link"
-        link.rel = "stylesheet";
-        link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
-        link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
-        link.crossOrigin=""
-        document.head.appendChild(link);
-      }
+          script = document.createElement("script");
+          script.id = "script"
+          script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
+          script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
+          script.crossOrigin=""
 
-      if (!document.getElementById("script")) {
-        script = document.createElement("script");
-        script.id = "script"
-        script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
-        script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
-        script.crossOrigin=""
+          document.head.appendChild(link);
+          document.body.appendChild(script);
+          console.log('link, script newly loaded');
+        }
+        script.onload = async () => {
+          setGreenIcon(L.icon({
+            iconUrl: require('../../assets/marker.webp'),
+          
+            iconSize:     [38, 38], // size of the icon
+            iconAnchor:   [22, 38], // point of the icon which will correspond to marker's location
+            shadowAnchor: [4, 62],  // the same for the shadow
+            popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+          }));
+          setLocationIcon(L.icon({
+            iconUrl: require('../../assets/icons/location.svg'),
+          
+            iconSize:     [40, 40], // size of the icon
+            iconAnchor:   [10, 10], // point of the icon which will correspond to marker's location
+            shadowAnchor: [4, 62],  // the same for the shadow
+            popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+          }));
 
-        document.body.appendChild(script);
-      }
+          setMap(L.map('map'));
 
-      script.onload = async () => {
-        setGreenIcon(L.icon({
-          iconUrl: require('../../assets/marker.webp'),
-        
-          iconSize:     [38, 38], // size of the icon
-          iconAnchor:   [22, 38], // point of the icon which will correspond to marker's location
-          shadowAnchor: [4, 62],  // the same for the shadow
-          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
-        }));
-        setLocationIcon(L.icon({
-          iconUrl: require('../../assets/icons/location.svg'),
-        
-          iconSize:     [40, 40], // size of the icon
-          iconAnchor:   [10, 10], // point of the icon which will correspond to marker's location
-          shadowAnchor: [4, 62],  // the same for the shadow
-          popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
-        }));
+          async function getData() {
+            setMapData(await getMaps(database));
+          }
+          getData()
 
-        if (!map)
-          setMap(L.map('map').setView([47.4983, 19.0408], 13));
+        }
+  
+        return () => {
+          console.log('cleanup');
+  
+          const mapElement = document.getElementById('map')
+          console.log('map removed');
+          if (mapElement)
+          mapElement.innerHTML = "<div id='map' style='width: 100%; height: 100%;'></div>";
 
-      }
-
-      async function getData() {
-        setMapData(await getMaps(database));
-      }
-      getData()
-
-
-      
-    }, []);
+        let link = document.getElementById("link")
+        let script = document.getElementById("script")
+        link?.remove()
+        script?.remove()
+          // Do something when the screen is unfocused
+          // Useful for cleanup functions
+        };
+      }, [])
+    );
 
     useEffect(() => {
       if (map) {
+        map.setView([47.4983, 19.0408], 13)
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
@@ -289,7 +301,7 @@ export const Maps = () => {
             onPress={()=>setOpen(!open)}>
             <AntDesign name={!open ? 'caretdown' : 'caretup'} size={20}/>
           </Pressable>}
-        <div id="map" style={localStyles.map}></div>
+        <div id="map" style={localStyles.map}/>
         {width <= 900 && (selected ?        
             <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected} mapId={selectedMap.id}/>
             :

@@ -25,9 +25,12 @@
 
   import { useDispatch } from 'react-redux';
   import { getGreeting, TextFor } from '../textService/textService';
-import { setUnreadMessage } from '../userReducer';
-import { useWindowSize } from '../hooks/window';
-import { Helmet } from 'react-helmet';
+  import { setUnreadMessage } from '../userReducer';
+  import { useWindowSize } from '../hooks/window';
+  import { Helmet } from 'react-helmet';
+  import HomeBackground from './home/HomeBackground';
+  
+
   const Stack = createNativeStackNavigator();
 
   export const HomeScreen = ({ navigation, route }) => {
@@ -87,7 +90,7 @@ import { Helmet } from 'react-helmet';
               <MenuLink title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
               <MenuLink title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
               <MenuLink title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
-              <MenuLink title="Unatkozom" text="" color="#b51d1d" link={"untakozom"} icon="bulb" />
+              <MenuLink title="Unatkozom" text="" color="#b51d1d" link={"unatkozom"} icon="bulb" />
               <MenuLink title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
             </View>
             :
@@ -119,12 +122,12 @@ import { Helmet } from 'react-helmet';
     const [greeting, setGreeting] = useState(getGreeting);
     return (
       <ScrollView style={{flex:1}} contentContainerStyle={{flex:1}}>
-        <LinearGradient colors={['#8cfd7555', "#2ac6fd55"]} style={{flex:2,justifyContent:'flex-end'}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} >
-        <Row style={{alignItems:'center',paddingLeft:50,paddingVertical:20}}>
-          <Text style={{fontSize:40}}><TextFor text={greeting} embed={name}/></Text>
-          <Smiley/>
-        </Row>
-        </LinearGradient>
+        <HomeBackground style={{flex:2,justifyContent:'flex-end'}} >
+          <Row style={{alignItems:'center',paddingLeft:50,paddingVertical:20}}>
+            <Text style={{fontSize:40}}><TextFor text={greeting} embed={name}/></Text>
+            <Smiley/>
+          </Row>
+        </HomeBackground>
         <Auto style={{flex:3,zIndex:-1}}>
           <Row style={{flex: width <= 900 ? 'none' : 1,padding:20,flexWrap:'wrap'}}>
             <Module title="profile" text="" color="#D8FFCD" to={"profil"} icon="person-outline" />
@@ -173,13 +176,12 @@ import { Helmet } from 'react-helmet';
       ).start();
     }
     return (
-
       <Animated.View                 // Special animatable View
       style={{
         marginLeft:30,
         transform: [{ scale: size }]
       }}
-    >
+      >
       <Pressable onPress={handleGrow}>
         <Image source={require('../assets/logo.png')} style={{position:'absolute',top:-22,left:-15,width:50,height:50,zIndex:10}}/>
       </Pressable>
@@ -297,42 +299,86 @@ import { Helmet } from 'react-helmet';
     )
   }
 
-const PopUps = () => {
+  const PopUps = () => {
 
 
-  return (
-    <View>
-      {
-      popups.map((popup,index)=>
-      
-        <Popup 
-          title={popup.name + ' üzenetet küldött neked!'} 
-          description={popup.text}
-          key={index} 
-          index={index}
-          handleClose={()=>removePopup(index)}
-          handlePress={()=>console.log('clicked')}
-        />)
-      }
-    </View>)
-}
+    return (
+      <View>
+        {
+        popups.map((popup,index)=>
+        
+          <Popup 
+            title={popup.name + ' üzenetet küldött neked!'} 
+            description={popup.text}
+            key={index} 
+            index={index}
+            handleClose={()=>removePopup(index)}
+            handlePress={()=>console.log('clicked')}
+          />)
+        }
+      </View>)
+  }
 
-const Popup = ({title,description,handlePress,handleClose,index}) => {
-  return (
-    <Pressable 
-      onPress={handlePress}
-      style={{position:'absolute',bottom:10+105*index,right:10,width:300,borderWidth:2,height:100,backgroundColor:'white',padding:20}}>
-      <View style={{flexDirection:'row'}}>
-        <Text style={{fontWeight:'bold',flexGrow:1}}>{title}</Text>
-        <Pressable onPress={handleClose}>
-          <Text>
-            <Icon name='close' size={25}/>
-          </Text>
-        </Pressable>
-      </View>
-      <Text>{description}</Text>
-    </Pressable>
-  )
+  const Popup = ({title,description,handlePress,handleClose,index}) => {
+    return (
+      <Pressable 
+        onPress={handlePress}
+        style={{position:'absolute',bottom:10+105*index,right:10,width:300,borderWidth:2,height:100,backgroundColor:'white',padding:20}}>
+        <View style={{flexDirection:'row'}}>
+          <Text style={{fontWeight:'bold',flexGrow:1}}>{title}</Text>
+          <Pressable onPress={handleClose}>
+            <Text>
+              <Icon name='close' size={25}/>
+            </Text>
+          </Pressable>
+        </View>
+        <Text>{description}</Text>
+      </Pressable>
+    )
+  }
+
+
+function onContextCreate(gl) {
+  gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+  gl.clearColor(0, 1, 1, 1);
+
+  // Create vertex shader (shape & position)
+  const vert = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(
+    vert,
+    `
+    void main(void) {
+      gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+      gl_PointSize = 150.0;
+    }
+  `
+  );
+  gl.compileShader(vert);
+
+  // Create fragment shader (color)
+  const frag = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(
+    frag,
+    `
+    void main(void) {
+      gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+  `
+  );
+  gl.compileShader(frag);
+
+  // Link together into a program
+  const program = gl.createProgram();
+  gl.attachShader(program, vert);
+  gl.attachShader(program, frag);
+  gl.linkProgram(program);
+  gl.useProgram(program);
+
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.POINTS, 0, 1);
+
+  gl.flush();
+  gl.endFrameEXP();
 }
 
   const MenuLink = ({title,link,number,setOpen,onPress}) => {
@@ -367,7 +413,7 @@ const Popup = ({title,description,handlePress,handleClose,index}) => {
     const number = useSelector((state) => state.user)[props?.number]?.length || 0
     const navigation = useNavigation();
     const onPress = (to) => {
-      navigation.push(to, props.with);
+      navigation.navigate(to, props.with);
     }
     return (
         <TouchableOpacity style={moduleStyle(props.color,flat)} onPress={() => onPress(props.to)}>

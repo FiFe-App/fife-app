@@ -12,6 +12,8 @@ import { login as sliceLogin, logout as sliceLogout, setName, setSettings, setUs
 import { Platform } from 'react-native';
 
 import { getMessaging, getToken, deleteToken } from "firebase/messaging";
+import { getStorage } from 'firebase/storage';
+import { getFirestore } from '@firebase/firestore';
 
 const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check");
 
@@ -26,6 +28,8 @@ export default ({ children }) => {
     const [app,setApp] = useState(null)
     const [auth,setAuth] = useState(null)
     const [database,setDatabase] = useState(null)
+    const [storage,setStorage] = useState(null)
+    const [firestore, setFirestore] = useState(null);
     const [api,setApi] = useState(null)
     const dispatch = useDispatch()
     const [messaging, setMessaging] = useState(null);
@@ -50,6 +54,8 @@ export default ({ children }) => {
             setApp(appNew)
             appCheck(appNew)
             setDatabase(getDatabase(appNew))
+            setFirestore(getFirestore(appNew))
+            setStorage(getStorage(appNew))
             setAuth(getAuth(appNew))
             setApi({
                     login,loadUid,register,facebookLogin,logout
@@ -57,10 +63,6 @@ export default ({ children }) => {
             return appNew;
         }
     }
-    function requestPermission() {
-        console.log('Requesting permission...');
-    }
-
 
     const initMessaging = async (app,uid) => {
         const messaging = getMessaging(app);
@@ -80,13 +82,13 @@ export default ({ children }) => {
             set(ref(db,'/users/'+uid+'/data/fcm'),{token:currentToken})
         } else {
             // Show permission request UI
-            alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás')
+            alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
             console.log('No registration token available. Request permission to generate one.');
             // ...
         }
         }).catch((err) => {
             console.log('An error occurred while retrieving token. ', err);
-            alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás')
+            alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
         // ...
         });
     }
@@ -314,7 +316,7 @@ export default ({ children }) => {
     }
 
     return (
-        <FirebaseContext.Provider value={{app,auth,database,api,messaging}}>
+        <FirebaseContext.Provider value={{app,auth,database,api,messaging,storage,firestore}}>
             {children}
         </FirebaseContext.Provider>
     )

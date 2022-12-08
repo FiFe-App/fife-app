@@ -11,14 +11,11 @@ import Icon from 'react-native-vector-icons/Ionicons'
 
 import { FirebaseContext } from "../../firebase/firebase"
 import { onChildAdded, push, ref as dbRef, set } from "firebase/database"
-import { collection, addDoc, serverTimestamp, updateDoc, doc, arrayUnion } from "firebase/firestore"; 
-
 import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage"
-import { addPost } from "../../textService/triGram";
 
 export const Item = ({route,navigation,data}) => {
     const uid = useSelector((state) => state.user.uid)
-    const {database, app, auth, firestore} = useContext(FirebaseContext);
+    const {database, app, auth} = useContext(FirebaseContext);
     const name = 'name'
     const [loading, setLoading] = useState(false);
     const [title, setTitle] = useState('');
@@ -32,36 +29,24 @@ export const Item = ({route,navigation,data}) => {
     const save = () => {
       setLoading(true)
       console.log('save');
-
-      // Add a new document with a generated id.
-      (async function(){
-
-        addPost(firestore,{
-          date:serverTimestamp(),
-          description:text,
-          owner:uid,
-          title:title,
-          booked: false
-        }).then(async (doc)=>{
-          if (images?.length)
-            await uploadImages('sale',doc.id).then(()=>{
-              setImages([])
-              setTitle('')
-              setText('')
-              setLoading(false)
-            })
-          else {
-              setTitle('')
-              setText('')
-              setLoading(false)
-          }
-        }).catch(error=>{
-          console.log(error);
-        })
-      })()
+      const messageListRef = dbRef(database, `sale/`);
+      const newMessageRef = push(messageListRef);
+      set(newMessageRef,{
+        date:Date.now(),
+        description:text,
+        owner:uid,
+        title:title,
+      }).then(()=>{
+        uploadImages('sale/'+newMessageRef.key).then(()=>{
+          setTitle('')
+          setText('')
+          setImages([])
+          setLoading(false)
+        });
+      })
     }
 
-    const uploadImages = async (collection,item) => {
+    const uploadImages = async (dbPath) => {
       //console.log('changed',changed);
       if (images?.length) {
         const storage = getStorage(app);
@@ -70,7 +55,7 @@ export const Item = ({route,navigation,data}) => {
           
           let localUri = image;
           let filename = localUri.split('/').pop();
-          const ref = storageRef(storage, collection+'/'+item+'/'+filename);
+          const ref = storageRef(storage, dbPath+'/'+filename);
 
           let match = /\.(\w+)$/.exec(filename);
           let type = match ? `image/${match[1]}` : `image`;
@@ -89,17 +74,11 @@ export const Item = ({route,navigation,data}) => {
               xhr.send(null);
           });
 
-          uploadBytes(ref, blob).then(async (snapshot) => {
+          uploadBytes(ref, blob).then((snapshot) => {
               console.log('Uploaded a blob or file!');
               console.log(snapshot.metadata.size);
               console.log(index+'. imageDescription',imageTexts[index]);
-              await updateDoc(doc(firestore, collection,item), {
-                images: arrayUnion({
-                  filename,
-                  description:imageTexts[index]
-                })
-              })
-              //set(dbRef(database, collection+'/'+item,'images'), {filename,description:imageTexts[index]});
+              set(dbRef(database, dbPath+'/images/'+index), {filename,description:imageTexts[index]});
           }).catch(error=>console.error(error))
         })
       }
@@ -112,11 +91,11 @@ export const Item = ({route,navigation,data}) => {
     return (
       <>
       <View style={{flex:1,padding:10}}>
-        <Text style={{marginBottom:10,fontSize:25}}><TextFor text="item_header"/></Text>
+        <Text style={{marginBottom:20,fontSize:25}}><TextFor text="item_header"/></Text>
         <View style={[{flexDirection: "row", backgroundColor: '#fdfdfd'}]}>
           <View style={{margin: 5,flex:1}}>
             <TextInput 
-              style={{fontSize:20, borderWidth:2,padding:5,
+              style={{ fontWeight: 'bold',fontSize:20, borderWidth:2,padding:5,
                       backgroundColor: loading ? 'lightgray' : 'none',
                       cursor: loading ? 'not-allowed' : 'text'
                     }} 
@@ -125,6 +104,11 @@ export const Item = ({route,navigation,data}) => {
               selectTextOnFocus={!loading} 
               value={title}
               onChangeText={setTitle}/>
+            <Row style={{alignItems:'center'}}>
+              <ProfileImage style={gstyles.listIcon} size={20}uid={uid}/>
+              <Text style={{ fontWeight: 'bold' }}>{name}</Text>
+              <Text> {elapsed}</Text>
+            </Row>
             <TextInput multiline numberOfLines={5} 
               style={{ marginVertical:5, borderWidth:2,padding:5,fontSize:20, 
                         backgroundColor: loading ? 'lightgray' : 'none',
@@ -142,7 +126,6 @@ export const Item = ({route,navigation,data}) => {
         </View>
         <View style={{alignItems:'flex-end'}}>
           <NewButton 
-            style={{width:'100%'}}
             title="Feltöltés"
             disabled={loading}
             onPress={save}/>
@@ -155,7 +138,6 @@ export const Item = ({route,navigation,data}) => {
 
 const ImageAdder = ({setGlobalImages,setGlobalImageTexts}) => {
   const [images, setImages] = useState([]);
-  const [separate, setSeparate] = useState([]);
   const [texts, setTexts] = useState([]);
   const pickImage = async () => {
     if (images?.length > 4) return
@@ -173,19 +155,12 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts}) => {
       setImages([...images,result.uri]);
       setGlobalImages([...images,result.uri]);
       setTexts([...texts,''])
-      setSeparate([...separate,false])
     }
   };
   const deleteImage = (index) => {
     setImages(images.filter((image,i) => i !== index))
     setGlobalImages(images.filter((image,i) => i !== index))
     setTexts(texts.filter((text,i) => i !== index))
-    setSeparate(separate.filter((text,i) => i !== index))
-  }
-
-  const handleSeparate = (index) => {
-    console.log(separate.map((s,i) => i == index ? !s : s));
-    setSeparate(separate.map((s,i) => i == index ? !s : s))
   }
 
   const handleTextChange = (text,index) => {
@@ -201,27 +176,21 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts}) => {
     console.log('texts',texts);
   }, [texts]);
   return(
-    <ScrollView  style={{width:'100%',marginHorizontal:5}}>
+    <ScrollView  style={{width:'100%',paddingTop:2,marginBottom:-2}}>
       {!!images.length && images.map((image,index)=>
-      <View key={'image'+index} style={{flex:1}}>
+      <View key={'image'+index} style={{flex:1,marginTop:-2}}>
         <View style={{flexDirection:'row',flex:1}}>
           <ImageModal swipeToDismiss={true} modalImageResizeMode="contain" resizeMode="cover" style={styles.square} source={{ uri: image }}/>
           <Pressable style={styles.close} onPress={()=>deleteImage(index)}><Icon name="close" size={20} color="white"/></Pressable>
-          <View style={{flex:1}}>
+          <View style={{flex:1,marginLeft:-2}}>
             <TextInput onChangeText={text=>handleTextChange(text,index)} value={texts[index]}
-            style={{borderWidth:2,height:150,padding:10}} multiline numberOfLines={3} placeholder={"Mondj valamit erről a képről"}/>
+            style={{borderWidth:2,height:150}} multiline numberOfLines={3} placeholder={"Mondj valamit erről a képről"}/>
           </View>
-          <Pressable style={{justifyContent:'center',alignItems:'center',padding:10
-          ,backgroundColor:separate[index] ? '#ffe8ae' : '#fff7d7'}}
-            onPress={()=>handleSeparate(index)}>
-            <Text style={{textAlign:'center'}}>{separate[index] ? "Külön foglalható" : "Nem\nfoglalható külön"}</Text>
-            <Icon name={separate[index] ? "cart" : "cart-outline"} size={30}/>
-          </Pressable>
         </View>
       </View>
         )}
-      <Pressable style={[styles.square,{}]} onPress={pickImage}>
-        <Text style={{fontSize:20}}>Új kép</Text>
+      <Pressable style={[styles.square,{marginTop:-2}]} onPress={pickImage}>
+        <Text>Új kép</Text>
       </Pressable>
 
     </ScrollView>

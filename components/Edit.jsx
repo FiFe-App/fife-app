@@ -15,6 +15,7 @@ import { Auto, Loading, NewButton, Row, TextInput } from './Components';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import ImageModal from 'react-native-image-modal';
 import { useWindowSize } from '../hooks/window';
+import { useFocusEffect } from '@react-navigation/native';
 
 const themeColor = '#000';//#ba9007
 const color2 = '#fcf3d4'//'#FFC372'
@@ -432,44 +433,48 @@ export const Map = ({data,setData,editable}) => {
     }
   }, [location]);
 
-  useEffect( () => {
-    let link = document.getElementById("link")
-    let script = document.getElementById("script")
-    if (!document.getElementById("link") && !document.getElementById("script")) {
-      link = document.createElement("link");
-      link.id = "link"
-      link.rel = "stylesheet";
-      link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
-      link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
-      link.crossOrigin=""
+  useFocusEffect(
+    React.useCallback(() => {
+      let link = document.getElementById("link")
+      let script = document.getElementById("script")
+      if (!document.getElementById("link") && !document.getElementById("script")) {
+        link = document.createElement("link");
+        link.id = "link"
+        link.rel = "stylesheet";
+        link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
+        link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+        link.crossOrigin=""
 
-      script = document.createElement("script");
-      script.id = "script"
-      script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
-      script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
-      script.crossOrigin=""
+        script = document.createElement("script");
+        script.id = "script"
+        script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
+        script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
+        script.crossOrigin=""
 
-      document.head.appendChild(link);
-      document.body.appendChild(script);
-      console.log('link, script newly loaded');
-    } else {
-      const mapElement = document.getElementById('map')
-      mapElement.remove()
-      
-      setMap(L.map('map'));
-    }
+        document.head.appendChild(link);
+        document.body.appendChild(script);
+        console.log('link, script newly loaded');
+      }
+      script.onload = () => {
+        console.log('mapLoad');
+        var container = L.DomUtil.get("map");
+    
+        if (container) {
+        container._leaflet_id = null;
+        }
+        setMap(L.map('map'));
+      }
+      return () => {
+        console.log('cleanup');
 
-    script.onload = () => {
-      console.log('mapLoad');
-      setMap(L.map('map'));
-    }
-    return () => {
-      console.log('cleanup');
-
-      //document.remove(mapElement)
-      
-    }
-  },[navigation])
+        let link = document.getElementById("link")
+        let script = document.getElementById("script")
+        link?.remove()
+        script?.remove()
+        
+      }
+    }, [])
+  )
 
   return (<div id="map" style={{height:200,borderWidth:2,borderStyle:'solid',marginTop:-2,marginBottom:5}}></div>)
 }
