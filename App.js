@@ -18,7 +18,7 @@ import First from "./components/first/First";
 import { Edit } from "./components/Edit";
 import { Messages } from "./components/Messages";
 import { Chat } from "./components/Chat";
-import { Sale } from "./components/sale/SaleOld";
+import { Sale } from "./components/sale/Sale";
 import { Item } from "./components/sale/Item";
 import { Events } from "./components/events/Events";
 import { Event } from "./components/events/Event";
