@@ -1,10 +1,10 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useCallback } from "react";
 import {View, Text, TouchableOpacity, ScrollView, Platform, Dimensions} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
 import { ref, child, get, set, onValue, onChildAdded, off, onChildChanged, query, orderByChild } from "firebase/database";
 import { ProfileImage } from './Components'
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { styles } from "./styles";
 import { Chat } from "./Chat";
 import { elapsedTime } from "../textService/textService";
@@ -17,6 +17,7 @@ export const Messages = ({route,navigation}) => {
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
     const [selected, setSelected] = useState(route?.params?.selected);
+    const msgQuery = query(ref(database,`users/${uid}/messages`),orderByChild('last/date'))
     const unreadMessages = useSelector((state) => state.user.unreadMessage)
 
     const getRandom = () => {
@@ -45,55 +46,55 @@ export const Messages = ({route,navigation}) => {
     }
 
     useEffect(() => {
-        console.log('list:',list);
-        setList(list.sort((a,b)=>(a.date > b.date ? -1 : 1)))
+        console.log('[list modified]');
     }, [list]);
 
     useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
-            if (database) {
+        console.log('unread',unreadMessages);
+    }, [unreadMessages]);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (database) {    
+
                 if (route?.params?.random) getRandom()
-                const dbRef = ref(database,`users/${uid}/messages`);
+                
                 const userRef = ref(database,`users`);
 
                 setList([])
-                onChildAdded(query(dbRef,orderByChild('date','desc')), (childSnapshot) => {
-                    const childData = childSnapshot.val();
+                onChildAdded(msgQuery,(childSnapshot) => {
                     const last = childSnapshot.child('last').val() || null
-                    const read = !unreadMessages?.includes(childKey)
                     const childKey = childSnapshot.key;
+                    const read = !unreadMessages?.includes(childKey)
                     if (last)
                     get(child(userRef,childKey+'/data/name')).then((snapshot) => {
-                        console.log(snapshot.val());
-                        setList(old=>[...old,{uid:childKey,name:snapshot.val(),read:read,last:last}])
+                        setList(old=>[{uid:childKey,name:snapshot.val(),read:read,last:last},...old])
                     });
                 });
-
             }
-        });
-
-        // Return the function to unsubscribe from the event so it gets removed on unmount
-        return unsubscribe;
-    }, [navigation]);
     
+          return () => {
+            off(msgQuery,'child_added')
+          };
+        }, [])
+      );
 
       useEffect(() => {
-        const w = Dimensions.get('window').width;
         if (route?.params?.selected)
-        if (w <= 900) {
+        if (width <= 900) {
             navigation.push("beszelgetes", {uid:route.params.selected});
         }
         else
         navigation.setParams({
                 selected: route.params.selected,
         });
-      }, [selected]);
+      }, [selected,width]);
     return (
     <View style={{flex:1, flexDirection:'row'}}>
         <ScrollView style={{flex:1}}>
             {!!list.length && list.map((e,i)=>{
                 return (
-                    <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={i} setSelected={setSelected}/>
+                    <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected}/>
                 )
             })}
         </ScrollView>
@@ -120,8 +121,12 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
             navigation.push("beszelgetes", {uid:uid});
     }
 
+    useEffect(() => {
+        console.log(title,uid);
+    }, [uid]);
+
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fdfdfd' : '#f6f6f6'}]}>
+        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fff' : '#f6f6f6'}]}>
             <ProfileImage style={styles.listIcon} uid={uid}/>
             <View style={{marginLeft: 5,flexGrow:1}}>
               <Text style={{ fontWeight: 'bold',flex: 1, }}>{title}</Text>

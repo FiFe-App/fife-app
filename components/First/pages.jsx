@@ -1,5 +1,5 @@
 
-import { Professions, Links } from '../Edit';
+import { Professions, Links } from '../profile/Edit';
 import { StyleSheet, View, Text, Button, Platform,ScrollView, Pressable, Image, FlatList, Dimensions,  } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { MoreInfoForm, RegisterForm } from "../login/Login";

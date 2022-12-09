@@ -38,6 +38,9 @@ export const userReducer = createSlice({
     setSettings: (state,action) => {
       state.settings = action.payload
     },
+    emptyUnreadMessages: (state) => {
+      state.unreadMessage = [];
+    },
     setUnreadMessage: (state,action) => {
       if (!state.unreadMessage.includes(action.payload))
         state.unreadMessage.push(action.payload.toString())
@@ -55,6 +58,6 @@ export const userReducer = createSlice({
   }
 })
 
-export const { init, login, logout, setName, setUserData, setUnreadMessage, removeUnreadMessage, setSettings} = userReducer.actions
+export const { init, login, logout, setName, setUserData, emptyUnreadMessages, setUnreadMessage, removeUnreadMessage, setSettings} = userReducer.actions
 
 export default userReducer.reducer

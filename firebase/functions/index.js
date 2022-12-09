@@ -31,12 +31,8 @@ exports.newMessage = functions.database.ref('/users/{uid}/messages/{uid2}/last')
                 notification: {
                     title: 'Új üzenet egy fifétől!',
                     body: newMsg.message,
-                    icon: 'https://i.ibb.co/KxgW84L/logo.png'
-                },
-                webpush: {
-                    fcm_options: {
-                      link: "https://fifeapp.hu/uzenetek?selected="+context.params.uid
-                    }
+                    icon: 'https://i.ibb.co/KxgW84L/logo.png',
+                    click_action: "https://fifeapp.hu/uzenetek?selected="+context.params.uid,
                 },
                 data: {
                     body: newMsg.message,

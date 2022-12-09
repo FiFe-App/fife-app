@@ -13,7 +13,7 @@ import { FirebaseContext } from '../../firebase/firebase';
 
 import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
 import { useWindowSize } from '../../hooks/window';
-import { Map } from '../Edit';
+import { Map } from '../profile/Edit';
 
 const bgColor = '#F2EFE6'
 

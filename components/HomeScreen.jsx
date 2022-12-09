@@ -25,7 +25,7 @@
 
   import { useDispatch } from 'react-redux';
   import { getGreeting, TextFor } from '../textService/textService';
-  import { setUnreadMessage } from '../userReducer';
+  import { emptyUnreadMessages, setUnreadMessage } from '../userReducer';
   import { useWindowSize } from '../hooks/window';
   import { Helmet } from 'react-helmet';
   import HomeBackground from './home/HomeBackground';
@@ -192,7 +192,6 @@
   const Messages = ({style}) => {
 
     const [notifications, setNotifications] = useState([
-      {title:'Új üzenet Ákostól!',text:'Szia!!',link:'messages',params:{selected:'PM2T0TVoaeZIVxuoAPPrVBofwQE2'}}
     ]);
     const {database, app, auth} = useContext(FirebaseContext);
     const navigator = useNavigation()
@@ -235,12 +234,13 @@
 
           const getMessages = () => {
             //console.log('listening');
+            dispatch(emptyUnreadMessages())
             onChildAdded(dbRef, (childSnapshot) => {
               console.log('new message:',childSnapshot.val());
               const childKey = childSnapshot.key;
               console.log(childKey
                 );
-              const read = childSnapshot.child('read').val() 
+              const read = childSnapshot.child('read').exists()
               const last = childSnapshot.child('last').val() 
               if (!read && last?.from != uid) {
                 get(child(userRef,childKey+'/data/name')).then((snapshot) => {
@@ -255,7 +255,6 @@
             //getMessages()
           }, 1000)
 
-          return off(dbRef,'child_added')
           } 
 
           getMessages()
@@ -268,7 +267,7 @@
       <View style={style}>
         <Text style={{fontSize:40}}>Értesítések</Text>
         <ScrollView>
-          {notifications.map(
+          {notifications.length ? notifications.map(
             (n,i)=><Row key={'msg'+i} style={{backgroundColor:'white',padding:20,margin:5}}>
                   <Auto>
                     <Text style={{fontWeight:'bold'}}>{n.title}</Text>
@@ -277,7 +276,8 @@
                   <Pressable onPress={()=>navigator.navigate(n.link,n.params)}>
                     <Icon name="arrow-forward-outline" size={15}/>
                   </Pressable>
-              </Row>)}
+              </Row>)
+            : <Text>Nincs most új értesítésed</Text>}
 
         </ScrollView>
       </View>

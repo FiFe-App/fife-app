@@ -338,7 +338,7 @@ function Item({title,text,uid,name,date,imageNames,index,booked,bookedBy,setSele
                     <View style={{padding:10}}>
                         { uid != myUid ?
                         <Row style={{width:'100%'}}>
-                            <NewButton style={{width:'50%'}} title={"Írj "+name+"nak"} onPress={()=>navigation.navigate('beszelgetesek',{selected:uid})}/>
+                            <NewButton style={{width:'50%'}} title={"Írj "+name+"nak"} onPress={()=>navigation.navigate('uzenetek',{selected:uid})}/>
                             <NewButton style={{width:'50%'}} title="Jelentés"/>
                         </Row>:
                         <NewButton title="Töröld ki" onPress={handleDelete}/>

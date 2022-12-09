@@ -1,9 +1,9 @@
 
 import React, { useEffect, useContext, useState } from 'react';
 import { Text, View, Button, Image, Pressable, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { styles } from './styles'
+import { styles } from '../styles'
 import { useSelector } from 'react-redux'
-import { FirebaseContext } from '../firebase/firebase';
+import { FirebaseContext } from '../../firebase/firebase';
 import { getAuth } from "firebase/auth";
 
 import Icon from 'react-native-vector-icons/Ionicons'
@@ -11,10 +11,10 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import * as ImagePicker from 'expo-image-picker';
 import { getDatabase, set, get, ref as databaseRef, onChildAdded, remove, query, equalTo } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Auto, Loading, NewButton, Row, TextInput } from './Components';
+import { Auto, Loading, NewButton, Row, TextInput } from '../Components';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import ImageModal from 'react-native-image-modal';
-import { useWindowSize } from '../hooks/window';
+import { useWindowSize } from '../../hooks/window';
 import { useFocusEffect } from '@react-navigation/native';
 
 const themeColor = '#000';//#ba9007
@@ -44,7 +44,7 @@ export const Edit = ({ navigation, route }) => {
         setImage({uri: url})
         setDbImage({uri: url})
     }).catch(error => {
-        setImage(require("../assets/profile.jpeg"))
+        setImage(require("../../assets/profile.jpeg"))
     })
   }
 
@@ -69,7 +69,7 @@ export const Edit = ({ navigation, route }) => {
   }
 
   const deleteImage = () => {
-    setImage(require('./../assets/profile.jpeg'))
+    setImage(require('../../assets/profile.jpeg'))
   }
 
   const uploadImage = async () => {
@@ -217,14 +217,14 @@ export const Edit = ({ navigation, route }) => {
             <View style={{flex:1,paddingHorizontal: 5}}>
               <NewButton title="Mentsd el a profilod" onPress={save} disabled={deepEqual(newData,data) || deepEqual(image,dbImage)}/>
               <Row>
-                <Pressable onPress={()=>setImage(require('../assets/profile.jpeg'))}>
-                  <Image source={require('../assets/profile.jpeg')} style={{height:100,width:100}}/>
+                <Pressable onPress={()=>setImage(require('../../assets/profile.jpeg'))}>
+                  <Image source={require('../../assets/profile.jpeg')} style={{height:100,width:100}}/>
                 </Pressable>
-                <Pressable onPress={()=>setImage(require('../assets/img-main.jpg'))}>
-                  <Image source={require('../assets/img-main.jpg')} style={{height:100,width:100}}/>
+                <Pressable onPress={()=>setImage(require('../../assets/img-main.jpg'))}>
+                  <Image source={require('../../assets/img-main.jpg')} style={{height:100,width:100}}/>
                 </Pressable>
-                <Pressable onPress={()=>setImage(require('../assets/img-prof.jpg'))}>
-                  <Image source={require('../assets/img-prof.jpg')} style={{height:100,width:100}}/>
+                <Pressable onPress={()=>setImage(require('../../assets/img-prof.jpg'))}>
+                  <Image source={require('../../assets/img-prof.jpg')} style={{height:100,width:100}}/>
                 </Pressable>
               </Row>
             </View>

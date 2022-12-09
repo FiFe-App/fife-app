@@ -66,19 +66,19 @@ const ProfileImage = (props) => {
   const [url, setUrl] = React.useState(null);
   const [loaded, setLoaded] = React.useState(false);
   const storage = getStorage();
-  const imgRef = sRef(storage, props?.uid ? `profiles/${props.uid}/profile.jpg` : props.uid);
 
   useEffect(() => {
     setLoaded(false)
-      getDownloadURL(imgRef)
-      .then((url) => {
-        setUrl(url);
-        setLoaded(true)
-      })
-      .catch((error) => {
-        setUrl(defaultUrl)
-        setLoaded(true)
-      });
+    getDownloadURL(sRef(storage, props?.uid ? `profiles/${props.uid}/profile.jpg` : props.uid))
+    .then((url) => {
+      setUrl(url);
+      console.log('profile',props.uid);
+      setLoaded(true)
+    })
+    .catch((error) => {
+      setUrl(defaultUrl)
+      setLoaded(true)
+    });
   }, [props.uid]);
 
   var size = 40;

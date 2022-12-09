@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import {View, Text, Pressable, ScrollView, StyleSheet, TouchableOpacity} from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
@@ -7,6 +7,8 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { Loading, ProfileImage, TextInput } from "./Components";
 import { removeUnreadMessage } from '../userReducer';
 import { useNavigation } from "@react-navigation/native";
+
+const color = '#ffde9e'
 
 export const Chat = ({route, navigation, propUid}) => {
     const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ export const Chat = ({route, navigation, propUid}) => {
     const myName = useSelector((state) => state.user.name)
     const [uid2, setUid2] = useState(propUid || route?.params?.uid);
     const [scrollView, setScrollView] = useState(null);
-    const [input, setInput] = useState(null);
+    const input = useRef();
     const dispatch = useDispatch()
 
 
@@ -56,8 +58,10 @@ export const Chat = ({route, navigation, propUid}) => {
             })
             set(child(messageListRef2,'last'),{message:message,from:uid,fromName:myName,date:Date.now()})
             setMessage('');
-            if (input)
-                input.focus()
+            if (input.current) {
+                input.current.focus()
+                console.log('focus');
+            }
         }
     }
 
@@ -116,8 +120,15 @@ export const Chat = ({route, navigation, propUid}) => {
             ref={(scroll) => {setScrollView(scroll)}}
             style={{flex:1,backgroundColor:'white'}} contentContainerStyle={styles.messages}>
                 
-        {!loading ? 
-        messages.map((e,i)=> {return (<Message text={e.text} isMine={e.uid == uid} key={i}/>)})
+        {!loading ?
+        messages.map((e,i,arr)=> {
+            return (
+                <View key={i}>
+                    {new Date(arr[i-1]?.time).getDay() < new Date(e?.time).getDay() 
+                    && <Text style={{width:'100%',textAlign:'center'}}>{new Date(e?.time).toLocaleDateString('hu-HU')}</Text>}
+                    <Message text={e.text} isMine={e.uid == uid}/>
+                </View>
+            )})
         :   <View style={{flex:1, backgroundColor:'white'}}>
                 <Loading color="rgba(255,175,0,0.7)"/>
             </View>}
@@ -130,10 +141,11 @@ export const Chat = ({route, navigation, propUid}) => {
                 value={message}
                 placeholder="Írj valami kedveset..."
                 onSubmitEditing={send}
-                ref={(i)=>setInput(i)}
+                ref={input}
+                blurOnSubmit={false}
             />
             <Pressable onPress={send} style={styles.textButton}>
-                <Icon name="send" color="white" size={20}/>
+                <Icon name="send" color="black" size={20}/>
             </Pressable>
         </View>
     </View>)
@@ -163,14 +175,15 @@ const styles = StyleSheet.create({
         paddingHorizontal:10,
         color: 'white',
         maxWidth: '80%',
-        fontSize:20
+        fontSize:20,
     },
     mine: {
         backgroundColor: 'gray',
         alignSelf:'flex-end'
     },
     other: {
-        backgroundColor: 'red',
+        backgroundColor: color,
+        color: 'black',
         alignSelf:'flex-start'
     },
     input: {
@@ -191,6 +204,6 @@ const styles = StyleSheet.create({
         fontSize:20,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'blue',
+        backgroundColor: color,
     }
 })

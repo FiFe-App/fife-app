@@ -15,7 +15,7 @@ import LoginScreen from './components/login/Login';
 import { Search } from './components/Search';
 import { Profile } from "./components/profile/Profile";
 import First from "./components/first/First";
-import { Edit } from "./components/Edit";
+import { Edit } from "./components/profile/Edit";
 import { Messages } from "./components/Messages";
 import { Chat } from "./components/Chat";
 import { Sale } from "./components/sale/Sale";
@@ -168,7 +168,6 @@ const Navigator = () => {
         <>
           <Stack.Screen name="bejelentkezes" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="az-approl" component={First} options={{ headerShown: false }} />
-          <Stack.Screen name="terkep" component={Maps} />
           {
           //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
           }
@@ -182,6 +181,8 @@ const Navigator = () => {
           <Stack.Screen name="profil-szerkesztese" component={Edit} options={{ title: "Profil szerkesztése" }} />
           <Stack.Screen name="uzenetek" component={Messages} options={{ title: "Beszélgetések" }} />
           <Stack.Screen name="beszelgetes" component={Chat} options={{ title: "Beszélgetés" }} />
+
+          <Stack.Screen name="terkep" component={Maps} />
 
           <Stack.Screen name="esemenyek" component={Events} options={{ title: "Események" }} />
           <Stack.Screen name="esemeny" component={Event} />
