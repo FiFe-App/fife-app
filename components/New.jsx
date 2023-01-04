@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { FirebaseContext } from "../firebase/firebase";
 import { setSettings as setStoreSettings } from "../userReducer";
 
-export const New = ({ navigation, route }) => {
+const New = ({ navigation, route }) => {
     const {database} = useContext(FirebaseContext);
     const dispatch = useDispatch()
     const uid = useSelector((state) => state.user.uid)
@@ -41,6 +41,17 @@ export const New = ({ navigation, route }) => {
                         style={{alignSelf:'flex-end'}}
                     />
                 </View>
+                <View style={{flexDirection:'row',marginTop:30}}>
+                    <Text style={{flex:1}}>Hóesés</Text>
+                    <Switch
+                        trackColor={{ false: '#767577', true: '#3e3e3e' }}
+                        thumbColor={settings?.snowfall ? '#f5dd4b' : '#f4f3f4'}
+                        ios_backgroundColor="#3e3e3e"
+                        onValueChange={(e)=>{setSettings({...settings, snowfall: e})}}
+                        value={settings?.snowfall}
+                        style={{alignSelf:'flex-end'}}
+                    />
+                </View>
                 <View style={{flexDirection:'row', alignItems:'center',marginTop:30}}>
                     <Text style={{flex:1}}>INSTANT BULI!</Text>
                     <Button title="mehet" color="#fdcd4f" onPress={()=>navigation.navigate('uzenetek',{random:true})}/>
@@ -53,3 +64,4 @@ export const New = ({ navigation, route }) => {
 const styles = StyleSheet.create({
 
 })
+export default New

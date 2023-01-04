@@ -1,43 +1,41 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { Component, useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 //import { Image, Text, View, Button, TextInput } from 'react-native';
-import { Text, View, Button, TextInput, Platform, Pressable } from 'react-native';
+import { Text, Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ref, child, get, set, onValue, onChildAdded, off, limitToFirst, query, orderByChild, limitToLast } from "firebase/database";
 // routes
-import { HomeScreen, LogoTitle } from './components/HomeScreen';
-
-import { styles } from './components/styles'
+import HomeScreen, { LogoTitle } from './components/HomeScreen';
 import LoginScreen from './components/login/Login';
-import { Search } from './components/Search';
-import { Profile } from "./components/profile/Profile";
+import Search from './components/Search';
+import Profile from "./components/profile/Profile";
 import First from "./components/first/First";
-import { Edit } from "./components/profile/Edit";
-import { Messages } from "./components/Messages";
-import { Chat } from "./components/Chat";
-import { Sale } from "./components/sale/Sale";
-import { Item } from "./components/sale/Item";
-import { Events } from "./components/events/Events";
-import { Event } from "./components/events/Event";
-import { NewEvent } from "./components/NewEvent";
-import { New } from "./components/New";
-import { Maps } from "./components/maps/Maps";
+import Edit from "./components/profile/Edit";
+import Messages from "./components/Messages";
+import Chat from "./components/Chat";
+import Sale from "./components/sale/Sale";
+import Item from "./components/sale/NewItem";
+import Events from "./components/events/Events";
+import Event from "./components/events/Event";
+import NewEvent from "./components/NewEvent";
+import New from "./components/New";
+import Maps from "./components/maps/Maps";
 import Settings from './components/settings';
+
+import Snowfall from 'react-snowfall'
+
 
 // fonts
 import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
 import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
-import Icon from 'react-native-vector-icons/Ionicons'
 
-import * as SplashScreen from 'expo-splash-screen';
 
 // routes
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
-import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 
 
 import { Provider } from 'react-redux'
@@ -49,99 +47,46 @@ import { PersistGate } from 'redux-persist/integration/react'
 
 import { useSelector } from 'react-redux'
 
-import { useDispatch } from 'react-redux';
-import { init, removeUnreadMessage, setUnreadMessage } from './userReducer';
-import { toldalek } from './textService/textService';
 import { Helmet } from 'react-helmet';
 
-import { getMessaging, onMessage } from "firebase/messaging";
-import { getApp } from 'firebase/app';
-
-
-
-//SplashScreen.preventAutoHideAsync();
-
-//import * as ServiceWorkerRegistration from "./firebase-messaging-sw";
+import { onMessage } from "firebase/messaging";
+import { LinearGradient } from 'expo-linear-gradient';
 
 const Stack = createNativeStackNavigator();
 const prefix = Linking.createURL('/');
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
-
 export default function App(props) {
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState(false);
-  const [popups, setPopups] = useState([]);
-  const notificationListener = useRef();
-  const responseListener = useRef();
   const linking = useState({prefixes: [prefix]})
-
-  useEffect(() => {
-
-    if (Platform.OS == 'android') {
-    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
-
-    // This listener is fired whenever a notification is received while the app is foregrounded
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification);
-    });
-
-    // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
-    });
-
-    return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current);
-      Notifications.removeNotificationSubscription(responseListener.current);
-    };
-    }
-  }, []);
-
-
 
   let [fontsLoaded] = useFonts({
     AmaticSC_700Bold,Poppins_200ExtraLight
   });
 
+  useEffect(() => {
+    return ()=>{
+    }
+  }, []);
+  if (!fontsLoaded)
+  return <LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />
     return (
           <Provider store={store}>
             <MetaHeader />
+            <SnowfallWrap />
             <PersistGate loading={<Text>Loading...</Text>} persistor={persistor}>
               <FirebaseProvider>
                 <Messaging/>
-                <SafeAreaProvider>
-                  <StatusBar style="dark" translucent/>
-                  <NavigationContainer linking={linking} fallback={<Text>Loading...</Text>}>
-                    {fontsLoaded ? ( <Navigator/> ) : (<></>)}
-                  </NavigationContainer>
-                </SafeAreaProvider>
+                  <SafeAreaProvider>
+                    <StatusBar style="dark" translucent/>
+                    <NavigationContainer linking={linking} 
+                      fallback={<LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />}>
+                      {fontsLoaded ? ( <Navigator/> ) : (<></>)}
+                    </NavigationContainer>
+                  </SafeAreaProvider>
               </FirebaseProvider>
             </PersistGate>
         </Provider>
     );
 }
-
-
-const Show = (props) => {
-  const {user} = useContext(FirebaseContext);
-
-  React.useEffect(() => {
-    console.log('userShow',user);
-  }, [user]);
-
-  return (
-    <Text>
-      {'user:' + user?.uid}
-    </Text>
-  )
-} 
 
 const MetaHeader = () => {
 
@@ -149,20 +94,26 @@ const MetaHeader = () => {
     console.log('theme color');
     return (<Helmet>
       <meta name="theme-color" content="#FDEEA2"/>
+      <title>FiFe App</title>
     </Helmet>)
   }
     
 }
 
+const SnowfallWrap = () => {
+  const settings = useSelector((state) => state.user.settings)
+  if (settings.snowfall) 
+  return (
+    <Snowfall
+      style={{position:'absolute',zIndex:10}}
+      snowflakeCount={200}
+      color="#ffffff"/>
+  )
+  else return null
+}
 
 const Navigator = () => {
   const user = useSelector((state) => state.user);
-  const dispatch = useDispatch()
-
-  useEffect(() => {
-    //dispatch(init());
-  }, []);
-
   return (
     <Stack.Navigator initialRouteName="bejelentkezes" screenOptions={{ header: () => <LogoTitle />, title:"FiFe App"}}>
         <>
@@ -213,56 +164,3 @@ const Messaging = () => {
   
 
 }
-
-// Can use this function below, OR use Expo's Push Notification Tool-> https://expo.dev/notifications
-async function sendPushNotification(expoPushToken) {
-  const message = {
-    to: expoPushToken,
-    sound: 'default',
-    title: 'Original Title',
-    body: 'And here is the body!',
-    data: { someData: 'goes here' },
-  };
-
-  await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(message),
-  });
-}
-
-async function registerForPushNotificationsAsync() {
-  let token;
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus !== 'granted') {
-      console.log('Failed to get push token for push notification!');
-      return;
-    }
-    token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log(token);
-  } else {
-    console.log('Must use physical device for Push Notifications');
-  }
-
-  if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF231F7C',
-    });
-  }
-
-  return token;
-}
-

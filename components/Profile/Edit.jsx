@@ -22,7 +22,7 @@ const color2 = '#fcf3d4'//'#FFC372'
 //const themeColor = '#fcf3d4';FFC372
 const bgColor = '#F2EFE6'
 
-export const Edit = ({ navigation, route }) => {
+const Edit = ({ navigation, route }) => {
   const uid = useSelector((state) => state.user.uid)
   const width = useWindowSize().width;
   const Dpath = 'users/'+uid+'/pro_file'
@@ -199,11 +199,10 @@ export const Edit = ({ navigation, route }) => {
       <Auto style={[localStyle.container,{padding: width > 900 ? 50 : 5}]}>
         <View style={{flex:1,marginHorizontal: width > 900 ? 20 : 0}}>
           <View style={localStyle.imageContainer}>
-            <View style={{alignItems:'center',borderWidth:2,marginRight:-2}}>
+            <View>
               {!image ? <ActivityIndicator size='large' color='rgba(255,196,0,1)'/> :
-              <Pressable onPress={pickImage} >
-                <Image source={image} style={localStyle.image} 
-                resizeMode="cover"/>
+              <Pressable onPress={pickImage}>
+                <Image source={image} style={localStyle.image} resizeMode="cover"/>
               </Pressable>}
             </View>
             <View >
@@ -215,7 +214,7 @@ export const Edit = ({ navigation, route }) => {
               </TouchableOpacity>
             </View>
             <View style={{flex:1,paddingHorizontal: 5}}>
-              <NewButton title="Mentsd el a profilod" onPress={save} disabled={deepEqual(newData,data) || deepEqual(image,dbImage)}/>
+              <NewButton title="Mentsd el a profilod" onPress={save} disabled={deepEqual(newData,data) && deepEqual(image,dbImage)}/>
               <Row>
                 <Pressable onPress={()=>setImage(require('../../assets/profile.jpeg'))}>
                   <Image source={require('../../assets/profile.jpeg')} style={{height:100,width:100}}/>
@@ -250,6 +249,10 @@ export const Edit = ({ navigation, route }) => {
             placeholder="Név"
             defaultValue={data.name}
           />
+          <Header title="Helyzeted" icon="location-sharp" helpText="Olyan helyet vagy környéket adj meg, ahol általában elérhető vagy. A pontosságot te tudod megszabni, a nagyítás módosításával"/>
+          <Map data={newData} setData={setNewData} editable/>
+        </View>
+        <View style={{marginHorizontal: width > 900 ? 20 : 0,flex:1}}>
           <Header title="Rólad" icon="ellipsis-horizontal" helpText="Bármilyen infó, amit fontosnak tartasz, hogy tudjanak rólad"/>
           <TextInput
             style={localStyle.input}
@@ -260,10 +263,6 @@ export const Edit = ({ navigation, route }) => {
             placeholder="Rólam"
             defaultValue={data.bio}
           />
-        </View>
-        <View style={{marginHorizontal: width > 900 ? 20 : 0,flex:1}}>
-          <Header title="Helyzet" icon="location-sharp" helpText="Olyan helyet vagy környéket adj meg, ahol általában szoktál lenni"/>
-          <Map data={newData} setData={setNewData} editable/>
           <Text>{newData?.location?.name}</Text>
           <Professions data={newData} setData={setNewData}/>
           <Links data={newData} setData={setNewData}/>
@@ -301,10 +300,10 @@ export const Professions = (props) => {
     setData({...data,profession:list.filter((item,ei) => ei !== i)})
   }
   return (
-    <View style={{marginBottom:5,flex:width <= 900 ? 'undefined' : 1}}>
+    <View style={{marginBottom:5,flex:'none'}}>
       <Header title="Ehhez értek" icon="thumbs-up" centered={centered} helpText=""/>
       {!list.length && <Text style={localStyle.label}>Van valami amiben jó vagy? </Text>}
-      <ScrollView style={{flex:width <= 900 ? 'undefined' : 1}}>
+      <ScrollView style={{flex:width <= 900 ? 'none' : 1}}>
         {!!list && !!list.length && list.map((e,i)=>
           <View key={i}  style={localStyle.profession}>
             <View style={{flexDirection:'row'}}>
@@ -362,7 +361,7 @@ export const Links = (props) => {
     setData({...data,links:list.filter((item,ei) => ei !== i)})
   }
   return (
-    <View style={{width:'100%',flex:width <= 900 ? 'undefined' : 1}}>
+    <View style={{width:'100%',flex:'none'}}>
       <Header title="Elérhetőségeim" icon="at-sharp" centered={centered}/>
       <ScrollView style={{flex: width <= 900 ? 'undefined' : 1}}>
       {list && !!list.length && list.map((e,i)=>
@@ -395,7 +394,7 @@ export const Links = (props) => {
 }
 
 export const Map = ({data,setData,editable}) => {
-  const [location,setLocation] = useState(data?.location || {center:[47.4983, 19.0408],zoom:10});
+  const [location,setLocation] = useState(data?.location || {center:{lat:47.4983, lng:19.0408},zoom:10});
   const [map, setMap] = useState(null);
 
   useEffect(() => {
@@ -407,6 +406,7 @@ export const Map = ({data,setData,editable}) => {
           }).addTo(map);
 
       if (editable) {
+        console.log(location);
         const circle = L.circleMarker(map.getCenter(), {radius:60,fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
         map.on('zoom',(ev)=> {
           const zoom = map.getZoom()
@@ -476,7 +476,7 @@ export const Map = ({data,setData,editable}) => {
     }, [])
   )
 
-  return (<div id="map" style={{height:200,borderWidth:2,borderStyle:'solid',marginTop:-2,marginBottom:5}}></div>)
+  return (<div id="map" style={{height:200,marginTop:-2,marginBottom:5}}></div>)
 }
 
 const Header = (props) => {
@@ -486,7 +486,7 @@ const Header = (props) => {
   const [help, setHelp] = useState(false);
   return (
     <>
-    <View style={[localStyle.adder,{flexDirection:'row',borderWidth:2},centered ? {borderRadius:30} : {}]}>
+    <View style={[localStyle.adder,{flexDirection:'row',borderWidth:0},centered ? {borderRadius:30} : {}]}>
       <View style={[localStyle.plusContainer,{color: color}]}>
         <Text style={localStyle.plusText}><Icon name={icon} size={25} color={0}/></Text>
       </View>
@@ -503,7 +503,7 @@ const Header = (props) => {
 
     </View>
     {(help && helpText) && 
-    <View style={[localStyle.adder,{flexDirection:'row',borderWidth:2},centered ? {borderRadius:30} : {}]}>
+    <View style={[localStyle.adder,{flexDirection:'row'},centered ? {borderRadius:30} : {}]}>
       <View style={localStyle.textContainer}>
         <Text style={localStyle.text}>{helpText}</Text>
       </View>
@@ -519,8 +519,9 @@ const localStyle = StyleSheet.create ({
     backgroundColor: bgColor
   },
   image: {
-    resizeMode: 'cover',
     aspectRatio: 1,
+    flex:1,
+    width:150,
     height:150,
     backgroundColor:bgColor
   },
@@ -534,22 +535,19 @@ const localStyle = StyleSheet.create ({
     backgroundColor: themeColor
   },
   input: {
-    paddingVertical: 5,
-    borderColor: themeColor,
-    borderWidth: 2,
+    paddingVertical: 10,
     borderRadius: 0,
     marginBottom:5,
     color:themeColor,
-    backgroundColor:'white',
+    backgroundColor:'#fff4d6',
     fontWeight: "600",
     padding: 10,
     paddingVertical:10
   },
   adder: {
     backgroundColor: 'white',
-    borderWidth:2,
     //marginTop: 10,
-    marginBottom:-2,
+    marginBottom:5,
     alignItems: 'center'
   },
   plusContainer: {
@@ -557,14 +555,13 @@ const localStyle = StyleSheet.create ({
     justifyContent: "center",
     textAlign: 'center',
     alignItems:'center',
-    borderWidth:2,
-    margin:-2,
     width: 43,
     height: 43,
   },
   textContainer: {
     alignItems:'center',
     flexDirection:'row',
+    paddingRight:10,
     flex:1
   },
   text: {
@@ -586,14 +583,15 @@ const localStyle = StyleSheet.create ({
     textAlign:'center'
   },
   smallButton: {
-    paddingVertical:10,
     paddingHorizontal:20,
     alignItems: 'center',
     justifyContent: "center",
-    borderWidth:2,
     flex:1,
     width:150/2,
     backgroundColor:'white'
 
   }
 })
+
+
+export default Edit

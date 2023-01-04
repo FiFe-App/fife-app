@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons'
 import { Dimensions } from 'react-native';
 
 
-export const Event = ({ navigation, route }) => {
+const Event = ({ navigation, route }) => {
   const [profile, setProfile] = React.useState(null);
   const [followButtonText, setFollowButtonText] = React.useState("Ajánlom");
   const [followers, setFollowers] = React.useState(null);
@@ -194,3 +194,4 @@ export const Event = ({ navigation, route }) => {
       height: 200,
     },
   }
+  export default Event

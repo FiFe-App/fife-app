@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import { StyleSheet, View, Text, Button, Pressable, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Pressable, TouchableOpacity, Dimensions } from 'react-native';
 import { Pages } from "./pages";
-import * as Progress from 'react-native-progress';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ScrollView } from 'react-native-web';
 import Icon from 'react-native-vector-icons/Ionicons'

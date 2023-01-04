@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons'
 import { FirebaseContext } from '../firebase/firebase';
 //import { DatePicker } from './date/DatePicker';
 
-export const NewEvent = ({ navigation, route }) => {
+const NewEvent = ({ navigation, route }) => {
   const uid = useSelector((state) => state.user.uid)
   const {app, auth}  = useContext(FirebaseContext);
   const [data, setData] = React.useState({
@@ -56,3 +56,4 @@ export const NewEvent = ({ navigation, route }) => {
     </View>
   )
 }
+export default NewEvent

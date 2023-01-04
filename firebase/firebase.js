@@ -163,11 +163,13 @@ export default ({ children }) => {
                 console.error(error);
             
                 if (errorCode == "auth/invalid-email")
-                    response = {error:"Rossz email adtál meg :("};
+                    response = {error:"Ez nem is egy email-cím!"};
                 else if (errorCode == "auth/internal-error")
-                    response = {error:"Bejelentkezési hiba!"};
+                    response = {error:"Hát... nem tudom mi történt bocs!"};
                 else if (errorCode == "auth/wrong-password")
-                    response = {error:"Rossz jelszavat adtál meg :/"};
+                    response = {error:"Lehet elírtad a jelszavad"};
+                else if (errorCode == "auth/user-not-found")
+                    response = {error:"Haver, nincs ilyen felhasználó!"}
                 else
                     response = {error:"error: " + errorCode + " - " + errorMessage};
             });

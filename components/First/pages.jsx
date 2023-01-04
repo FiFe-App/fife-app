@@ -192,11 +192,6 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 <Image resizeMode="center" source={require('../../assets/profile.jpeg')} style={{flex:1}}/>
               </View>
             </Auto>
-        </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#ffba7a'}]} contentContainerStyle={{paddingBottom:160}} key="7">
-          <Text style={titleStyle}>Szép munka! </Text>
-          { Platform.OS == 'web' && <>
-          <iframe src="https://giphy.com/embed/l49JHLpRSLhecYEmI" width="480" height="360" frameBorder="0" className="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/proud-congratulations-so-l49JHLpRSLhecYEmI">via GIPHY</a></p>          </>}
         </ScrollView>
 ]}
 

@@ -9,6 +9,8 @@ import { global } from './global';
 import { styles as newStyles } from './styles';
 import { useWindowSize } from '../hooks/window';
 import ImageModal from 'react-native-image-modal';
+import ExpoFastImage from 'expo-fast-image';
+import { TextFor } from '../textService/textService';
 
 
 //Dimensions.get('window');
@@ -69,16 +71,19 @@ const ProfileImage = (props) => {
 
   useEffect(() => {
     setLoaded(false)
-    getDownloadURL(sRef(storage, props?.uid ? `profiles/${props.uid}/profile.jpg` : props.uid))
-    .then((url) => {
-      setUrl(url);
-      console.log('profile',props.uid);
-      setLoaded(true)
-    })
-    .catch((error) => {
-      setUrl(defaultUrl)
-      setLoaded(true)
-    });
+    if (props.uid){
+      getDownloadURL(sRef(storage, props?.uid ? `profiles/${props.uid}/profile.jpg` : props.uid))
+      .then((url) => {
+        setUrl(url);
+        setLoaded(true)
+      })
+      .catch((error) => {
+        console.log('e');
+        setUrl(defaultUrl)
+        setLoaded(true)
+      });
+
+    }
   }, [props.uid]);
 
   var size = 40;
@@ -87,7 +92,7 @@ const ProfileImage = (props) => {
   return <View style={[props.style,{width: size, height: size}]}>
     { !loaded ?
     <ActivityIndicator style={{position:'absolute', width: size, height: size}} color='rgba(255,175,0,0.7)' />:
-    <Image style={{width: size, height: size}}
+    <ExpoFastImage style={{width: size, height: size}}
       resizeMode="cover"
       modalImageResizeMode="center"
       source={{ uri: url }} onLoad={() => setLoaded(true)} onError={()=>{setUrl(defaultUrl)}}/>}
@@ -334,7 +339,7 @@ const SearchBar = (props) => {
               onBlur={onBlur}
               autoCapitalize='none'
               onChangeText={onChange}
-              placeholder="Keress valamire..."
+              placeholder={TextFor({pureText:true,text:'search_text'})}
               placeholderTextColor="gray"
               onSubmitEditing={handleSubmit(onSubmit)}
               value={value}
@@ -357,11 +362,33 @@ const SearchBar = (props) => {
 }
 
 const OpenNav = ({open,children,style}) => {
-  if (open)
+
+  const size = useRef(new Animated.Value(-390)).current 
+
+  useEffect(() => {
+    if (open)
+    Animated.timing(
+      size,
+      {
+        toValue: 80,
+        duration: 500,
+      }
+    ).start();
+    else
+    Animated.timing(
+      size,
+      {
+        toValue: -390,
+        duration: 500,
+      }
+    ).start();
+
+  }, [open]);
+
   return (
-    <View style={style && {position:'absolute',top:85,width:'100%'}}>
+    <Animated.View style={style && {position:'absolute',top:size,width:'100%',zIndex:30}}>
       {children}
-    </View>
+    </Animated.View>
   )
 }
 
@@ -373,14 +400,36 @@ const TextInput = React.forwardRef((props,ref) => {
       ref={ref}
       placeholderTextColor="grey"
       style={[props.style, isFocused && {backgroundColor:'#fbf7f0'},Platform.OS === "web" && {outline: "none" }]}
-      onBlur={() => setIsFocused(false)}
-      onFocus={() => setIsFocused(true)}
+      onBlur={() => {
+        setIsFocused(false)
+        if (props.onBlur)
+          props?.onBlur();
+      }}
+      onFocus={() => {
+        setIsFocused(true)
+        if (props.onFocus)
+          props?.onFocus();
+        //onFocus()
+      }}
     />
   );
 });
 
 const B = ({children}) => {
   return <Text style={{fontWeight:'bold'}}>{children}</Text>
+}
+
+const Popup = ({children}) => {
+  const [opened, setOpened] = useState(false);
+  const ref = useRef(null);
+  const isHovered = useHover(ref);
+
+  return (
+    <Col>
+      {children}
+      {!!opened && <View><Text>asd</Text></View>}
+    </Col>
+  )
 }
 
 
@@ -430,7 +479,7 @@ const styles = StyleSheet.create({
   newButton:{
     alignItems: 'center',
     justifyContent: "center",
-    borderWidth:2,
-    marginLeft:-2
+
+    margin:5,
   },
 });

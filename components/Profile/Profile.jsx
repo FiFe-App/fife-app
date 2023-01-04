@@ -15,16 +15,16 @@ import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
 import { useWindowSize } from '../../hooks/window';
 import { Map } from '../profile/Edit';
 
-const bgColor = '#F2EFE6'
+const bgColor = '#ffedc9dd'
 
-export const Profile = ({ navigation, route }) => {
+const Profile = ({ navigation, route }) => {
   const {database, app, auth} = useContext(FirebaseContext);
   const width = useWindowSize().width;
   const myuid = useSelector((state) => state.user.uid)
   const uid = route?.params?.uid || myuid 
   
   const [profile, setProfile] = React.useState(null);
-  const [followButtonText, setFollowButtonText] = React.useState("Ajánlom");
+  const [followButtonState, setFollowButtonState] = React.useState(true);
   const [followers, setFollowers] = React.useState([]);
   const [myProfile, setMyProfile] = React.useState(true);
   const [mapOptions,setMapOptions] = React.useState({
@@ -40,15 +40,14 @@ export const Profile = ({ navigation, route }) => {
 
   function follow(){
     const dbRef = ref(database, 'users/' + uid + "/likes/" + auth.currentUser.uid);
-    if (followButtonText == "Ajánlottam") {
+    if (followButtonState == true) {
           set(dbRef,{"owner":null});
-          setFollowButtonText('Ajánlom');
+          setFollowButtonState(false);
       } else {
         set(dbRef, { "owner": auth.currentUser.uid });
-          setFollowButtonText('Ajánlottam');
+          setFollowButtonState(true);
       }
       getRecList();
-      return (followButtonText == 'Ajánlom');
   }
 
   useEffect(() => {
@@ -62,7 +61,7 @@ export const Profile = ({ navigation, route }) => {
         const all = snapshot.val();
         setFollowers(Object.keys(all));
         if (all[auth.currentUser.uid] != undefined) {
-          setFollowButtonText('Ajánlottam');
+          setFollowButtonState(true);
         }
       }
       //else setFollowers([]);
@@ -98,13 +97,13 @@ export const Profile = ({ navigation, route }) => {
           <View style={localStyles.fcontainer}><Text style={localStyles.text}>{profile.name}</Text></View>
           <Row style={{flex:width <= 900 ? 'none' : 1}}>
             <View style={localStyles.fcontainer}><Text style={localStyles.text}>{profile.username}</Text></View>
-            <View style={localStyles.fcontainer}><Text style={localStyles.text}>Ajánlók: {followers?.length}</Text></View>
+            <View style={localStyles.fcontainer}><Text style={localStyles.text}>Barátok: {followers?.length}</Text></View>
           </Row>
         </View>
-        <View style={[localStyles.fcontainer,{flex:width <= 900 ? 'none' : 1}]}>
+        <View style={[localStyles.container,{flex:width <= 900 ? 'none' : 1}]}>
             { !myProfile && <>
             <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('uzenetek',{selected:uid})}/>
-            <NewButton title={followButtonText} onPress={follow}/>
+            <NewButton title={followButtonState ? 'Ő a barátom!' : 'Legyünk barátok!'} onPress={follow}/>
             </>
             }
           {myProfile &&
@@ -231,3 +230,5 @@ export const Profile = ({ navigation, route }) => {
       flex:1
     },
   }
+
+  export default Profile

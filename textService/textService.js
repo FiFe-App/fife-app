@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Text } from "react-native"
 import { useSelector } from "react-redux";
   
-export const TextFor = ({style,text,embed}) => {
+export const TextFor = ({pureText,text,style,embed,fixed}) => {
     
     const texts = require('./texts.json');
     const arr = texts?.[text]
@@ -17,7 +17,7 @@ export const TextFor = ({style,text,embed}) => {
     useEffect(() => {
       if (!arr) return
       
-      if (on)
+      if (on || !fixed)
         if (embed)
           setDisplayText(arr[r].replace("$", embed))
         else
@@ -28,6 +28,7 @@ export const TextFor = ({style,text,embed}) => {
         else
           setDisplayText(arr[0])
     }, [r]);
+    if (pureText) return displayText.toString()
     return <Text style={style}>{displayText}</Text>
 }
 
@@ -168,10 +169,11 @@ function urlify(text) {
   }
   
   function embedWord(str) {
+    console.log(str);
+    if (typeof str !== 'string' || !(str instanceof String) || str?.length == 0 ) return "...";
     if (isVowel(str.substring(0,1))) {
       return "az "+str;
     }
-    if (str.length == 0) return "...";
     return "a "+str;
   }
 

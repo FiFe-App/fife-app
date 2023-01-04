@@ -1,8 +1,7 @@
 
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import { elapsedTime, TextFor } from "../../textService/textService"
-import { ProfileImage, NewButton, Row, Slideshow, Loading, TextInput } from "../Components"
-import { styles as gstyles } from "../styles"
+import { NewButton, Loading, TextInput } from "../Components"
 import * as ImagePicker from 'expo-image-picker';
 import { useContext, useEffect, useState } from "react"
 import { useSelector } from "react-redux"
@@ -10,13 +9,12 @@ import ImageModal from 'react-native-image-modal';
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import { FirebaseContext } from "../../firebase/firebase"
-import { onChildAdded, push, ref as dbRef, set } from "firebase/database"
-import { collection, addDoc, serverTimestamp, updateDoc, doc, arrayUnion } from "firebase/firestore"; 
+import { serverTimestamp, updateDoc, doc, arrayUnion } from "firebase/firestore"; 
 
 import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage"
 import { addPost } from "../../textService/triGram";
 
-export const Item = ({route,navigation,data}) => {
+const NewItem = ({route,navigation,data}) => {
     const uid = useSelector((state) => state.user.uid)
     const {database, app, auth, firestore} = useContext(FirebaseContext);
     const name = 'name'
@@ -43,6 +41,7 @@ export const Item = ({route,navigation,data}) => {
           title:title,
           booked: false
         }).then(async (doc)=>{
+          console.log(doc);
           if (images?.length)
             await uploadImages('sale',doc.id).then(()=>{
               setImages([])
@@ -93,12 +92,13 @@ export const Item = ({route,navigation,data}) => {
               console.log('Uploaded a blob or file!');
               console.log(snapshot.metadata.size);
               console.log(index+'. imageDescription',imageTexts[index]);
-              await updateDoc(doc(firestore, collection,item), {
+              updateDoc(doc(firestore, collection,item), {
                 images: arrayUnion({
                   filename,
                   description:imageTexts[index]
                 })
-              })
+              }).then(()=>console.log("images uploaded"))
+              .catch(error=>console.log(error))
               //set(dbRef(database, collection+'/'+item,'images'), {filename,description:imageTexts[index]});
           }).catch(error=>console.error(error))
         })
@@ -253,3 +253,6 @@ const styles = StyleSheet.create({
     backgroundColor:'black'
   }
 })
+
+
+export default NewItem

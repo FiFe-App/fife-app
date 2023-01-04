@@ -1,14 +1,7 @@
 
 
-import MapView, { Marker } from 'react-native-maps';
-import { LatLng, LeafletView } from 'react-native-leaflet-view';
-
-
-
-import React, { useEffect, useContext, useState, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { Text, Platform, View, Button, Pressable, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, View, Pressable, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Row } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
@@ -55,7 +48,7 @@ const mapData = [
 ]
 
 export const Maps = () => {
-
+  return
   const mapboxToken = "sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
   const [WebViewLeaflet, setWebViewLeaflet] = useState(null);
   const mapInit = {

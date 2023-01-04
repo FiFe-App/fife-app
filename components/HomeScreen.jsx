@@ -1,39 +1,36 @@
-  import { StatusBar } from 'expo-status-bar';
-  import React, { useEffect, useState, useRef, useContext } from 'react';
+    import React, { useState, useRef, useContext, useEffect, useCallback } from 'react';
 
   import { useHover } from 'react-native-web-hooks';
 
-  import { Text, View, TextInput, ScrollView, Pressable, Button, TouchableOpacity, Dimensions, Image} from 'react-native';
+  import { Text, View, ScrollView, Pressable, TouchableOpacity, Image} from 'react-native';
   import { SafeAreaView } from 'react-native-safe-area-context';
-  import { widthPercentageToDP,  heightPercentageToDP} from 'react-native-responsive-screen';
 
   import { styles } from './styles';
-  import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/native';
+  import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
   import { createNativeStackNavigator } from '@react-navigation/native-stack';
   import { useFonts, AmaticSC_700Bold  } from '@expo-google-fonts/amatic-sc';
-  import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
   import { LinearGradient } from "expo-linear-gradient";
   import { Animated } from "react-native";
-  import { global } from './global';
-  import { Row, Col, Auto } from './Components'
+  import { Row, Col, Auto, TextInput } from './Components'
   import Icon from 'react-native-vector-icons/Ionicons'
 
   import { SearchBar, OpenNav } from "./Components"
   import { FirebaseContext } from '../firebase/firebase';
   import { useSelector } from 'react-redux'
-  import { child, get, onChildAdded, ref, off, onValue } from 'firebase/database';
 
   import { useDispatch } from 'react-redux';
   import { getGreeting, TextFor } from '../textService/textService';
-  import { emptyUnreadMessages, setUnreadMessage } from '../userReducer';
   import { useWindowSize } from '../hooks/window';
   import { Helmet } from 'react-helmet';
   import HomeBackground from './home/HomeBackground';
+import { HomeSide } from './home/HomeSide';
+import Snowfall from 'react-snowfall';
+import Search from './Search';
   
 
   const Stack = createNativeStackNavigator();
 
-  export const HomeScreen = ({ navigation, route }) => {
+  const HomeScreen = ({ navigation, route }) => {
     const {database, app, auth} = useContext(FirebaseContext);
     const width = useWindowSize().width;
     const uid = useSelector((state) => state.user.uid)
@@ -47,7 +44,7 @@
     if (!fontsLoaded) 
       return <View />;
 
-    return <Menu />;
+    return <Menu route={route}/>;
   };
 
   export function LogoTitle() {
@@ -71,9 +68,9 @@
         </Helmet>
         <SafeAreaView>
           <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
-            { navigation.canGoBack && 
-              <Pressable onPress={()=>navigation.goBack()} style={{justifyContent:'center',alignItems:'center',flex:1}}>
-                {route.name != 'home' && <Icon name='arrow-back' size={30} color="#000"/>}
+            { width < 900 &&
+              <Pressable onPress={()=>navigation.navigate('fooldal')} style={{justifyContent:'center',alignItems:'center',flex:1}}>
+                {route.name != 'home' && <Icon name='home' size={30} color="#000"/>}
               </Pressable>
             }
             <Pressable onPress={()=>navigation.navigate('fooldal')}>
@@ -82,16 +79,14 @@
             </Pressable>
             { width >  1120 ?
             <View style={{flexDirection:'row',marginRight:20,marginBottom:5,flex:8}}>
-              <Pressable style={{justifyContent:'center',alignItems:'center'}} onPress={()=>navigation.navigate('fooldal')}>
-              </Pressable>
               <SearchBar/>
-              <MenuLink title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
-              <MenuLink title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
-              <MenuLink title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
-              <MenuLink title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
-              <MenuLink title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
-              <MenuLink title="Unatkozom" text="" color="#b51d1d" link={"unatkozom"} icon="bulb" />
-              <MenuLink title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
+              <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
+              <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
+              <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
+              <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
+              <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
+              <MenuLink setOpen={setOpen} title="Unatkozom" text="" color="#b51d1d" link={"unatkozom"} icon="bulb" />
+              <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
             </View>
             :
             <Row style={{flex:8}}>
@@ -108,7 +103,6 @@
             <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
             <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
             <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
-            <MenuLink setOpen={setOpen} title="Beállítások" text="" color="#bd05ff" icon="flower-outline" />
             <MenuLink setOpen={setOpen} title="Unatkozom" text="" color="#b51d1d" link={"unatkozom"} icon="bulb" />
             <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
           </OpenNav>
@@ -116,7 +110,109 @@
       </LinearGradient>)
   }
 
-  const Menu = ({ navigation, route }) => {
+  const Menu = ({route}) => {
+    const navigation = useNavigation()
+    const name = useSelector((state) => state.user.name)
+    const opacity = useRef(new Animated.Value(1)).current 
+    const opacity2 = useRef(new Animated.Value(0)).current 
+    const height = useRef(new Animated.Value(0)).current 
+    const [searchText, setSearchText] = useState('');
+    const width = useWindowSize().width;
+    const [greeting, setGreeting] = useState(getGreeting);
+
+
+    useFocusEffect(
+      useCallback(() => {
+        return () => {
+          setSearchText('')
+        };
+      }, [route.params])
+    );
+
+
+    useEffect(() => {
+      if (searchText.length > 0) 
+        open()
+      else
+        close()
+    }, [searchText]);
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+
+    const open = async () => {
+      Animated.timing(height,{ toValue: 100, duration: 500, useNativeDriver: false }).start();
+
+      await delay(1000);
+
+      Animated.timing(opacity,{ toValue: 0, duration: 500, useNativeDriver: false }).start();
+      Animated.timing(opacity2,{ toValue: 1, duration: 500, useNativeDriver: false }).start();
+    }
+
+    const close = async () => {
+      Animated.timing(height,{ toValue: 0, duration: 500, useNativeDriver: false }).start();
+      //await delay(1000);
+      Animated.timing(opacity,{ toValue: 1, duration: 500, useNativeDriver: false }).start();
+      Animated.timing(opacity2,{ toValue: 0, duration: 500, useNativeDriver: false }).start();
+    }
+
+    return (
+      <ScrollView style={{flex:1}} contentContainerStyle={{flex:1}}>
+        <HomeBackground style={{flex:2}} >
+          <Auto style={{flex:3,zIndex:-1,justifyContent:'center'}}>
+            <Col style={{flex:width<900?1:2}}>
+              <Animated.View style={{opacity:opacity,flex:opacity}}>
+                <Row style={{alignItems:'flex-end',flexGrow:1,paddingLeft:50,paddingVertical:20}}>
+                  <Text style={{fontSize:40}}><TextFor text={greeting} embed={name}/></Text>
+                  <Smiley/>
+                </Row>
+              </Animated.View> 
+              <Animated.View style={{opacity:opacity2,flex:opacity2}}>
+                <Search route={{params:{key:searchText}}} style={{flex:1}} />
+              </Animated.View>
+              
+              <TextInput
+                placeholder={TextFor({pureText:true,text:'search_text'})}
+                onChangeText={setSearchText}
+                value={searchText}
+                style={{width:'100%',height:100,fontSize:width>900?60:40,padding:20,margin:0,backgroundColor:'#fff7'}}/>
+              { !!searchText && <TouchableOpacity onPress={()=>setSearchText('')} style={{position:'absolute',right:0,bottom:0,width:100,height:100,zIndex:1,justifyContent:'center',alignItems:'center'}}>
+                <Icon style={{justifyContent:'center'}} name="close" size={60}/>
+              </TouchableOpacity>}
+            </Col>
+            <HomeSide tabProp={searchText?'none':'navigation'} />
+          </Auto>
+        </HomeBackground>
+          {width > 900 && 
+          <Auto style={{flex:1}}>
+            <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]}  onPress={()=>navigation.navigate('cserebere')}>
+              <Text style={styles.bigButtonText}>Cserebere</Text>
+              <Icon name="shirt" color="#71bbff" size={60}/>
+            </Pressable>
+            <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]}  onPress={()=>navigation.navigate('terkep')}>
+              <Text style={styles.bigButtonText}>Térkép</Text>
+              <Icon name="map" color="#8de264" size={60}/>
+            </Pressable>
+            <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]} onPress={()=>navigation.navigate('esemenyek')}>
+              <Text style={styles.bigButtonText}>Programok</Text>
+              <Icon name="calendar" color="#ff3e6f" size={60}/>
+            </Pressable>
+          </Auto>}
+      </ScrollView>
+    );
+    return(
+      <View style={styles.modules}>
+          {/*<Module title="Segélykérés" text="" color="#ffb0b0" to={"help"} icon="alert-outline" flat/>*/}
+          <Module title="profile" text="" color="#D8FFCD" to={"profile"} icon="person-outline" />
+          <Module title="messages" color="#CDEEFF" icon="mail-outline" to={"messages"} number={'unreadMessage'}/>
+          <Module title="sale" color="#fffbc9" icon="shirt-outline" to={"sale"}/>
+          <Module title="places" color="#f4e6d4" icon="map-outline" to={"maps"}/>
+          <Module title="Beállítások" text="" color="#FDCDFF" icon="flower-outline" />
+          <Module title="Unatkozom" text="" color="#FF9D9D" to={"new"} icon="bulb-outline" />
+      </View>
+    );
+  }
+
+  const MenuOLD = ({ navigation, route }) => {
     const name = useSelector((state) => state.user.name)
     const width = useWindowSize().width;
     const [greeting, setGreeting] = useState(getGreeting);
@@ -134,7 +230,6 @@
             <Module title="messages" color="#CDEEFF" icon="mail-outline" to={"uzenetek"} number={'unreadMessage'}/>
             <Module title="sale" color="#fffbc9" icon="shirt-outline" to={"cserebere"}/>
             <Module title="places" color="#f4e6d4" icon="map-outline" to={"terkep"}/>
-            <Module title="Beállítások" text="" color="#FDCDFF" icon="flower-outline" />
             <Module title="Unatkozom" text="" color="#FF9D9D" to={"unatkozom"} icon="bulb-outline" />
           </Row>
           <Messages style={{flex: width <= 900 ? 'none' : 1,padding:30}}/>
@@ -153,6 +248,7 @@
       </View>
     );
   }
+
 
   const Smiley = () => {
     const size = useRef(new Animated.Value(1)).current 
@@ -183,107 +279,11 @@
       }}
       >
       <Pressable onPress={handleGrow}>
-        <Image source={require('../assets/logo.png')} style={{position:'absolute',top:-22,left:-15,width:50,height:50,zIndex:10}}/>
+        <Image source={require('../assets/logo.png')} style={{width:50,height:50,zIndex:10}}/>
       </Pressable>
     </Animated.View>
     )
   }
-
-  const Messages = ({style}) => {
-
-    const [notifications, setNotifications] = useState([
-    ]);
-    const {database, app, auth} = useContext(FirebaseContext);
-    const navigator = useNavigation()
-    const uid = useSelector((state) => state.user.uid)
-    const dispatch = useDispatch()
-
-    const removePopup = (index) => {
-      setPopups(popups.filter((p,i)=>i!=index))
-      console.log('remove');
-    }
-
-    useEffect(() => {
-      return
-      getMessages(ROOM_ID, (messages) => {
-        setData(messages);
-      });
-      const refToRoom = ref(getDatabase(app), `messages/room_${ROOM_ID}`);
-      const myQuery = query(refToRoom);
-      
-      // wrap your function inside setTimeout
-       setTimeout(() => {
-      
-        onChildAdded(
-          myQuery,(data) => {
-            console.log(data);
-          },
-          (error) => {
-            console.log(error);
-          }
-        );
-        return myQuery.off('child_added');
-      }, 1000) //add this ,1000 mean 1 second delay.
-    }, []);
-    useEffect(() => {
-      if (database) {
-          const dbRef = ref(database,`users/${uid}/messages`);
-          const userRef = ref(database,`users`);
-
-          console.log('onChilAdded attatched');
-
-          const getMessages = () => {
-            //console.log('listening');
-            dispatch(emptyUnreadMessages())
-            onChildAdded(dbRef, (childSnapshot) => {
-              console.log('new message:',childSnapshot.val());
-              const childKey = childSnapshot.key;
-              console.log(childKey
-                );
-              const read = childSnapshot.child('read').exists()
-              const last = childSnapshot.child('last').val() 
-              if (!read && last?.from != uid) {
-                get(child(userRef,childKey+'/data/name')).then((snapshot) => {
-                    const name = snapshot.val()
-                    setNotifications(old=>[...old,{link:'beszelgetes/'+childKey,title:'Új üzenet '+name+'tól',text:last?.message}])
-                  });
-                  dispatch(setUnreadMessage(childKey))
-              }
-          });
-
-          setTimeout(() => {
-            //getMessages()
-          }, 1000)
-
-          } 
-
-          getMessages()
-
-
-
-      }
-    }, [database]);
-    return (
-      <View style={style}>
-        <Text style={{fontSize:40}}>Értesítések</Text>
-        <ScrollView>
-          {notifications.length ? notifications.map(
-            (n,i)=><Row key={'msg'+i} style={{backgroundColor:'white',padding:20,margin:5}}>
-                  <Auto>
-                    <Text style={{fontWeight:'bold'}}>{n.title}</Text>
-                    {n?.text && <Text>{': '+n.text}</Text>}
-                  </Auto>
-                  <Pressable onPress={()=>navigator.navigate(n.link,n.params)}>
-                    <Icon name="arrow-forward-outline" size={15}/>
-                  </Pressable>
-              </Row>)
-            : <Text>Nincs most új értesítésed</Text>}
-
-        </ScrollView>
-      </View>
-    )
-  }
-
   const Help = () => {
     function MouseOver(event) {
       event.target.style.backgroundColor = '#fff';
@@ -402,7 +402,7 @@ function onContextCreate(gl) {
             setOpen(false)
         }}>
 
-          <TextFor style={{fontWeight:'500'}} text={title}/>
+          <TextFor style={{fontWeight:'500'}} fixed text={title}/>
           {!!number && <Text style={[styles.number,{right:50,top:60}]}>{number}</Text>}
       </Pressable>
     )
@@ -418,7 +418,7 @@ function onContextCreate(gl) {
     return (
         <TouchableOpacity style={moduleStyle(props.color,flat)} onPress={() => onPress(props.to)}>
           <Row>
-            <TextFor style={{ fontWeight: 'bold', color: isBright(props.color) }} text={props.title}/>
+            <TextFor style={{ fontWeight: 'bold', color: isBright(props.color) }} fixed text={props.title}/>
           </Row> 
             <Icon name={props.icon} size={50} style={{alignSelf:'center'}} color={isBright(props.color)} />
             {!!number && <Text style={styles.number}>{number}</Text>}  
@@ -500,3 +500,4 @@ function onContextCreate(gl) {
     return textCol;
   }
 
+export default HomeScreen;

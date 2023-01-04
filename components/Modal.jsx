@@ -9,6 +9,7 @@ import {
   View
 } from "react-native";
 import { B, Col, ProfileImage, Row } from "./Components";
+import Icon from 'react-native-vector-icons/Ionicons'
 
 export const CloseModal = ({modalVisible,setModalVisible,handleOK}) => {
   return (
@@ -68,7 +69,7 @@ export const UserModal = ({modalVisible,setModalVisible,handleOK,uid}) => {
             <ProfileImage uid={uid} size={70}/>
             <Col style={{alignItems:'flex-start',margin:10}}>
               <Text style={styles.modalText}><B>{name}</B> lefoglalta ezt a posztot</Text>
-              <Text style={styles.modalText}>Mit szeretnél tenni?</Text>
+              <Text style={styles.modalText}>Mit szeretnél csinálni?</Text>
             </Col>
           </Row>
 
@@ -90,6 +91,47 @@ export const UserModal = ({modalVisible,setModalVisible,handleOK,uid}) => {
                 onPress={() => {handleOK(); setModalVisible(false)}}
             >
                 <Text style={[styles.textStyle,{color:'black'}]}>Üzenet {name}nek</Text>
+            </TouchableOpacity>
+        </Row>
+        </View>
+    </View>
+    </Modal>
+  );
+};
+
+export const AloneModal = ({modalVisible,setModalVisible,handleOK,locationName}) => {
+
+  return (
+    <Modal
+    animationType='fade'
+    transparent={true}
+    visible={modalVisible}
+    >
+    <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <Row style={{justifyContent:'center',alignItems:'center'}}>
+            <Col style={{alignItems:'flex-start',margin:10}}>
+              <Text style={styles.modalText}><B>Szeretnéd megismerni a {locationName}t?</B></Text>
+              <Text style={styles.modalText}>
+                Ha nem ismered a helyet, de szimpatikus, kereshetsz valakit aki{'\n'}
+                már járt itt, és nyomott egy <Icon name="heart" size={18} color="red"/>-et a helyre.
+                Ő segít majd hogy eligazodj itt.
+              </Text>
+            </Col>
+          </Row>
+
+        <Row style={{padding:5,margin:10,alignItems:'space-around'}}>
+            <TouchableOpacity
+                style={{ ...styles.openButton, backgroundColor: "none" }}
+                onPress={() => setModalVisible(false)}
+            >
+              <Text style={[styles.textStyle,{color:'black'}]}>Mégse!</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={{ ...styles.openButton, backgroundColor: "#3bffc9" }}
+                onPress={() => {handleOK(); setModalVisible(false)}}
+            >
+                <Text style={[styles.textStyle,{color:'black'}]}>Keressenek meg!</Text>
             </TouchableOpacity>
         </Row>
         </View>
@@ -132,7 +174,7 @@ const styles = StyleSheet.create({
   },
   modalText: {
     marginBottom: 15,
-    textAlign: "center"
+    textAlign: "left"
   }
 });
 

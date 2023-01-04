@@ -11,7 +11,11 @@ export const userReducer = createSlice({
     unreadMessage: [],
     settings: {
       randomTalk: false,
-      fancyText: false
+      fancyText: false,
+      snowFall: true
+    },
+    help: {
+      messenger: true
     }
   },
   reducers: {
@@ -54,10 +58,13 @@ export const userReducer = createSlice({
     },
     setName: (state,action) => {
       state.name = action.payload
+    },
+    removeHelp: (state,action) => {
+      state.help[action.payload] = false
     }
   }
 })
 
-export const { init, login, logout, setName, setUserData, emptyUnreadMessages, setUnreadMessage, removeUnreadMessage, setSettings} = userReducer.actions
+export const { init, login, logout, setName, setUserData, emptyUnreadMessages, setUnreadMessage, removeUnreadMessage, setSettings, removeHelp} = userReducer.actions
 
 export default userReducer.reducer

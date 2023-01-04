@@ -9,6 +9,14 @@ export const styles = StyleSheet.create({
         paddingHorizontal: 16,
         alignItems: "center"
     },
+    bigButton: {
+        backgroundColor:'white',
+        justifyContent:'center',
+        alignItems:'center'
+    },
+    bigButtonText: {
+        fontSize:40
+    },
     modules: {
         flex: 1,
         flexDirection: 'row',
@@ -71,9 +79,8 @@ export const styles = StyleSheet.create({
     error: {
         textAlign: 'center', // <-- the magic
         fontWeight: 'bold',
-        fontSize: 20,
+        fontSize: 25,
         color: "red",
-        borderWidth:2,
         borderColor:'red',
         alignSelf:'center',
         width:'100%',

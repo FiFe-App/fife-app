@@ -12,6 +12,7 @@ import { TextFor } from "../../textService/textService";
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { useWindowSize } from '../../hooks/window';
 import { ScrollView } from 'react-native-web';
+import { AloneModal } from '../Modal';
 
 
 export const getMaps = async (db) => {
@@ -19,31 +20,38 @@ export const getMaps = async (db) => {
     return get(ref(db,'maps')).then(snapshot => {
       const data = (snapshot.val())
                   .filter(e=>!!e)
-                  .map(e=>{
-                    return {...e,locations:Object.values(e?.locations || []),color:'#'+Math.floor(Math.random()*16777215).toString(16)}
+                  .map((e,i)=>{
+                    const keys = Object.keys(e?.locations || [])
+                    const locations = Object.values(e?.locations || []).map((l,li)=>{
+                      l.key = keys[li];
+                      return l;
+                    })
+                    console.log(locations)
+                    return {
+                      ...e,
+                      locations:locations,
+                      color:'#'+Math.floor(Math.random()*16777215).toString(16)}
                   })
       return(data)
     })
 }
 export const getHearts = async (db,uid,mapId,locationId) => {
-    let list = [];
-    let me = false
-    await get(ref(db,'maps/' + mapId + "/locations/" + locationId + "/likes/"), async (snapshot) => {
-      let mine = false
-      snapshot.forEach((childSnapshot) => {
-        const childKey = childSnapshot.key;
-        if (childKey == uid)
-          mine = true
-
-        list.push(childKey)
-      });
-      return mine
-      });
-    return ({all: list, me: me});
+    if (mapId && locationId ) {
+      const obj = await get(ref(db,'maps/' + mapId + "/locations/" + locationId + "/likes/"))
+      console.log('maps/' + mapId + "/locations/" + locationId + "/likes/",obj);
+      if (!obj.val()) return null
+      const list = Object.keys(obj.val())
+      console.log(list);
+      const me = list.includes(uid)
+      return ({all: list, me: me});
+    } else return null
     
 }
 
 export const heartLocation = async (db,uid,mapId,locationId,toHeart) => {
+  if (!(uid && mapId && locationId))
+  throw new Error('Something is null')
+
   let success = false
   const dbRef = ref(db, 'maps/' + mapId + "/locations/" + locationId + "/likes/" + uid);
   if (toHeart)
@@ -76,6 +84,7 @@ export const LocationData = (props) => {
     const [heartedList, setHeartedList] = useState(null);
     const [hearted, setHearted] = useState(false);
     const [help, setHelp] = useState(false);
+    const [helpModal, setHelpModal] = useState(false);
 
     useEffect(() => {
 
@@ -113,10 +122,15 @@ export const LocationData = (props) => {
             <TextFor text="heart" />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleHelp} style={{flexDirection:'row',alignItems:'center'}}>
+        <TouchableOpacity onPress={()=>help ? handleHelp() : setHelpModal(true)} style={{flexDirection:'row',alignItems:'center'}}>
             <Icon name={help ? "person-add" : "person-add-outline"} size={25} color="green" style={{paddingHorizontal:10}}/>
             <TextFor text="help_needed" />
         </TouchableOpacity>
+        <AloneModal 
+        modalVisible={helpModal} 
+        setModalVisible={setHelpModal} 
+        locationName={location?.name}
+        handleOK={handleHelp}/>
       </ScrollView>
     )
   }

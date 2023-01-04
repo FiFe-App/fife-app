@@ -10,7 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 
 const color = '#ffde9e'
 
-export const Chat = ({route, navigation, propUid}) => {
+const Chat = ({route, navigation, propUid, global}) => {
     const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
@@ -33,8 +33,8 @@ export const Chat = ({route, navigation, propUid}) => {
     }, [propUid]);
 
     const send = () => {
-        console.log(message);
-        if (database && message) {
+        console.log('global',!!global);
+        if (database && message && !global) {
             const messageListRef = ref(database, `users/${uid}/messages/${uid2}`);
             const messageListRef2 = ref(database, `users/${uid2}/messages/${uid}`);
             const newMessageRef = push(messageListRef);
@@ -63,10 +63,26 @@ export const Chat = ({route, navigation, propUid}) => {
                 console.log('focus');
             }
         }
+
+        if (database && message && global) {
+            const messageListRef = ref(database, `globalChat`);
+            const newMessageRef = push(messageListRef);
+            set(newMessageRef, {
+                text: message,
+                uid: uid,
+                time: Date.now(),
+                name: myName
+            })
+            setMessage('');
+            if (input.current) {
+                input.current.focus()
+                console.log('focus');
+            }
+        }
     }
 
     useEffect(() => {
-        if (scrollView && uid2) {
+        if (scrollView) {
             scrollView.scrollToEnd({animated:false})
         }
     }, [messages,scrollView]);
@@ -76,8 +92,8 @@ export const Chat = ({route, navigation, propUid}) => {
         //const unsubscribe = nav.addListener('focus', () => {
             console.log(route?.params);
             console.log('chat with',uid2);
-            if (database && uid2) {
-                    console.log('header');
+            if (database) {
+                if (!global) {
                     const profileListRef = ref(database, `users/${uid2}/data`);
                     onValue(profileListRef, (snapshot) => {
                         setHeader(
@@ -86,10 +102,17 @@ export const Chat = ({route, navigation, propUid}) => {
                                 <Text style={{margin:5,fontSize:16,fontWeight:'400'}}>{snapshot.child('name').val()}</Text>
                             </TouchableOpacity>
                         )
-                        console.log('header set');
                     });
+                }
+
+                if (uid2) {
+                    dispatch(removeUnreadMessage(uid2))
+
+                }
                 
-                const messageListRef = ref(database, `users/${uid}/messages/${uid2}`);
+                const messageListRef = 
+                global ? ref(database, `globalChat`)
+                : ref(database, `users/${uid}/messages/${uid2}`);
                 off(messageListRef,'child_added')
                 setMessages([])
                 set(child(messageListRef,'read'),true)
@@ -97,7 +120,6 @@ export const Chat = ({route, navigation, propUid}) => {
                     if (data.key != 'read' && data.key != 'date' && data.key != 'last')
                         setMessages(old => [...old,data.val()])
                 });
-                dispatch(removeUnreadMessage(uid2))
                 console.log('loaded');
                 setLoading(false)
             }
@@ -114,24 +136,29 @@ export const Chat = ({route, navigation, propUid}) => {
     return (
     <View style={{flex:1}}>
         <View style={{flex:1}}>
-            {header}
+            {!global && header}
             <ScrollView 
             snapToEnd
             ref={(scroll) => {setScrollView(scroll)}}
             style={{flex:1,backgroundColor:'white'}} contentContainerStyle={styles.messages}>
-                
-        {!loading ?
-        messages.map((e,i,arr)=> {
-            return (
-                <View key={i}>
-                    {new Date(arr[i-1]?.time).getDay() < new Date(e?.time).getDay() 
-                    && <Text style={{width:'100%',textAlign:'center'}}>{new Date(e?.time).toLocaleDateString('hu-HU')}</Text>}
-                    <Message text={e.text} isMine={e.uid == uid}/>
-                </View>
-            )})
-        :   <View style={{flex:1, backgroundColor:'white'}}>
-                <Loading color="rgba(255,175,0,0.7)"/>
-            </View>}
+                <View style={{flex:1}}>
+                    {!loading ?
+                    messages.map((e,i,arr)=> {
+                        return (
+                            <View key={i}>
+                                {(!(new Date(arr[i-1]?.time).getDate()) || new Date(arr[i-1]?.time).getDate() != new Date(e?.time).getDate()) 
+                                && <Text style={{width:'100%',textAlign:'center'}}>{new Date(e?.time).toLocaleDateString('hu-HU')}</Text>}
+                                
+                                {!!global && (!arr[i-1]?.uid || arr[i-1]?.uid != e?.uid) 
+                                && <Text style={{width:'100%',paddingHorizontal:10,textAlign:e?.uid != uid ? 'left' : 'right'}}>{e?.name || null}</Text>}
+                                
+                                <Message text={e.text} isMine={e.uid == uid}/>
+                            </View>
+                        )})
+                    :   <View style={{flex:1, backgroundColor:'white'}}>
+                            <Loading color="rgba(255,175,0,0.7)"/>
+                        </View>}
+            </View>
         </ScrollView>
         </View>
         <View style={styles.input}>
@@ -144,9 +171,9 @@ export const Chat = ({route, navigation, propUid}) => {
                 ref={input}
                 blurOnSubmit={false}
             />
-            <Pressable onPress={send} style={styles.textButton}>
-                <Icon name="send" color="black" size={20}/>
-            </Pressable>
+            <TouchableOpacity onPress={send} style={styles.textButton} disabled={!message}>
+                <Icon name="send" color={message ? "black" : "gray"} size={20}/>
+            </TouchableOpacity>
         </View>
     </View>)
 
@@ -189,6 +216,7 @@ const styles = StyleSheet.create({
     input: {
         flexDirection: 'row',
         height: 50,
+        backgroundColor: 'white'
     },
     textInput: {
         flex:1,
@@ -204,6 +232,8 @@ const styles = StyleSheet.create({
         fontSize:20,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: color,
     }
 })
+
+
+export default Chat

@@ -6,11 +6,11 @@ import { ref, child, get, set, onValue, onChildAdded, off, onChildChanged, query
 import { ProfileImage } from './Components'
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { styles } from "./styles";
-import { Chat } from "./Chat";
+import Chat from "./Chat";
 import { elapsedTime } from "../textService/textService";
 import { useWindowSize } from "../hooks/window";
 
-export const Messages = ({route,navigation}) => {
+const Messages = ({route,navigation}) => {
     const width = useWindowSize().width;
     
     const [list, setList] = useState([]);
@@ -115,8 +115,12 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
     
     const onPress = () => {
         setNewMessage(false)
-        if (width > 900)
+        if (width > 900) {
             setSelected(uid)
+            navigation.setParams({
+                selected: uid,
+              });
+        }
         else 
             navigation.push("beszelgetes", {uid:uid});
     }
@@ -138,3 +142,6 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
     );
     
   }
+
+
+export default Messages

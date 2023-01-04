@@ -1,19 +1,17 @@
 import { useState, useContext, useEffect } from "react";
-import {View, Text, TouchableOpacity, ScrollView, Platform, Dimensions, TextInput, Switch, Image} from 'react-native'
+import {View, Text, TouchableOpacity, ScrollView, TextInput, Switch, Image} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
 import { FAB, getUri, Loading, NewButton, ProfileImage, Row } from '../Components'
 import { useNavigation } from '@react-navigation/native';
 import { styles } from "../styles";
-import { Chat } from "../Chat";
-import { widthPercentageToDP,  heightPercentageToDP} from 'react-native-responsive-screen';
-import { Item as SaleItem} from "./Item";
+import { default as SaleItem} from "./Item";
 import { elapsedTime, search } from "../../textService/textService";
 import ImageModal from 'react-native-image-modal';
 
-import { ref as dbRef, child, get, set, onValue, onChildAdded, off, query, orderByChild, orderByValue } from "firebase/database";
+import { ref as dbRef, child, get, set, onChildAdded, query, orderByChild } from "firebase/database";
 import { useWindowSize } from "../../hooks/window";
-import { ref as sRef, deleteObject, listAll } from "firebase/storage";
+import { ref as sRef, listAll } from "firebase/storage";
 
 
 export const Sale = ({route,navigation}) => {

@@ -1,43 +1,35 @@
 import { useState, useContext, useEffect } from "react";
-import {View, Text, TouchableOpacity, ScrollView, Platform, Dimensions, Switch, Image} from 'react-native'
+import {View, Text, ScrollView, Switch} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
-import { FAB, getUri, Loading, NewButton, ProfileImage, Row, TextInput } from '../Components'
-import { useNavigation } from '@react-navigation/native';
-import { styles } from "../styles";
-import { Chat } from "../Chat";
-import { widthPercentageToDP,  heightPercentageToDP} from 'react-native-responsive-screen';
-import { Item as SaleItem} from "./Item";
-import { elapsedTime, search } from "../../textService/textService";
-import ImageModal from 'react-native-image-modal';
+import { FAB, Loading, NewButton, Row, TextInput } from '../Components'
+import { default as NewSaleItem} from "./NewItem";
+import { search } from "../../textService/textService";
 
-import { ref as dbRef, child, get, set, onValue, onChildAdded, off, orderByChild, orderByValue } from "firebase/database";
+import { ref as dbRef, child, get } from "firebase/database";
 import { useWindowSize } from "../../hooks/window";
-import { ref as sRef, deleteObject, listAll } from "firebase/storage";
-import Icon from 'react-native-vector-icons/Ionicons'
+import { ref as sRef, listAll } from "firebase/storage";
 
-import { collection, deleteDoc, deleteField, doc, getDocs, query, setDoc, updateDoc } from "firebase/firestore"; 
+import { collection, deleteDoc, deleteField, doc, getDocs, orderBy, query, updateDoc, where } from "firebase/firestore"; 
 import CloseModal, { UserModal } from "../Modal";
 import DateTimePicker from "../DateTimePicker";
+import { SaleListItem } from "./SaleListItem";
 
 
 
-export const Sale = ({route,navigation}) => {
+const Sale = ({route,navigation}) => {
     const [list, setList] = useState([]);
     const {database, storage, app, auth, firestore} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
     const width = useWindowSize().width;
 
-
     const [settings, setSettings] = useState({
         synonims: false,
-        mine: false
+        author: false,
+        minDate: null,
+        maxDate: null
     });
     const [keys, setKeys] = useState([]);
-
-    const [minDate, setMinDate] = useState(null);
-    const [maxDate, setMaxDate] = useState(null);
-    const [author, setAuthor] = useState(null);
 
     const [closeModal, setCloseModal] = useState(false);
     const [userModal, setUserModal] = useState(false);
@@ -51,13 +43,17 @@ export const Sale = ({route,navigation}) => {
             const saleRef = collection(firestore, "sale");
             const userRef = dbRef(database,`users`);
 
-            setList([])
-            const q = query(saleRef);
+            const q =(settings.maxDate && settings.minDate) ? query(saleRef, 
+                orderBy("date", "desc"),
+                where('owner',settings.author ? '==' : '!=',settings.author),
+                where('date','>',new Date(settings.minDate).getTime()),
+                where('date','<',new Date(settings.maxDate).getTime())
+                ) :
+                query(saleRef, orderBy("date", "desc")) ;
             (async function(){
                 const querySnapshot = await getDocs(q);
+                setList([])
                 querySnapshot.forEach((doc) => {
-                    // doc.data() is never undefined for query doc snapshots
-                    console.log(doc.id, " => ", doc.data());
                     const childData = doc.data();
                     get(child(userRef,childData.owner+'/data/name')).then((snapshot) => {
                         const name = snapshot.val()
@@ -67,7 +63,7 @@ export const Sale = ({route,navigation}) => {
             })();
 
         }
-      }, [database]);
+      }, [database,settings]);
 
     const deleteItem = () => {
         console.log('delete',selected);
@@ -81,7 +77,8 @@ export const Sale = ({route,navigation}) => {
                 images: deleteField(),
                 date: deleteField(),
                 owner: deleteField(),
-                booked: deleteField()
+                booked: deleteField(),
+                bookedBy: deleteField(),
               }).catch(error=>console.log(error))
 
             const ref = sRef(storage, 'sale/'+selected);
@@ -91,7 +88,9 @@ export const Sale = ({route,navigation}) => {
                 dir.prefixes.forEach(folderRef => this.deleteFolder(folderRef.fullPath))
                 })
                 .catch(error => console.log(error));
-        })()
+        })().then(()=>{
+            setList(list.filter(e=>e.id=!selected))
+        })
     }
 
     const bookItem = (index,isBook) => {
@@ -124,9 +123,9 @@ export const Sale = ({route,navigation}) => {
                     return  search(searchText,[e?.data.title,e?.data.description],withSynonims && settings?.synonims)
                             .then((ret)=>{
                                 setKeys(ret?.keys)
-                                if (ret?.found && !settings?.mine || e?.data.owner == uid)
+                                if (ret?.found)
                                 return (
-                                    <Item 
+                                    <SaleListItem 
                                     title={e?.data.title}
                                     imageNames={e?.data.images} 
                                     index={e?.index}
@@ -154,7 +153,7 @@ export const Sale = ({route,navigation}) => {
     <View style={{flex:1, flexDirection:'row'}}>
         <View style={{flex:1}}>
             <Row>
-                <View style={{flex:1,padding:10}}>
+                <View style={{padding:10}}>
                     <TextInput
                         onChangeText={setSearchText}
                         style={{fontSize:20,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white'}}
@@ -162,29 +161,30 @@ export const Sale = ({route,navigation}) => {
                         onSubmitEditing={()=>searchFor(true)}
                     />
                     <Row style={{justifyContent:'center',alignItems:'center'}}>
-                        <Text style={{fontSize:20}}>Dátum:</Text>
-                        <TextInput
-                            onChangeText={setMinDate}
-                            style={{fontSize:20,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white',width:100}}
+                        <DateTimePicker
+                            setValue={(v)=>setSettings({...settings,minDate:v})}
+                            value={settings.minDate}
+                            style={{fontSize:20,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white',fontSize:15}}
                             placeholder="tól-"
                             onSubmitEditing={()=>searchFor(true)}
                         />
-                        <DateTimePicker/>
-                        <TextInput
-                            onChangeText={setMaxDate}
-                            style={{fontSize:20,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white',width:100}}
+                        <Text style={{fontSize:20}}>-</Text>
+                        <DateTimePicker
+                            setValue={(v)=>setSettings({...settings,maxDate:v})}
+                            value={settings.maxDate}
+                            style={{fontSize:20,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white',fontSize:15}}
                             placeholder="-ig"
                             onSubmitEditing={()=>searchFor(true)}
                         />
                     </Row>
                     <TextInput
-                        onChangeText={setAuthor}
+                        onChangeText={v=>setSettings({...settings,author:v})}
                         style={{fontSize:20,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white'}}
                         placeholder="Szerző"
                         onSubmitEditing={()=>searchFor(true)}
                     />
                 </View>
-                <View style={{flex:1}}>
+                <View style={{}}>
                     <View style={{flexDirection:'row', alignItems:'center',margin:10,width:'50%'}}>
                     <Text style={{flex:1,}}>Szinonímákkal</Text>
                     <Switch
@@ -202,13 +202,14 @@ export const Sale = ({route,navigation}) => {
                             trackColor={{ false: '#767577', true: '#3e3e3e' }}
                             thumbColor={settings?.mine ? '#fff' : 'white'}
                             ios_backgroundColor="#3e3e3e"
-                            onValueChange={(e)=>{setSettings({...settings, mine: e})}}
-                            value={settings?.mine}
+                            onValueChange={(e)=>{setSettings({...settings, author: e ? uid : null})}}
+                            value={settings?.author == uid}
                             style={{alignSelf:'flex-end'}}
                         />
                     </View>
                     {!!keys?.length &&
                     <Text style={{margin:10}}>Keresőszavak: {keys.map((e,i)=>i < keys.length-1 ? e+', ' : e)}</Text>}
+                    <Text>Találatok száma: {list.length}</Text>
                     <NewButton title="Mehet"/>
                 </View>
             </Row>
@@ -219,143 +220,17 @@ export const Sale = ({route,navigation}) => {
         </View>
         {(width > 900) &&
             <View style={{flex:1,backgroundColor:'white'}}>
-                <SaleItem/>
+                <NewSaleItem/>
             </View>
         }
         {(width <= 900) &&
         <FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.navigate('uj-cserebere')}/>
         }
         <CloseModal modalVisible={closeModal} setModalVisible={setCloseModal} handleOK={deleteItem}/>
-        <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.navigate('uzenetek',{uid:selected?.uid})}/>
+        <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.navigate('uzenetek',{selected:selected?.uid})}/>
     </View>
     )
 }
 
 
-function Item({title,text,uid,name,date,imageNames,index,booked,bookedBy,setSelected,deleteItem,bookItem,openUserModal}) {
-    const navigation = useNavigation();
-    const width = useWindowSize().width;
-    const myUid = useSelector((state) => state.user.uid)
-    const [open, setOpen] = useState(false);
-    const [images, setImages] = useState(null);
-    const elapsed = elapsedTime(date.toDate())
-
-    const getImages = async () => {
-
-        if (imageNames?.length) {
-            setImages([])
-            setImages(
-                await Promise.all(imageNames.map( async (e,i)=>{
-                    const fname = e?.filename || e;
-                    try {
-                        return {uri: await getUri('sale/'+index+'/'+fname),text: e.description}
-                    } catch (error) {
-                        return {uri: require('../../assets/profile.jpeg'), text: e.description}
-                    }
-                }))
-            )
-        }
-    }
-    useEffect(() => {
-        console.log('imageNames',imageNames);
-        getImages()
-    }, [imageNames]);
-
-    const book = (id,isBook) => {
-        console.log('booking '+id);
-        bookItem(id,isBook)
-    }
-
-    const onPress = () => {
-        setOpen(!open)
-    }
-
-    const handleDelete = () => {
-        console.log('del');
-        setSelected(index)
-        deleteItem(index)
-    }
-    const handleMessage = (uid) => {
-        setSelected({uid:bookedBy})
-        openUserModal(index,bookedBy)
-    }
-    return (
-        <>
-        <View style={[styles.list, { backgroundColor: '#fdfdfd'}]}>
-        <TouchableOpacity onPress={onPress} style={{flexDirection:'row',width:'100%',alignSelf:'flex-start'}}>
-                {images?.length ?
-                    <Image source={images[0]} style={{width:100,height:100,margin:5}}/>
-                    : <ProfileImage style={{}} size={100} uid={uid}/>}
-                <View style={{margin: 5, flexGrow:1, alignItems:'stretch'}}>
-                    <Text style={{ fontWeight: 'bold',fontSize:20 }}>{title}</Text>
-                    <Row style={{alignItems:'center'}}>
-                        <ProfileImage style={{margin:5}} size={20} uid={uid}/>
-                        <Text style={{ fontWeight: 'bold' }}>{name}</Text>
-                        <Text> {elapsed}</Text>
-                    </Row>
-                    <OpenableText style={{ margin:5, }} open={open} text={text}/>
-                </View>
-                { uid == myUid ?
-                booked ?
-                <TouchableOpacity style={{backgroundColor:'#669d51',width:100,justifyContent:'center',alignItems:'center'}} onPress={()=>handleMessage(uid)}>
-                    <Icon name='happy-outline' color='white' size={25}/>
-                    <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>Lefoglalva</Text>
-                </TouchableOpacity>:
-                <TouchableOpacity style={{backgroundColor:'#df5264',width:100,justifyContent:'center',alignItems:'center'}} onPress={()=>handleDelete()}>
-                    <Icon name='trash' color='white' size={25}/>
-                    <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>Törlés</Text>
-                </TouchableOpacity>
-                :
-                <TouchableOpacity style={{backgroundColor:booked?'#111111':'#ddd',width:100,justifyContent:'center',alignItems:'center'}} onPress={()=>book(index,booked)}>
-                    <Icon name={booked?'lock-closed':'lock-open'} color='white' size={25}/>
-                    <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>{booked?'Lefoglalva':'Foglalás'}</Text>
-                </TouchableOpacity>
-                
-                }
-        </TouchableOpacity>
-            {open &&
-                <View style={{width:'100%'}}>
-                    {!!images && <ScrollView horizontal style={{height:200,width:'100%',marginTop:20}}>
-                        {images.map((image,i)=>
-                        <ImageModal
-                        key={'image'+i} 
-                        swipeToDismiss={false}
-                        resizeMode="center"
-                        modalImageResizeMode="contain"
-                        imageBackgroundColor="none"
-                        renderFooter={()=><View style={{padding:20,backgroundColor:'rgba(0,0,0,0.7)'}}>
-                            <Text style={{color:'white'}}>{image.text}</Text>
-                        </View>}
-                        style={{
-                            width: 200,
-                            height: 200,
-                            padding:10
-                        }}
-                        source={image.uri}
-                        />
-                        )}
-                    </ScrollView>}
-                    <View style={{padding:10}}>
-                        { uid != myUid ?
-                        <Row style={{width:'100%'}}>
-                            <NewButton style={{width:'50%'}} title={"Írj "+name+"nak"} onPress={()=>navigation.navigate('uzenetek',{selected:uid})}/>
-                            <NewButton style={{width:'50%'}} title="Jelentés"/>
-                        </Row>:
-                        <NewButton title="Töröld ki" onPress={handleDelete}/>
-                        }
-                    </View>
-                </View>}
-        </View>
-        </>
-    );
-    
-  }
-
-  const OpenableText = ({text,open,style}) => {
-    const short = '' || text.substring(0,50).replace(/(\r\n|\n|\r)/gm, "");
-    if (text.length > 50) {
-        return (
-            <Text style={style}>{!!open ? text : short+'...'}</Text>
-        )
-    } else return <Text style={style}>{text}</Text>
-  }
+  export default Sale

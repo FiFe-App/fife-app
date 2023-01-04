@@ -1,20 +1,20 @@
 import { Platform, View } from "react-native"
 import DatePicker from "react-datepicker"
-import { createElement, useState } from "react";
+import { createElement, useEffect, useState } from "react";
 
-export default () => {
-    const [startDate, setStartDate] = useState(new Date());
+export default ({style,value,setValue}) => {
+    useEffect(() => {
+        if (!value)
+            setValue(new Date().toISOString().substring(0, 10));
+    }, [value]);
     if (Platform.OS == 'web')
     return (
-        createElement('input', {
-            type: 'date',
-            value: startDate,
-            onInput: setStartDate,
-        }),
-        createElement('input', {
-            type: 'date',
-            value: startDate,
-            onInput: setStartDate,
-        })
+        <input 
+        style={style}
+        type='date' 
+        value={value} 
+        onInput={(e)=>setValue(e.target.value)} 
+        max={new Date().toISOString().substring(0, 10)}
+        />
       )
 }

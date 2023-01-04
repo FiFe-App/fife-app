@@ -9,7 +9,7 @@ import { Loading, ProfileImage, FAB, Row } from '../Components'
 import { ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'
 
-export const Events = ({ navigation, route }) => {
+const Events = ({ navigation, route }) => {
     const [filter,setFilter] = useState("today")
     const [list,setList] = useState([]);
     const [date,setDate] = useState(Date.now());
@@ -128,3 +128,5 @@ const localStyles = {
         borderBottomWidth: 0
     },
   }
+
+export default Events

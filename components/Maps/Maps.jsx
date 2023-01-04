@@ -21,7 +21,7 @@ const defaultFilterList = [
   {name: 'legközelebbi',function: (prop='rating') => ((b,a)=>(a[prop] > b[prop]) - (a[prop] < b[prop]))}
 ];
 
-export const Maps = ({navigation, route}) => {
+const Maps = ({navigation, route}) => {
     //#region state
     const {database} = useContext(FirebaseContext);
     const width = useWindowSize().width;
@@ -183,7 +183,7 @@ export const Maps = ({navigation, route}) => {
               marker.bindPopup("<b>"+location.name+"</b><br>"+location.description)
               marker.on('click',() => {
                 setSelected(location)
-                setIds({...ids,locationId:index})
+                setIds({...ids,locationId:location.key})
                 marker.getPopup().openPopup();
               })
               setMarkers(old=>[...old,marker])
@@ -217,7 +217,7 @@ export const Maps = ({navigation, route}) => {
                               }
                               else {
                                 setSelected(place);
-                                setIds({...ids,locationId:mapData.find(e=>e.name == selectedMap?.name).locations.findIndex(e=>e.name==place.name)})
+                                setIds({...ids,locationId:mapData.find(e=>e.name == selectedMap?.name).locations.find(e=>e.name==place.name).key})
                               }
                             }}>
                   <Text style={{color:selected==place ? map.color : 'black'}}>{place.name}</Text>
@@ -251,14 +251,33 @@ export const Maps = ({navigation, route}) => {
     },[search,selectedMap,selected,filter,settings,mapData])
 
     useEffect(()=>{
+      console.log('selected',selected);
       if (map,selected) {
         map.flyTo([selected.lat,selected.lng],16);
       }
     },[selected])
 
     useEffect(() => {
-      setSelected(null)
+      if (selected) {
+        //setSelected(null)
+        //setIds({...ids,locationId:null})
+      }
     }, [selectedMap]);
+
+    useEffect(() => {
+      console.log('ids',ids);
+    }, [ids]);
+    useEffect(() => {
+      console.log('mapdata',mapData);
+      if (mapData) {
+        const {selected = null, selectedMap} = route?.params || {};
+        if (!selectedMap) return
+
+        setSelectedMap({id: selectedMap-1 || null,name: mapData[selectedMap-1].name || null})
+        setIds({mapId:null,locationId:mapData[selectedMap-1].locations.find(loc=>loc.key == selected)?.key || null})
+        setSelected(mapData[selectedMap-1].locations.find(loc=>loc.key == selected) || null)
+      }
+    }, [mapData]);
     //#endregion
 
     return (
@@ -273,7 +292,7 @@ export const Maps = ({navigation, route}) => {
             />
 
             <View style={{flexDirection:'row',marginHorizontal:30,marginVertical:5}}>
-              <Text style={{flex:1}}>Ellenőrzött helyek helyek</Text>
+              <Text style={{flex:1}}>Csak ellenőrzött helyek mutatása</Text>
               <Switch
                   trackColor={{ false: '#767577', true: '#3e3e3e' }}
                   thumbColor={settings?.secure ? '#f5dd4b' : '#f4f3f4'}
@@ -291,10 +310,7 @@ export const Maps = ({navigation, route}) => {
             <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected}  mapId={selectedMap.id}/>
             :
             <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>
-            )}
-
-
-            
+            )}            
         </View>}
           {width < 900 &&
           <Pressable style={{borderBottomWidth:2,backgroundColor:'#FFC372',padding:5,alignItems:'center',justifyContent:'center'}}
@@ -453,3 +469,6 @@ const localStyles = {
       paddingVertical:10
     },
   }
+
+
+export default Maps

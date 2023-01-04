@@ -87,7 +87,7 @@ const LoginScreen = ({ navigation, route }) => {
             <LoginForm/>}
         </View>
         <View style={{alignItems:'center', justifyContent:'center',flex:1,cursor:'pointer'}} onClick={handleMoreInfo}>
-          <Text style={{fontSize:30}}>Mi ez?</Text>
+          <Text style={{fontSize:30}}>Csatlakozz!</Text>
           <Icon name="chevron-down-outline" size={30}/>
         </View>
       </LinearGradient>
@@ -107,7 +107,7 @@ const  LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [username, onChangeUsername] = React.useState("");
   const [password, onChangePassword] = React.useState("");
-  const [loginError, onChangeLoginError] = React.useState("");
+  const [loginError, onChangeLoginError] = React.useState(null);
   const {api}  = useContext(FirebaseContext);
   const user = useSelector((state) => state.user)
 
@@ -117,13 +117,14 @@ const  LoginForm = () => {
     api.login(email,password).then((res) => {
       if (res?.success) {
         navigation.push('fooldal') 
-        setLoading(false)
         console.log('user',user);
       } else {
         onChangeLoginError(res?.error)
       }
     }).catch((error) => {
       console.error(error);
+    }).finally(()=>{
+      setLoading(false)
     })
     
   }
@@ -147,7 +148,7 @@ const  LoginForm = () => {
               onSubmitEditing={()=>signIn(username, password, onChangeLoginError)}
           />
       </View>
-      <TouchableOpacity style={{width:70,backgroundColor:'black',justifyContent:'center',alignItems:"center",margin:5}} 
+      <TouchableOpacity disabled={!username||!password} style={{width:70,backgroundColor:(!username||!password)?'gray':'black',justifyContent:'center',alignItems:"center",margin:5}} 
         onPress={() => signIn(username, password, onChangeLoginError)}>
         {!loading ?
         <Icon name="arrow-forward-outline" color="white" size={40}/>
@@ -155,7 +156,7 @@ const  LoginForm = () => {
       </TouchableOpacity>
       </View>
       {!!loginError && <View style={styles.error}>
-        <Text style={{color:'red'}} >{loginError}</Text>
+        <Text style={{color:'#942400',fontSize:25}} >{loginError}</Text>
       </View>}
     </View>
   )
@@ -178,7 +179,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
     api.register(email,password,dataToAdd).then((res) => {
       console.log('res',res);
       if (res?.success) {
-        navigation.push('fooldal') 
+        api.login(email,password,true) 
         //setData(true)
       } else {
         onChangeLoginError(res?.error)

@@ -1,8 +1,7 @@
-import React, { createRef } from 'react';
-import { StyleSheet, View, Text, Button } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, Button } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { Pages } from "./pages";
-import { Professions, Links } from '../Edit';
 import * as Progress from 'react-native-progress';
 
 const First = ({route,navigation}) => {

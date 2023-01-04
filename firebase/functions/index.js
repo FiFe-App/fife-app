@@ -19,31 +19,49 @@ admin.initializeApp({
 
 exports.newMessage = functions.database.ref('/users/{uid}/messages/{uid2}/last')
     .onUpdate((change, context) => {
-        if (!change.after.exists()) return null;
+        // Exit when the data is deleted.
+        if (!change.after.exists()) {
+        return null;
+        }
         const newMsg = change.after.val()
         if (newMsg.from == context.params.uid) return null;
         const db = admin.database();
         const ref = db.ref('users/'+context.params.uid+'/data/fcm/token');
+        const name = db.ref('users/'+context.params.uid2+'/data/name');
         ref.once("value", function(snapshot) {
+            name.once("value", function(nameSnapshot) {
             const token = snapshot.val();
+            const name = nameSnapshot.val();
             const payload = {
                 token: token,
                 notification: {
                     title: 'Új üzenet egy fifétől!',
-                    body: newMsg.message,
-                    icon: 'https://i.ibb.co/KxgW84L/logo.png',
-                    click_action: "https://fifeapp.hu/uzenetek?selected="+context.params.uid,
+                    body: name+': '+newMsg.message,
+                    image: 'https://i.ibb.co/KxgW84L/logo.png',
+                },
+                webpush: {
+                  fcmOptions: {
+                    link: "https://fifeapp.hu/uzenetek?selected="+newMsg.from
+                  }
                 },
                 data: {
                     body: newMsg.message,
                 }
             };
+
             admin.messaging().send(payload).then((response) => {
+                // Response is a message ID string.
                 return {success: true};
             }).catch((error) => {
                 return {error: error.code};
             });
+            })
         });
-        return
-    });
 
+        //const token = 'fsBpyHigNXdS4tzjgSGKnj:APA91bHTOULlweGdtG6Oc6jdOjDdhaGr3DNR-KRhliE1e6RzRPukjNwHvBaYpzDM6Qb7HsrsHGjuKFqI5sP3gKg1ebeWTUKpkb8XuX9jkh_miEp2rd3BFreVdajFmnk-y_4yBJXvF5lM'
+
+        // You must return a Promise when performing asynchronous tasks inside a Functions such as
+          // writing to the Firebase Realtime Database.
+          // Setting an "uppercase" sibling in the Realtime Database returns a Promise.
+          return //change.after.ref.parent.child('uppercase').set(uppercase);
+    });
