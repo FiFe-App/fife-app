@@ -4,11 +4,10 @@ import {
   Alert,
   Modal,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View
 } from "react-native";
-import { B, Col, ProfileImage, Row } from "./Components";
+import { B, Col, ProfileImage, Row, MyText } from "./Components";
 import Icon from 'react-native-vector-icons/Ionicons'
 
 export const CloseModal = ({modalVisible,setModalVisible,handleOK}) => {
@@ -20,7 +19,7 @@ export const CloseModal = ({modalVisible,setModalVisible,handleOK}) => {
     >
     <View style={styles.centeredView}>
         <View style={styles.modalView}>
-        <Text style={styles.modalText}>Biztos törlöd a posztod?</Text>
+        <MyText style={styles.modalText}>Biztos törlöd a posztod?</MyText>
 
         <Row style={{padding:20,margin:10,alignItems:'space-around'}}>
             <TouchableOpacity
@@ -29,7 +28,7 @@ export const CloseModal = ({modalVisible,setModalVisible,handleOK}) => {
                 setModalVisible(!modalVisible);
                 }}
             >
-                <Text style={[styles.textStyle,{color:'black'}]}>Mégse</Text>
+                <MyText style={[styles.textStyle,{color:'black'}]}>Mégse</MyText>
             </TouchableOpacity>
             <TouchableOpacity
                 style={{ ...styles.openButton, backgroundColor: "#ff3b69" }}
@@ -37,7 +36,7 @@ export const CloseModal = ({modalVisible,setModalVisible,handleOK}) => {
                   handleOK()
                 }}
             >
-                <Text style={styles.textStyle}>Törlés</Text>
+                <MyText style={styles.textStyle}>Törlés</MyText>
             </TouchableOpacity>
         </Row>
         </View>
@@ -68,8 +67,8 @@ export const UserModal = ({modalVisible,setModalVisible,handleOK,uid}) => {
           <Row style={{justifyContent:'center',alignItems:'center'}}>
             <ProfileImage uid={uid} size={70}/>
             <Col style={{alignItems:'flex-start',margin:10}}>
-              <Text style={styles.modalText}><B>{name}</B> lefoglalta ezt a posztot</Text>
-              <Text style={styles.modalText}>Mit szeretnél csinálni?</Text>
+              <MyText style={styles.modalText}><B>{name}</B> lefoglalta ezt a posztot</MyText>
+              <MyText style={styles.modalText}>Mit szeretnél csinálni?</MyText>
             </Col>
           </Row>
 
@@ -78,19 +77,19 @@ export const UserModal = ({modalVisible,setModalVisible,handleOK,uid}) => {
                 style={{ ...styles.openButton, backgroundColor: "none" }}
                 onPress={() => setModalVisible(!modalVisible)}
             >
-              <Text style={[styles.textStyle,{color:'black'}]}>Semmit</Text>
+              <MyText style={[styles.textStyle,{color:'black'}]}>Semmit</MyText>
             </TouchableOpacity>
             <TouchableOpacity
                 style={{ ...styles.openButton, backgroundColor: "#663bff" }}
                 onPress={() => handleOK()}
             >
-                <Text style={styles.textStyle}>Foglalás törlése</Text>
+                <MyText style={styles.textStyle}>Foglalás törlése</MyText>
             </TouchableOpacity>
             <TouchableOpacity
                 style={{ ...styles.openButton, backgroundColor: "#3bffc9" }}
                 onPress={() => {handleOK(); setModalVisible(false)}}
             >
-                <Text style={[styles.textStyle,{color:'black'}]}>Üzenet {name}nek</Text>
+                <MyText style={[styles.textStyle,{color:'black'}]}>Üzenet {name}nek</MyText>
             </TouchableOpacity>
         </Row>
         </View>
@@ -111,12 +110,12 @@ export const AloneModal = ({modalVisible,setModalVisible,handleOK,locationName})
         <View style={styles.modalView}>
           <Row style={{justifyContent:'center',alignItems:'center'}}>
             <Col style={{alignItems:'flex-start',margin:10}}>
-              <Text style={styles.modalText}><B>Szeretnéd megismerni a {locationName}t?</B></Text>
-              <Text style={styles.modalText}>
+              <MyText style={styles.modalText}><B>Szeretnéd megismerni a {locationName}t?</B></MyText>
+              <MyText style={styles.modalText}>
                 Ha nem ismered a helyet, de szimpatikus, kereshetsz valakit aki{'\n'}
                 már járt itt, és nyomott egy <Icon name="heart" size={18} color="red"/>-et a helyre.
                 Ő segít majd hogy eligazodj itt.
-              </Text>
+              </MyText>
             </Col>
           </Row>
 
@@ -125,13 +124,13 @@ export const AloneModal = ({modalVisible,setModalVisible,handleOK,locationName})
                 style={{ ...styles.openButton, backgroundColor: "none" }}
                 onPress={() => setModalVisible(false)}
             >
-              <Text style={[styles.textStyle,{color:'black'}]}>Mégse!</Text>
+              <MyText style={[styles.textStyle,{color:'black'}]}>Mégse!</MyText>
             </TouchableOpacity>
             <TouchableOpacity
                 style={{ ...styles.openButton, backgroundColor: "#3bffc9" }}
                 onPress={() => {handleOK(); setModalVisible(false)}}
             >
-                <Text style={[styles.textStyle,{color:'black'}]}>Keressenek meg!</Text>
+                <MyText style={[styles.textStyle,{color:'black'}]}>Keressenek meg!</MyText>
             </TouchableOpacity>
         </Row>
         </View>

@@ -1,13 +1,10 @@
-import { ProfileImage, Loading } from './Components'
-import { getDatabase, ref, child, push, get, set, onValue } from "firebase/database";
-import { getAuth } from "firebase/auth";
-import React, { useContext, useEffect } from 'react';
-import { Text, View, Button, Pressable, TextInput } from 'react-native';
+import { MyText } from './Components'
+import { getDatabase, ref, push, set } from "firebase/database";
+import React, { useContext } from 'react';
+import { View, Button, TextInput } from 'react-native';
 import { styles } from './styles'
 
-import { global } from './global'
 import { useSelector } from 'react-redux'
-import Icon from 'react-native-vector-icons'
 import { FirebaseContext } from '../firebase/firebase';
 //import { DatePicker } from './date/DatePicker';
 
@@ -38,14 +35,14 @@ const NewEvent = ({ navigation, route }) => {
 
   return (
     <View>
-      <Text>Esemény neve</Text>
+      <MyText>Esemény neve</MyText>
       <TextInput
         style={styles.searchInput}
         onChangeText={(e)=>setData({...data,title: e})}
         editable
         placeholder="Esemény neve"
       />
-      <Text>Leírás</Text>
+      <MyText>Leírás</MyText>
       <TextInput
         style={styles.searchInput}
         onChangeText={(e)=>setData({...data,description: e})}

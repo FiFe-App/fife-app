@@ -1,8 +1,8 @@
 import { useState, useContext, useEffect } from "react";
-import {View, Text, TouchableOpacity, ScrollView, TextInput, Switch, Image} from 'react-native'
+import {View, TouchableOpacity, ScrollView, TextInput, Switch, Image} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
-import { FAB, getUri, Loading, NewButton, ProfileImage, Row } from '../Components'
+import { FAB, getUri, Loading, NewButton, ProfileImage, Row, MyText } from '../Components'
 import { useNavigation } from '@react-navigation/native';
 import { styles } from "../styles";
 import { default as SaleItem} from "./Item";
@@ -103,7 +103,7 @@ export const Sale = ({route,navigation}) => {
             onSubmitEditing={()=>searchFor(true)}
             />
             <View style={{flexDirection:'row', alignItems:'center',margin:10,width:'50%'}}>
-                <Text style={{flex:1,}}>Szinonímákkal</Text>
+                <MyText style={{flex:1,}}>Szinonímákkal</MyText>
                 <Switch
                     trackColor={{ false: '#767577', true: '#3e3e3e' }}
                     thumbColor={settings?.synonims ? '#white' : 'white'}
@@ -114,7 +114,7 @@ export const Sale = ({route,navigation}) => {
                 />
             </View>
             <View style={{flexDirection:'row', alignItems:'center',margin:10,width:'50%'}}>
-                <Text style={{flex:1,}}>Sajátjaim</Text>
+                <MyText style={{flex:1,}}>Sajátjaim</MyText>
                 <Switch
                     trackColor={{ false: '#767577', true: '#3e3e3e' }}
                     thumbColor={settings?.mine ? '#fff' : 'white'}
@@ -125,7 +125,7 @@ export const Sale = ({route,navigation}) => {
                 />
             </View>
             {!!keys?.length &&
-            <Text style={{margin:10}}>Keresőszavak: {keys.map((e,i)=>i < keys.length-1 ? e+', ' : e)}</Text>}
+            <MyText style={{margin:10}}>Keresőszavak: {keys.map((e,i)=>i < keys.length-1 ? e+', ' : e)}</MyText>}
             <ScrollView>
                 {searchResult?.length ? searchResult : <Loading color='#FFC372' height={10}/>}
             </ScrollView>
@@ -182,11 +182,11 @@ function Item({title,text,uid,name,date,imageNames,index,setSelected,deleteItem}
                     <Image source={images[0]} style={{width:100,height:100,margin:5}}/>
                     : <ProfileImage style={{}} size={100} uid={uid}/>}
                 <View style={{margin: 5,width:'80%'}}>
-                <Text style={{ fontWeight: 'bold',fontSize:20 }}>{title}</Text>
+                <MyText style={{ fontWeight: 'bold',fontSize:20 }}>{title}</MyText>
                 <Row style={{alignItems:'center'}}>
                     <ProfileImage style={{margin:5}} size={20} uid={uid}/>
-                    <Text style={{ fontWeight: 'bold' }}>{name}</Text>
-                    <Text> {elapsed}</Text>
+                    <MyText style={{ fontWeight: 'bold' }}>{name}</MyText>
+                    <MyText> {elapsed}</MyText>
                 </Row>
                 <OpenableText style={{ margin:5,width:'80%' }} open={open} text={text}/>
                 </View>
@@ -202,7 +202,7 @@ function Item({title,text,uid,name,date,imageNames,index,setSelected,deleteItem}
                         modalImageResizeMode="contain"
                         imageBackgroundColor="none"
                         renderFooter={()=><View style={{padding:20,backgroundColor:'rgba(0,0,0,0.7)'}}>
-                            <Text style={{color:'white'}}>{image.text}</Text>
+                            <MyText style={{color:'white'}}>{image.text}</MyText>
                         </View>}
                         style={{
                             width: 200,
@@ -230,7 +230,7 @@ function Item({title,text,uid,name,date,imageNames,index,setSelected,deleteItem}
     const short = '' || text.substring(0,50)
     if (text.length > 50) {
         return (
-            <Text>{!!open ? text : short+'...'}</Text>
+            <MyText>{!!open ? text : short+'...'}</MyText>
         )
-    } else return <Text>{text}</Text>
+    } else return <MyText>{text}</MyText>
   }

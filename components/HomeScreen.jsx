@@ -2,7 +2,7 @@
 
   import { useHover } from 'react-native-web-hooks';
 
-  import { Text, View, ScrollView, Pressable, TouchableOpacity, Image} from 'react-native';
+  import { View, ScrollView, Pressable, TouchableOpacity, Image} from 'react-native';
   import { SafeAreaView } from 'react-native-safe-area-context';
 
   import { styles } from './styles';
@@ -11,7 +11,7 @@
   import { useFonts, AmaticSC_700Bold  } from '@expo-google-fonts/amatic-sc';
   import { LinearGradient } from "expo-linear-gradient";
   import { Animated } from "react-native";
-  import { Row, Col, Auto, TextInput } from './Components'
+  import { Row, Col, Auto, TextInput, MyText } from './Components'
   import Icon from 'react-native-vector-icons/Ionicons'
 
   import { SearchBar, OpenNav } from "./Components"
@@ -74,8 +74,8 @@ import Search from './Search';
               </Pressable>
             }
             <Pressable onPress={()=>navigation.navigate('fooldal')}>
-              { width >  1230 && <Text style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe. <TextFor text="web_title"/></Text>}
-              { width <=  1230 && width > 470 && <Text style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe App</Text>}
+              { width >  1230 && <MyText style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe. <TextFor text="web_title"/></MyText>}
+              { width <=  1230 && width > 470 && <MyText style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe App</MyText>}
             </Pressable>
             { width >  1120 ?
             <View style={{flexDirection:'row',marginRight:20,marginBottom:5,flex:8}}>
@@ -92,8 +92,8 @@ import Search from './Search';
             <Row style={{flex:8}}>
               <SearchBar/>
               <TouchableOpacity onPress={()=>setOpen(!open)} style={{justifyContent:'center',width:70}}>
-                {open ? <Text style={{justifyContent:'center',textAlign:'center'}}><Icon name='caret-up-outline' size={30}/></Text>
-                      : <Text style={{justifyContent:'center',textAlign:'center'}}><Icon name='menu-outline' size={30}/></Text>}
+                {open ? <MyText style={{justifyContent:'center',textAlign:'center'}}><Icon name='caret-up-outline' size={30}/></MyText>
+                      : <MyText style={{justifyContent:'center',textAlign:'center'}}><Icon name='menu-outline' size={30}/></MyText>}
               </TouchableOpacity>
             </Row>}
           </View>
@@ -162,7 +162,7 @@ import Search from './Search';
             <Col style={{flex:width<900?1:2}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
                 <Row style={{alignItems:'flex-end',flexGrow:1,paddingLeft:50,paddingVertical:20}}>
-                  <Text style={{fontSize:40}}><TextFor text={greeting} embed={name}/></Text>
+                  <MyText style={{fontSize:40}}><TextFor text={greeting} embed={name}/></MyText>
                   <Smiley/>
                 </Row>
               </Animated.View> 
@@ -174,7 +174,7 @@ import Search from './Search';
                 placeholder={TextFor({pureText:true,text:'search_text'})}
                 onChangeText={setSearchText}
                 value={searchText}
-                style={{width:'100%',height:100,fontSize:width>900?60:40,padding:20,margin:0,backgroundColor:'#fff7'}}/>
+                style={{width:'100%',height:100,fontSize:width>900?40:20,padding:20,margin:0,backgroundColor:'#fff7'}}/>
               { !!searchText && <TouchableOpacity onPress={()=>setSearchText('')} style={{position:'absolute',right:0,bottom:0,width:100,height:100,zIndex:1,justifyContent:'center',alignItems:'center'}}>
                 <Icon style={{justifyContent:'center'}} name="close" size={60}/>
               </TouchableOpacity>}
@@ -185,15 +185,15 @@ import Search from './Search';
           {width > 900 && 
           <Auto style={{flex:1}}>
             <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]}  onPress={()=>navigation.navigate('cserebere')}>
-              <Text style={styles.bigButtonText}>Cserebere</Text>
+              <MyText style={styles.bigButtonText}>Cserebere</MyText>
               <Icon name="shirt" color="#71bbff" size={60}/>
             </Pressable>
             <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]}  onPress={()=>navigation.navigate('terkep')}>
-              <Text style={styles.bigButtonText}>Térkép</Text>
+              <MyText style={styles.bigButtonText}>Térkép</MyText>
               <Icon name="map" color="#8de264" size={60}/>
             </Pressable>
             <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]} onPress={()=>navigation.navigate('esemenyek')}>
-              <Text style={styles.bigButtonText}>Programok</Text>
+              <MyText style={styles.bigButtonText}>Programok</MyText>
               <Icon name="calendar" color="#ff3e6f" size={60}/>
             </Pressable>
           </Auto>}
@@ -220,7 +220,7 @@ import Search from './Search';
       <ScrollView style={{flex:1}} contentContainerStyle={{flex:1}}>
         <HomeBackground style={{flex:2,justifyContent:'flex-end'}} >
           <Row style={{alignItems:'center',paddingLeft:50,paddingVertical:20}}>
-            <Text style={{fontSize:40}}><TextFor text={greeting} embed={name}/></Text>
+            <MyText style={{fontSize:40}}><TextFor text={greeting} embed={name}/></MyText>
             <Smiley/>
           </Row>
         </HomeBackground>
@@ -325,14 +325,14 @@ import Search from './Search';
         onPress={handlePress}
         style={{position:'absolute',bottom:10+105*index,right:10,width:300,borderWidth:2,height:100,backgroundColor:'white',padding:20}}>
         <View style={{flexDirection:'row'}}>
-          <Text style={{fontWeight:'bold',flexGrow:1}}>{title}</Text>
+          <MyText style={{fontWeight:'bold',flexGrow:1}}>{title}</MyText>
           <Pressable onPress={handleClose}>
-            <Text>
+            <MyText>
               <Icon name='close' size={25}/>
-            </Text>
+            </MyText>
           </Pressable>
         </View>
-        <Text>{description}</Text>
+        <MyText>{description}</MyText>
       </Pressable>
     )
   }
@@ -403,7 +403,7 @@ function onContextCreate(gl) {
         }}>
 
           <TextFor style={{fontWeight:'500'}} fixed text={title}/>
-          {!!number && <Text style={[styles.number,{right:50,top:60}]}>{number}</Text>}
+          {!!number && <MyText style={[styles.number,{right:50,top:60}]}>{number}</MyText>}
       </Pressable>
     )
   }
@@ -421,7 +421,7 @@ function onContextCreate(gl) {
             <TextFor style={{ fontWeight: 'bold', color: isBright(props.color) }} fixed text={props.title}/>
           </Row> 
             <Icon name={props.icon} size={50} style={{alignSelf:'center'}} color={isBright(props.color)} />
-            {!!number && <Text style={styles.number}>{number}</Text>}  
+            {!!number && <MyText style={styles.number}>{number}</MyText>}  
         </TouchableOpacity>
     );
     

@@ -1,11 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import ExpoFastImage from 'expo-fast-image';
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useWindowSize } from '../../hooks/window';
 import { elapsedTime } from '../../textService/textService';
-import { getUri, NewButton, ProfileImage, Row } from '../Components';
+import { getUri, NewButton, ProfileImage, Row, MyText } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { styles } from "../styles";
 import ImageModal from 'react-native-image-modal';
@@ -65,10 +65,10 @@ export function SaleListItem({title,text,uid,name,date,imageNames,index,booked,b
                     <ExpoFastImage source={images[0]} style={{width:100,height:100,margin:5}}/>
                     : <ProfileImage style={{}} size={100} uid={uid}/>}
                 <View style={{margin: 5, flexGrow:1, alignItems:'stretch'}}>
-                    <Text style={{ fontWeight: 'bold',fontSize:20 }}>{title}</Text>
+                    <MyText style={{ fontWeight: 'bold',fontSize:20 }}>{title}</MyText>
                     <Row style={{alignItems:'center'}}>
-                        <Text style={{ fontWeight: 'bold',fontSize:20 }}>{name}</Text>
-                        <Text> {elapsed}</Text>
+                        <MyText style={{ fontWeight: 'bold',fontSize:20 }}>{name}</MyText>
+                        <MyText> {elapsed}</MyText>
                     </Row>
                     <OpenableText style={{ margin:5, }} open={open} text={text}/>
                 </View>
@@ -77,13 +77,13 @@ export function SaleListItem({title,text,uid,name,date,imageNames,index,booked,b
                     // A sajátom és lefoglalta valaki
                     <TouchableOpacity style={{backgroundColor:'#669d51',width:100,justifyContent:'center',alignItems:'center'}} onPress={()=>handleMessage(uid)}>
                         <Icon name='happy-outline' color='white' size={25}/>
-                        <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>Lefoglalva</Text>
+                        <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>Lefoglalva</MyText>
                     </TouchableOpacity>
                 :
                     // A sajátom és nincs még lefoglalva
                     <TouchableOpacity style={{backgroundColor:'#df5264',width:100,justifyContent:'center',alignItems:'center'}} onPress={()=>handleDelete()}>
                         <Icon name='trash' color='white' size={25}/>
-                        <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>Törlés</Text>
+                        <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>Törlés</MyText>
                     </TouchableOpacity>
                 :
                 booked ?
@@ -91,19 +91,19 @@ export function SaleListItem({title,text,uid,name,date,imageNames,index,booked,b
                         // Valakié és lefoglaltam
                         <TouchableOpacity style={{backgroundColor:'#ff7ad4',width:100,justifyContent:'center',alignItems:'center'}} onPress={()=>book(index,booked)}>
                             <Icon name={'checkmark'} color='white' size={25}/>
-                            <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Lefoglaltad!'}</Text>
+                            <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Lefoglaltad!'}</MyText>
                         </TouchableOpacity>
                     :
                         // Valakié és lefoglalta valaki
                         <TouchableOpacity style={{backgroundColor:'#111111',width:100,justifyContent:'center',alignItems:'center'}} onPress={()=>book(index,booked)}>
                             <Icon name={'lock-closed'} color='white' size={25}/>
-                            <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Valaki lefoglalta'}</Text>
+                            <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Valaki lefoglalta'}</MyText>
                         </TouchableOpacity>
                 :
                     // Valakié és szabad
                     <TouchableOpacity style={{backgroundColor:'#ddd',width:100,justifyContent:'center',alignItems:'center'}} onPress={()=>book(index,booked)}>
                         <Icon name={'lock-open'} color='white' size={25}/>
-                        <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Foglalás'}</Text>
+                        <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Foglalás'}</MyText>
                     </TouchableOpacity>
                 
                 }
@@ -119,7 +119,7 @@ export function SaleListItem({title,text,uid,name,date,imageNames,index,booked,b
                         modalImageResizeMode="contain"
                         imageBackgroundColor="none"
                         renderFooter={()=><View style={{padding:20,backgroundColor:'rgba(0,0,0,0.7)'}}>
-                            <Text style={{color:'white'}}>{image.text}</Text>
+                            <MyText style={{color:'white'}}>{image.text}</MyText>
                         </View>}
                         style={{
                             width: 200,
@@ -150,7 +150,7 @@ export function SaleListItem({title,text,uid,name,date,imageNames,index,booked,b
     const short = '' || text.substring(0,50).replace(/(\r\n|\n|\r)/gm, "");
     if (text.length > 50) {
         return (
-            <Text style={style}>{!!open ? text : short+'...'}</Text>
+            <MyText style={style}>{!!open ? text : short+'...'}</MyText>
         )
-    } else return <Text style={style}>{text}</Text>
+    } else return <MyText style={style}>{text}</MyText>
   }

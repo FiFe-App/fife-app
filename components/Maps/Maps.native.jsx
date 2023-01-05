@@ -1,8 +1,8 @@
 
 
 import React, { useEffect, useState } from 'react';
-import { Text, View, Pressable, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { Row } from '../Components';
+import { View, Pressable, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { Row, MyText } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
 
@@ -90,7 +90,7 @@ export const Maps = () => {
       if (e.name != filter.name)
       return ( 
         <TouchableOpacity style={localStyles.filterList} onPress={()=>{setFilter(defaultFilterList[index])}} key={e.name}>
-          <Text>{e.name}</Text>
+          <MyText>{e.name}</MyText>
         </TouchableOpacity>
       )
     })
@@ -128,7 +128,7 @@ export const Maps = () => {
             if (place.name.includes(search) || place.description.includes(search) || !search)
             return (
               <Pressable style={[localStyles.mapLink,{left:10,marginHorizontal:40}]} key={"place"+index2} onPress={()=>setSelected(place)}>
-                <Text>{place.name}</Text>
+                <MyText>{place.name}</MyText>
               </Pressable>
             )
           })
@@ -137,7 +137,7 @@ export const Maps = () => {
               <Pressable  onPress={()=>setSelectedMap(map.name)} 
                 style={[localStyles.mapLink,selectedMap==map.name ? {borderColor:map.color} : {}]}>
                 <Icon style={{ marginHorizontal: 12 }} name='map' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
-                <Text style={selectedMap==map.name ? {color:map.color} : {}}>{map.name}</Text>
+                <MyText style={selectedMap==map.name ? {color:map.color} : {}}>{map.name}</MyText>
                 <Icon style={{ marginHorizontal: 12, flex:1, textAlign:'right' }} name='arrow-forward' size={25} color={selectedMap==map.name ?  map.color : "#000"} />
               </Pressable>
               {selectedMap == map.name && placeList}
@@ -170,9 +170,9 @@ export const Maps = () => {
           />
           <Pressable style={{flexDirection:'row',justifyContent:'space-around',alignItems:'center'}} 
             onPress={() => setFilterList(filterList ? null : reFilterList)}>
-            <Text>Sorrend:</Text>
+            <MyText>Sorrend:</MyText>
             <Row style={{alignItems:'center'}}>
-              <Text style={{margin:5}}>{filter.name}</Text>
+              <MyText style={{margin:5}}>{filter.name}</MyText>
               <AntDesign name="caretdown" size={10} color="black" />
             </Row>
           </Pressable>
@@ -197,12 +197,12 @@ const LocationData = (props) => {
   const {location} = props;
   return (
     <View style={localStyles.selectedLocation}>
-      <Text style={{fontSize:20}}>
+      <MyText style={{fontSize:20}}>
       {location?.name}
-      </Text>
-      <Text>
+      </MyText>
+      <MyText>
       {location?.description}
-      </Text>
+      </MyText>
     </View>
   )
 }

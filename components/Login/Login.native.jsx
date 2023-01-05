@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { Component, useState, useContext } from 'react';
-//import { Image, Text, View, Button, TextInput } from 'react-native';
-import { Text, View, Button, TextInput } from 'react-native';
+//import { Image, MyText, View, Button, TextInput } from 'react-native';
+import { View, Button, TextInput } from 'react-native';
 // routes
 
 import { styles } from '../styles'
@@ -13,6 +13,7 @@ import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
 import { LinearGradient } from "expo-linear-gradient";
 import { FirebaseContext } from '../../firebase/firebase';
 import { getAuth, signOut, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, onAuthStateChanged } from "firebase/auth";
+import { MyText } from '../Components';
 
 const LoginScreen = ({ navigation, route }) => {
     const {app, auth, user, api}  = useContext(FirebaseContext);
@@ -79,7 +80,7 @@ const LoginScreen = ({ navigation, route }) => {
     return (
       (fontsLoaded) &&
       <LinearGradient colors={["rgba(255,196,0,1)", "rgba(255,242,207,1)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.container}>
-        <Text style={styles.title} >FiFe. a közösség</Text>
+        <MyText style={styles.title} >FiFe. a közösség</MyText>
         <View style={{flexWrap:'wrap'}}>
           <TextInput
             style={styles.searchInput}
@@ -98,13 +99,13 @@ const LoginScreen = ({ navigation, route }) => {
               placeholder="Jelszó"
             />
           </View>
-          <Text style={styles.error} >{loginError}</Text>
+          <MyText style={styles.error} >{loginError}</MyText>
           <Button style={styles.headline} title="Bejelentkezés" color="black"
           disabled={!email || !password}
           onPress={() =>
             signIn(email, password, onChangeLoginError)
           } />
-          <Text style={{margin:20,fontSize:20}}>Először vagy itt?</Text>
+          <MyText style={{margin:20,fontSize:20}}>Először vagy itt?</MyText>
           <Button style={styles.headline} title="Regisztráció" color="black"
           onPress={() =>
             navigation.navigate('az-approl')

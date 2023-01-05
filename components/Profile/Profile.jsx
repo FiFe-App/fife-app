@@ -1,9 +1,9 @@
-import { ProfileImage, Loading, Row, NewButton, Auto } from '../Components'
+import { ProfileImage, Loading, Row, NewButton, Auto, MyText } from '../Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 
 import React, { useEffect, useContext } from 'react';
-import { Text, Platform, View, Pressable, Dimensions, Linking } from 'react-native';
+import { Platform, View, Pressable, Dimensions, Linking } from 'react-native';
 import {styles} from '../styles'
 import { Animated, Image, Easing } from 'react-native';
 import { Link, useNavigation } from '@react-navigation/native';
@@ -94,10 +94,10 @@ const Profile = ({ navigation, route }) => {
           <ProfileImage uid={uid} size={150} style={[localStyles.container,{paddingHorizontal:0}]}/>
         </View>
         <View style={{flex:width <= 900 ? 'none' : 2}}>
-          <View style={localStyles.fcontainer}><Text style={localStyles.text}>{profile.name}</Text></View>
+          <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.name}</MyText></View>
           <Row style={{flex:width <= 900 ? 'none' : 1}}>
-            <View style={localStyles.fcontainer}><Text style={localStyles.text}>{profile.username}</Text></View>
-            <View style={localStyles.fcontainer}><Text style={localStyles.text}>Barátok: {followers?.length}</Text></View>
+            <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.username}</MyText></View>
+            <View style={localStyles.fcontainer}><MyText style={localStyles.text}>Barátok: {followers?.length}</MyText></View>
           </Row>
         </View>
         <View style={[localStyles.container,{flex:width <= 900 ? 'none' : 1}]}>
@@ -115,7 +115,7 @@ const Profile = ({ navigation, route }) => {
       <Auto style={{flex:1}}>
         <View style={{flex:width <= 900 ? 'none' : 1}}>
           <Section title="Rólam">
-            <Text style={localStyles.subText}>{profile.bio}</Text>
+            <MyText style={localStyles.subText}>{profile.bio}</MyText>
           </Section>
           
           <Section title="Helyzetem" flex={width <= 900 ? 'none' : 1}>
@@ -123,7 +123,7 @@ const Profile = ({ navigation, route }) => {
             (Platform.OS !== 'web') ? <MapView style={localStyles.map} />
             : <Map data={profile}/>)
             : <View style={{justifyContent:'center',alignItems:'center'}}>
-              <Text style={localStyles.subText}>Nincs megadva helyzeted</Text>
+              <MyText style={localStyles.subText}>Nincs megadva helyzeted</MyText>
             </View>
             }
           </Section>
@@ -132,7 +132,7 @@ const Profile = ({ navigation, route }) => {
             <View style={{marginLeft:20}}>
               {profile.profession && profile.profession.map((prof,index) =>
                 <ListItem title={prof.name} key={"prof"+index}>
-                  <Text>{prof.description}</Text>
+                  <MyText>{prof.description}</MyText>
                 </ListItem>
               )}
             </View>
@@ -142,7 +142,7 @@ const Profile = ({ navigation, route }) => {
             {profile.links && profile.links.map((prof,index) =>
               <ListItem title={prof.name} key={"prof"+index}>
                 <Pressable onPress={()=>Linking.openURL(prof.description)}>
-                  <Text style={{color:'blue'}}>{prof.description}</Text>
+                  <MyText style={{color:'blue'}}>{prof.description}</MyText>
                 </Pressable>
               </ListItem>
             )}
@@ -158,7 +158,7 @@ const Profile = ({ navigation, route }) => {
     return(
       <View style={[props.style,localStyles.container,{flex:props?.flex,padding:20}]}>
         <View style={[{height:50}]}>
-          <Text style={localStyles.sectionText}>{props.title}</Text>
+          <MyText style={localStyles.sectionText}>{props.title}</MyText>
         </View>
           <Animated.View style={[{ paddingHorizontal:0, flex: props?.flex, height: props.height }]} >
           {props.children}
@@ -171,7 +171,7 @@ const Profile = ({ navigation, route }) => {
 
     return(
       <View style={{marginTop:10}}>
-          <Text style={localStyles.subText}><Text style={{fontWeight:'bold'}}>{props.title+' '}</Text>{props.children}</Text>
+          <MyText style={localStyles.subText}><MyText style={{fontWeight:'bold'}}>{props.title+' '}</MyText>{props.children}</MyText>
           
       </View>
     );

@@ -1,10 +1,10 @@
 import { useState, useContext, useEffect, useRef } from "react";
-import {View, Text, Pressable, ScrollView, StyleSheet, TouchableOpacity} from 'react-native'
+import {View, Pressable, ScrollView, StyleSheet, TouchableOpacity} from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
 import { ref, child, get, set, onValue, onChildAdded, push, off } from "firebase/database";
 import Icon from 'react-native-vector-icons/Ionicons'
-import { Loading, ProfileImage, TextInput } from "./Components";
+import { Loading, ProfileImage, TextInput, MyText } from "./Components";
 import { removeUnreadMessage } from '../userReducer';
 import { useNavigation } from "@react-navigation/native";
 
@@ -99,7 +99,7 @@ const Chat = ({route, navigation, propUid, global}) => {
                         setHeader(
                             <TouchableOpacity onPress={()=>nav.push('profil',{uid:uid2})} style={{flexDirection:'row',alignItems:'center',margin:5,padding:10}}>
                                 <ProfileImage style={styles.listIcon} uid={uid2}/>
-                                <Text style={{margin:5,fontSize:16,fontWeight:'400'}}>{snapshot.child('name').val()}</Text>
+                                <MyText style={{margin:5,fontSize:16,fontWeight:'400'}}>{snapshot.child('name').val()}</MyText>
                             </TouchableOpacity>
                         )
                     });
@@ -129,7 +129,7 @@ const Chat = ({route, navigation, propUid, global}) => {
     
     if (!uid2) return (
         <View style={{flex:1,backgroundColor:'white',justifyContent:'center',alignItems:'center'}}>
-            <Text>Válassz ki valakit, akivel beszélnél.</Text>
+            <MyText>Válassz ki valakit, akivel beszélnél.</MyText>
         </View>
     )
 
@@ -147,10 +147,10 @@ const Chat = ({route, navigation, propUid, global}) => {
                         return (
                             <View key={i}>
                                 {(!(new Date(arr[i-1]?.time).getDate()) || new Date(arr[i-1]?.time).getDate() != new Date(e?.time).getDate()) 
-                                && <Text style={{width:'100%',textAlign:'center'}}>{new Date(e?.time).toLocaleDateString('hu-HU')}</Text>}
+                                && <MyText style={{width:'100%',textAlign:'center'}}>{new Date(e?.time).toLocaleDateString('hu-HU')}</MyText>}
                                 
                                 {!!global && (!arr[i-1]?.uid || arr[i-1]?.uid != e?.uid) 
-                                && <Text style={{width:'100%',paddingHorizontal:10,textAlign:e?.uid != uid ? 'left' : 'right'}}>{e?.name || null}</Text>}
+                                && <MyText style={{width:'100%',paddingHorizontal:10,textAlign:e?.uid != uid ? 'left' : 'right'}}>{e?.name || null}</MyText>}
                                 
                                 <Message text={e.text} isMine={e.uid == uid}/>
                             </View>
@@ -183,7 +183,7 @@ const Message = (props) => {
     const {text,time,isMine} = props
     return (
         <View style={styles.messageContainer}>
-            <Text style={[styles.messageText, isMine ? styles.mine : styles.other]}>{text}</Text>
+            <MyText style={[styles.messageText, isMine ? styles.mine : styles.other]}>{text}</MyText>
         </View>
     )
 }

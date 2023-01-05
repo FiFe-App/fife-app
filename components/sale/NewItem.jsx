@@ -1,7 +1,7 @@
 
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
+import { Pressable, ScrollView, StyleSheet, View } from "react-native"
 import { elapsedTime, TextFor } from "../../textService/textService"
-import { NewButton, Loading, TextInput } from "../Components"
+import { NewButton, Loading, TextInput, MyText } from "../Components"
 import * as ImagePicker from 'expo-image-picker';
 import { useContext, useEffect, useState } from "react"
 import { useSelector } from "react-redux"
@@ -112,7 +112,7 @@ const NewItem = ({route,navigation,data}) => {
     return (
       <>
       <View style={{flex:1,padding:10}}>
-        <Text style={{marginBottom:10,fontSize:25}}><TextFor text="item_header"/></Text>
+        <MyText style={{marginBottom:10,fontSize:25}}><TextFor text="item_header"/></MyText>
         <View style={[{flexDirection: "row", backgroundColor: '#fdfdfd'}]}>
           <View style={{margin: 5,flex:1}}>
             <TextInput 
@@ -214,14 +214,14 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts}) => {
           <Pressable style={{justifyContent:'center',alignItems:'center',padding:10
           ,backgroundColor:separate[index] ? '#ffe8ae' : '#fff7d7'}}
             onPress={()=>handleSeparate(index)}>
-            <Text style={{textAlign:'center'}}>{separate[index] ? "Külön foglalható" : "Nem\nfoglalható külön"}</Text>
+            <MyText style={{textAlign:'center'}}>{separate[index] ? "Külön foglalható" : "Nem\nfoglalható külön"}</MyText>
             <Icon name={separate[index] ? "cart" : "cart-outline"} size={30}/>
           </Pressable>
         </View>
       </View>
         )}
       <Pressable style={[styles.square,{}]} onPress={pickImage}>
-        <Text style={{fontSize:20}}>Új kép</Text>
+        <MyText style={{fontSize:20}}>Új kép</MyText>
       </Pressable>
 
     </ScrollView>

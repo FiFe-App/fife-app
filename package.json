@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@expo-google-fonts/amatic-sc": "^0.2.2",
+    "@expo-google-fonts/lato": "^0.2.2",
+    "@expo-google-fonts/mulish": "^0.2.2",
     "@expo-google-fonts/poppins": "^0.2.2",
     "@expo-google-fonts/raleway": "^0.2.2",
     "@expo/config-plugins": "^5.0.1",

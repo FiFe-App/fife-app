@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import { StyleSheet, View, Text, Pressable, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, View, Pressable, TouchableOpacity, Dimensions } from 'react-native';
 import { Pages } from "./pages";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ScrollView } from 'react-native-web';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useWindowSize } from '../../hooks/window';
+import { MyText } from '../Components';
 
 
 const First = ({scrollView}) => {
@@ -100,10 +101,10 @@ const First = ({scrollView}) => {
 
       {false && <View style={{ flex: 1, flexDirection:'row' }}>
         <TouchableOpacity style={[styles.button]} onPress={()=>backDisabled ? handleToHome() : goTo(page-1)}>
-          <Text style={styles.buttonText}>{backDisabled ? "Bejelentkezés" : "Vissza"}</Text>
+          <MyText style={styles.buttonText}>{backDisabled ? "Bejelentkezés" : "Vissza"}</MyText>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.button,nextDisabled && {backgroundColor:'#ffe385'}]} onPress={()=>goTo(page+1)} disabled={nextDisabled}>
-          <Text style={styles.buttonText}>{page == pages.length-1 ? 'Befejezés' : 'Tovább'}</Text>
+          <MyText style={styles.buttonText}>{page == pages.length-1 ? 'Befejezés' : 'Tovább'}</MyText>
         </TouchableOpacity>
       </View>}
     </View>

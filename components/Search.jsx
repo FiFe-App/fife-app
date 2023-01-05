@@ -1,11 +1,9 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View, Pressable, Image } from 'react-native';
-import { global } from './global'
-import { useNavigation, StackActions, useFocusEffect } from '@react-navigation/native';
-import { getDatabase, ref as dRef, child, onValue, get, query, orderByChild } from "firebase/database";
-import { Loading, ProfileImage } from './Components'
+import { View } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { ref as dRef, onValue, query, orderByChild } from "firebase/database";
+import { Loading, ProfileImage, MyText } from './Components'
 import { FirebaseContext } from '../firebase/firebase';
-import { SearchBar } from './Components';
 import { ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { TextFor, AutoPrefix } from '../textService/textService';
 
@@ -109,7 +107,7 @@ const Search = ({ route, style }) => {
                 (array.length == 0 
                     ?   <View>
                             <TextFor style={styles.noResultText} text="no_result"/>
-                            <Text style={styles.noResultSubText}>{AutoPrefix(route.params.key)} kifejezés nem hozott eredményt.</Text>
+                            <MyText style={styles.noResultSubText}>{AutoPrefix(route.params.key)} kifejezés nem hozott eredményt.</MyText>
                         </View>
                     :   <ScrollView style={{flex:1}}>{array}</ScrollView>)
             }
@@ -129,8 +127,8 @@ function Item({title,text,uid,link,params}) {
         <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row"}]}>
             {uid && <ProfileImage style={styles.listIcon} uid={uid}/>}
             <View style={{marginLeft: 5}}>
-              <Text style={{ fontWeight: 'bold',flex: 1, }}>{title}</Text>
-              <Text style={{ flex:1, }}>{text}</Text>
+              <MyText style={{ fontWeight: 'bold',flex: 1, }}>{title}</MyText>
+              <MyText style={{ flex:1, }}>{text}</MyText>
             </View>
         </TouchableOpacity>
     );

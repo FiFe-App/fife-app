@@ -1,17 +1,16 @@
-import { ProfileImage, Loading, Row } from '../Components'
+import { ProfileImage, Loading, Row, MyText } from '../Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 import React, { useEffect, useContext, useState } from 'react';
 
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import { TextFor } from "../../textService/textService";
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { useWindowSize } from '../../hooks/window';
-import { ScrollView } from 'react-native-web';
 import { AloneModal } from '../Modal';
 
 
@@ -113,10 +112,10 @@ export const LocationData = (props) => {
     return (
       <ScrollView style={[styles.selectedLocation,{flex: width <= 900 ? 1 : 'none'} ]}>
         <Row>
-          <Text style={{fontSize:20,padding:10,flexGrow:1}}>{location?.name}</Text>
-          <Pressable style={{padding:10}} onPress={()=>setLocation(null)}><Text style={{fontSize:20}}>X</Text></Pressable>
+          <MyText style={{fontSize:20,padding:10,flexGrow:1}}>{location?.name}</MyText>
+          <Pressable style={{padding:10}} onPress={()=>setLocation(null)}><MyText style={{fontSize:20}}>X</MyText></Pressable>
         </Row>
-        <Text style={{padding:10}}>{location?.description}</Text>
+        <MyText style={{padding:10}}>{location?.description}</MyText>
         <TouchableOpacity onPress={handleHeart} style={{flexDirection:'row',alignItems:'center'}}>
             <Icon name={hearted ? "heart" : "heart-outline"} size={25} color="red" style={{paddingHorizontal:10}}/>
             <TextFor text="heart" />

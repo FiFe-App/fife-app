@@ -1,9 +1,9 @@
 
 import React, { useEffect, useContext, useState } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Text, Platform, View, Button, Pressable, ActivityIndicator, Animated, ScrollView, TextInputBase, Switch  } from 'react-native';
+import { Platform, View, Button, Pressable, ActivityIndicator, Animated, ScrollView, TextInputBase, Switch  } from 'react-native';
 import { Dimensions } from 'react-native';
-import { Auto, Loading, NewButton, Row, TextInput } from '../Components';
+import { Auto, Loading, NewButton, Row, TextInput, MyText } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
 
@@ -55,7 +55,7 @@ const Maps = ({navigation, route}) => {
         if (e.name != filter.name)
         return ( 
           <Pressable style={localStyles.filterList} onPress={()=>{setFilter(defaultFilterList[index]);reFilterList()}} key={e.name}>
-            <Text>{e.name}</Text>
+            <MyText>{e.name}</MyText>
           </Pressable>
         )
       })
@@ -220,7 +220,7 @@ const Maps = ({navigation, route}) => {
                                 setIds({...ids,locationId:mapData.find(e=>e.name == selectedMap?.name).locations.find(e=>e.name==place.name).key})
                               }
                             }}>
-                  <Text style={{color:selected==place ? map.color : 'black'}}>{place.name}</Text>
+                  <MyText style={{color:selected==place ? map.color : 'black'}}>{place.name}</MyText>
                 </Pressable>)
             })
             return(
@@ -236,7 +236,7 @@ const Maps = ({navigation, route}) => {
                   }}
                   style={[localStyles.mapLink,selectedMap?.name==map.name ? {borderColor:map.color} : {}]}>
                     <Icon style={{ marginHorizontal: 12 }}name='map' size={25} color={selectedMap?.name==map.name ?  map.color : "#000"} />
-                    <Text style={selectedMap?.name==map.name ?  {color:map.color} : {}}>{map.name}</Text>
+                    <MyText style={selectedMap?.name==map.name ?  {color:map.color} : {}}>{map.name}</MyText>
                     <Icon style={{ marginHorizontal: 12, flex:1, textAlign:'right' }} name='arrow-forward' size={25} color={selectedMap?.name==map.name ?  map.color : "#000"} />
                   </Pressable>
                   {selectedMap?.name == map.name && 
@@ -292,7 +292,7 @@ const Maps = ({navigation, route}) => {
             />
 
             <View style={{flexDirection:'row',marginHorizontal:30,marginVertical:5}}>
-              <Text style={{flex:1}}>Csak ellenőrzött helyek mutatása</Text>
+              <MyText style={{flex:1}}>Csak ellenőrzött helyek mutatása</MyText>
               <Switch
                   trackColor={{ false: '#767577', true: '#3e3e3e' }}
                   thumbColor={settings?.secure ? '#f5dd4b' : '#f4f3f4'}
@@ -369,12 +369,12 @@ const NewPlace = ({setNewPlace,newPlace,selectedMap}) => {
   else return (
     <View style={{margin:10}}>
       <Row style={{flex:1,padding:10}}>
-        <Text style={{flexGrow:1}}>Új hely</Text>
-        <Pressable onPress={()=>{setOpen(false)}} style={{}}><Text>Mégse</Text></Pressable>
+        <MyText style={{flexGrow:1}}>Új hely</MyText>
+        <Pressable onPress={()=>{setOpen(false)}} style={{}}><MyText>Mégse</MyText></Pressable>
       </Row>
       <TextInput style={localStyles.input} placeholder='Hely neve' onChangeText={setTitle} value={title} disabled={loading}/>
       <TextInput style={localStyles.input} placeholder='A helyről' onChangeText={setDescription} value={description} disabled={loading}/>
-      <Text style={localStyles.input}>{selectedMap ? "Kategória: "+selectedMap?.name : "Válassz ki egy kategóriát fent"}</Text>
+      <MyText style={localStyles.input}>{selectedMap ? "Kategória: "+selectedMap?.name : "Válassz ki egy kategóriát fent"}</MyText>
       <NewButton title={statusText} onPress={send} disabled={!(title && description && selectedMap) || loading}/>
     </View>
   )

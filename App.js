@@ -1,35 +1,35 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useState, useContext, useEffect, useRef } from 'react';
-//import { Image, Text, View, Button, TextInput } from 'react-native';
-import { Text, Platform } from 'react-native';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
+import React, { useState, useContext, useEffect, Suspense } from 'react';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // routes
-import HomeScreen, { LogoTitle } from './components/HomeScreen';
-import LoginScreen from './components/login/Login';
-import Search from './components/Search';
-import Profile from "./components/profile/Profile";
-import First from "./components/first/First";
-import Edit from "./components/profile/Edit";
-import Messages from "./components/Messages";
-import Chat from "./components/Chat";
-import Sale from "./components/sale/Sale";
-import Item from "./components/sale/NewItem";
-import Events from "./components/events/Events";
-import Event from "./components/events/Event";
-import NewEvent from "./components/NewEvent";
-import New from "./components/New";
-import Maps from "./components/maps/Maps";
-import Settings from './components/settings';
+const HomeScreen = React.lazy(()=>import("./components/HomeScreen"))
+const LogoTitle = React.lazy(()=>import("./components/HomeScreen").then(module=>({default:module.LogoTitle})))
+const LoginScreen = React.lazy(()=>import("./components/login/Login"))
+const Search = React.lazy(()=>import("./components/Search"))
+const Profile = React.lazy(()=>import("./components/profile/Profile"))
+const First = React.lazy(()=>import("./components/first/First"))
+const Edit = React.lazy(()=>import("./components/profile/Edit"))
+const Messages = React.lazy(()=>import("./components/Messages"))
+const Chat = React.lazy(()=>import("./components/Chat"))
+const Sale = React.lazy(()=>import("./components/sale/Sale"))
+const Item = React.lazy(()=>import("./components/sale/NewItem"))
+const Events = React.lazy(()=>import("./components/events/Events"))
+const Event = React.lazy(()=>import("./components/events/Event"))
+const NewEvent = React.lazy(()=>import("./components/NewEvent"))
+const New = React.lazy(()=>import("./components/New"))
+const Maps = React.lazy(()=>import("./components/maps/Maps"))
+const Settings = React.lazy(()=>import("./components/settings"))
+
 
 import Snowfall from 'react-snowfall'
 
-
 // fonts
 import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
-import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
+import { Poppins_400Regular } from '@expo-google-fonts/poppins'
+import { Lato_400Regular } from '@expo-google-fonts/lato'
+import { Mulish_400Regular } from '@expo-google-fonts/mulish'
 
 
 // routes
@@ -51,6 +51,7 @@ import { Helmet } from 'react-helmet';
 
 import { onMessage } from "firebase/messaging";
 import { LinearGradient } from 'expo-linear-gradient';
+import { Loading, MyText } from './components/Components';
 
 const Stack = createNativeStackNavigator();
 const prefix = Linking.createURL('/');
@@ -59,28 +60,26 @@ export default function App(props) {
   const linking = useState({prefixes: [prefix]})
 
   let [fontsLoaded] = useFonts({
-    AmaticSC_700Bold,Poppins_200ExtraLight
+    AmaticSC_700Bold,Poppins_400Regular,Mulish_400Regular
   });
 
-  useEffect(() => {
-    return ()=>{
-    }
-  }, []);
   if (!fontsLoaded)
   return <LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />
     return (
           <Provider store={store}>
             <MetaHeader />
             <SnowfallWrap />
-            <PersistGate loading={<Text>Loading...</Text>} persistor={persistor}>
+            <PersistGate loading={<MyText>Loading...</MyText>} persistor={persistor}>
               <FirebaseProvider>
                 <Messaging/>
                   <SafeAreaProvider>
                     <StatusBar style="dark" translucent/>
-                    <NavigationContainer linking={linking} 
-                      fallback={<LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />}>
-                      {fontsLoaded ? ( <Navigator/> ) : (<></>)}
-                    </NavigationContainer>
+                    <Suspense fallback={<Loading/>}>
+                      <NavigationContainer linking={linking} 
+                        fallback={<LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />}>
+                        {fontsLoaded ? ( <Navigator/> ) : (<></>)}
+                      </NavigationContainer>
+                    </Suspense>
                   </SafeAreaProvider>
               </FirebaseProvider>
             </PersistGate>

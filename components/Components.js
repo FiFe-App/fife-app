@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Text, Animated, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput as RNTextInput, TouchableOpacity, ActivityIndicator, Platform, Dimensions } from 'react-native';
+import { Animated, Text, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput as RNTextInput, TouchableOpacity, ActivityIndicator, Platform, Dimensions } from 'react-native';
 import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
 import Icon from 'react-native-vector-icons/Ionicons'
 import { LinearGradient } from "expo-linear-gradient";
@@ -63,6 +63,7 @@ const getUri = async (path) => {
   return returnValue
 } 
 
+
 const ProfileImage = (props) => {
   const defaultUrl = require('../assets/profile.jpeg');
   const [url, setUrl] = React.useState(null);
@@ -104,7 +105,7 @@ const ProfileImage = (props) => {
 function NewButton({color = "#FFC372",title,onPress,disabled,style}) {
   return (
     <TouchableOpacity style={[styles.newButton, { backgroundColor: disabled ? '#d6b17f' : color, height:50 },style]} onPress={onPress} disabled={disabled}>
-          <Text style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{title}</Text>
+          <MyText style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{title}</MyText>
     </TouchableOpacity>
   );
 }
@@ -286,11 +287,11 @@ function NewEventModal(params) {
       }}>
       <View style={modalStyles.centeredView}>
           <View style={modalStyles.modalView}>
-              <Text style={modalStyles.modalText}>Hello World!</Text>
+              <MyText style={modalStyles.modalText}>Hello World!</MyText>
               <Pressable
               style={[modalStyles.button, modalStyles.buttonClose]}
               onPress={() => setModalVisible(!modalVisible)}>
-              <Text style={modalStyles.textStyle}>Hide Modal</Text>
+              <MyText style={modalStyles.textStyle}>Hide Modal</MyText>
               </Pressable>
           </View>
       </View>
@@ -325,7 +326,7 @@ const SearchBar = (props) => {
     <Pressable key={element.toString()} onPress={() => onSubmit()} >
       <Row style={[newStyles.searchList,{backgroundColor:'white'}]}>
         <Icon name="time-outline" size={25} color="black" style={{ marginHorizontal: 5 }} />
-        <Text>{element}</Text>
+        <MyText>{element}</MyText>
       </Row>
     </Pressable>
   );
@@ -392,6 +393,10 @@ const OpenNav = ({open,children,style}) => {
   )
 }
 
+export const MyText = (props) => {
+  return <Text style={[{fontFamily:'Mulish_400Regular'},props?.style]}>{props?.children}</Text>
+}
+
 const TextInput = React.forwardRef((props,ref) => {
   const [isFocused, setIsFocused] = useState(false);
   return (
@@ -399,7 +404,8 @@ const TextInput = React.forwardRef((props,ref) => {
       {...props}
       ref={ref}
       placeholderTextColor="grey"
-      style={[props.style, isFocused && {backgroundColor:'#fbf7f0'},Platform.OS === "web" && {outline: "none" }]}
+      style={[props.style,{fontFamily:'Mulish_400Regular'}, isFocused && 
+        {backgroundColor:'#fbf7f0'},Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => {
         setIsFocused(false)
         if (props.onBlur)
@@ -416,7 +422,7 @@ const TextInput = React.forwardRef((props,ref) => {
 });
 
 const B = ({children}) => {
-  return <Text style={{fontWeight:'bold'}}>{children}</Text>
+  return <MyText style={{fontWeight:'bold'}}>{children}</MyText>
 }
 
 const Popup = ({children}) => {
@@ -427,7 +433,7 @@ const Popup = ({children}) => {
   return (
     <Col>
       {children}
-      {!!opened && <View><Text>asd</Text></View>}
+      {!!opened && <View><MyText>asd</MyText></View>}
     </Col>
   )
 }

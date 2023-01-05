@@ -1,7 +1,7 @@
 
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { Dimensions, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native"
 import { elapsedTime, TextFor } from "../../textService/textService"
-import { ProfileImage, NewButton, Row, Slideshow, Loading, TextInput } from "../Components"
+import { ProfileImage, NewButton, Row, Slideshow, Loading, TextInput, MyText } from "../Components"
 import { styles as gstyles } from "../styles"
 import * as ImagePicker from 'expo-image-picker';
 import { useContext, useEffect, useState } from "react"
@@ -91,7 +91,7 @@ export const Item = ({route,navigation,data}) => {
     return (
       <>
       <View style={{flex:1,padding:10}}>
-        <Text style={{marginBottom:20,fontSize:25}}><TextFor text="item_header"/></Text>
+        <MyText style={{marginBottom:20,fontSize:25}}><TextFor text="item_header"/></MyText>
         <View style={[{flexDirection: "row", backgroundColor: '#fdfdfd'}]}>
           <View style={{margin: 5,flex:1}}>
             <TextInput 
@@ -106,8 +106,8 @@ export const Item = ({route,navigation,data}) => {
               onChangeText={setTitle}/>
             <Row style={{alignItems:'center'}}>
               <ProfileImage style={gstyles.listIcon} size={20}uid={uid}/>
-              <Text style={{ fontWeight: 'bold' }}>{name}</Text>
-              <Text> {elapsed}</Text>
+              <MyText style={{ fontWeight: 'bold' }}>{name}</MyText>
+              <MyText> {elapsed}</MyText>
             </Row>
             <TextInput multiline numberOfLines={5} 
               style={{ marginVertical:5, borderWidth:2,padding:5,fontSize:20, 
@@ -190,7 +190,7 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts}) => {
       </View>
         )}
       <Pressable style={[styles.square,{marginTop:-2}]} onPress={pickImage}>
-        <Text>Új kép</Text>
+        <MyText>Új kép</MyText>
       </Pressable>
 
     </ScrollView>

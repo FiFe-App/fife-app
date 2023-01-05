@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { Component, useState, useContext, useEffect } from 'react';
-//import { Image, Text, View, Button, TextInput } from 'react-native';
-import { Text, View, Button, StyleSheet, Dimensions, ScrollView, Pressable, TouchableOpacity, Image, Animated, Easing } from 'react-native';
+//import { Image, MyText, View, Button, TextInput } from 'react-native';
+import { View, Button, StyleSheet, Dimensions, ScrollView, Pressable, TouchableOpacity, Image, Animated, Easing } from 'react-native';
 // routes
 
 import { styles } from '../styles'
@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons'
 import First from '../first/First';
-import { TextInput } from '../Components';
+import { TextInput, MyText } from '../Components';
 import { useWindowSize } from '../../hooks/window';
 import { Helmet } from 'react-helmet';
 
@@ -70,24 +70,24 @@ const LoginScreen = ({ navigation, route }) => {
       </Helmet>
       <LinearGradient colors={["rgba(255,196,0,1)", "#fcf3d4"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={localStyle.container}>
         {width > 900 ?
-          <Text style={{fontSize:'10vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>
+          <MyText style={{fontSize:'10vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>
           FiFe. a közösség
-        </Text>
+        </MyText>
         : 
-        <Text style={{fontSize:60, fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100,textAlign:'center'}}>
-        <Text style={{fontSize:120}}>FiFe.</Text>
+        <MyText style={{fontSize:60, fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100,textAlign:'center'}}>
+        <MyText style={{fontSize:120}}>FiFe.</MyText>
         {"\n"} a közösség
-        </Text>
+        </MyText>
         }
-        <Text style={{fontSize:60, fontFamily:'Raleway_800ExtraBold',color:'black',textAlign:'right',width:'70%'}}>BÉTA</Text>
+        <MyText style={{fontSize:60, fontFamily:'Raleway_800ExtraBold',color:'black',textAlign:'right',width:'70%'}}>BÉTA</MyText>
 
         <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
             {!true ?
-            <Text onClick={()=>{setShowLogin(true);setShowRegister(false)}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer',borderWidth:5,backgroundColor:'rgba(255,196,0,1)'}]}>Bejelentkezés</Text>:
+            <MyText onClick={()=>{setShowLogin(true);setShowRegister(false)}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer',borderWidth:5,backgroundColor:'rgba(255,196,0,1)'}]}>Bejelentkezés</MyText>:
             <LoginForm/>}
         </View>
         <View style={{alignItems:'center', justifyContent:'center',flex:1,cursor:'pointer'}} onClick={handleMoreInfo}>
-          <Text style={{fontSize:30}}>Csatlakozz!</Text>
+          <MyText style={{fontSize:30}}>Csatlakozz!</MyText>
           <Icon name="chevron-down-outline" size={30}/>
         </View>
       </LinearGradient>
@@ -156,7 +156,7 @@ const  LoginForm = () => {
       </TouchableOpacity>
       </View>
       {!!loginError && <View style={styles.error}>
-        <Text style={{color:'#942400',fontSize:25}} >{loginError}</Text>
+        <MyText style={{color:'#942400',fontSize:25}} >{loginError}</MyText>
       </View>}
     </View>
   )
@@ -227,7 +227,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
             placeholder="Jelszó újra"
         />
       </View>
-      <Text style={styles.error} >{loginError}</Text>
+      <MyText style={styles.error} >{loginError}</MyText>
       <Button style={styles.headline} title="Kész!" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
         signUp(email,password)
       } />

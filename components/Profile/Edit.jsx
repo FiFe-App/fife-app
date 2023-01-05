@@ -1,6 +1,6 @@
 
 import React, { useEffect, useContext, useState } from 'react';
-import { Text, View, Button, Image, Pressable, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Button, Image, Pressable, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { styles } from '../styles'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import * as ImagePicker from 'expo-image-picker';
 import { getDatabase, set, get, ref as databaseRef, onChildAdded, remove, query, equalTo } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Auto, Loading, NewButton, Row, TextInput } from '../Components';
+import { Auto, Loading, NewButton, Row, TextInput, MyText } from '../Components';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import ImageModal from 'react-native-image-modal';
 import { useWindowSize } from '../../hooks/window';
@@ -239,7 +239,7 @@ const Edit = ({ navigation, route }) => {
               defaultValue={data.username}
             />
           </View>
-            {!usernameValid && !!newData.username && <Text style={[localStyle.label,{color:'red'}]}>Nem lehet ez a felhasználóneved!</Text>}
+            {!usernameValid && !!newData.username && <MyText style={[localStyle.label,{color:'red'}]}>Nem lehet ez a felhasználóneved!</MyText>}
 
           <Header title="Név" icon="person" helpText="A teljes neved, vagy ahogy szeretnéd hogy szólítsanak"/>
           <TextInput
@@ -263,7 +263,7 @@ const Edit = ({ navigation, route }) => {
             placeholder="Rólam"
             defaultValue={data.bio}
           />
-          <Text>{newData?.location?.name}</Text>
+          <MyText>{newData?.location?.name}</MyText>
           <Professions data={newData} setData={setNewData}/>
           <Links data={newData} setData={setNewData}/>
         </View>
@@ -302,13 +302,13 @@ export const Professions = (props) => {
   return (
     <View style={{marginBottom:5,flex:'none'}}>
       <Header title="Ehhez értek" icon="thumbs-up" centered={centered} helpText=""/>
-      {!list.length && <Text style={localStyle.label}>Van valami amiben jó vagy? </Text>}
+      {!list.length && <MyText style={localStyle.label}>Van valami amiben jó vagy? </MyText>}
       <ScrollView style={{flex:width <= 900 ? 'none' : 1}}>
         {!!list && !!list.length && list.map((e,i)=>
           <View key={i}  style={localStyle.profession}>
             <View style={{flexDirection:'row'}}>
               <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
-                <Text style={{fontSize:20}}>{i+1}</Text>
+                <MyText style={{fontSize:20}}>{i+1}</MyText>
                 <Pressable onPress={()=>remove(i)}>
                   <Icon name="trash" color={themeColor} size={25}/>
                 </Pressable>
@@ -319,7 +319,7 @@ export const Professions = (props) => {
               </View>
               <View style={{width:100,justifyContent:'flex-end'}}>
                 <Pressable style={{width:100,height:100,margin:5,backgroundColor:'lightblue',alignItems:'center',justifyContent:'center'}}>
-                  <Text>Új kép</Text>
+                  <MyText>Új kép</MyText>
                 </Pressable>
               </View>
             </View>
@@ -329,9 +329,9 @@ export const Professions = (props) => {
       </ScrollView>
       <View>
         <Pressable style={[localStyle.adder,centered ? {borderRadius:0} : {}]} onPress={addNew}>
-          <Text style={localStyle.text}>
+          <MyText style={localStyle.text}>
             <Icon name="md-add" color={0} size={40}/>
-          </Text>
+          </MyText>
         </Pressable>
       </View>
     </View>)
@@ -368,9 +368,9 @@ export const Links = (props) => {
         <View key={i}  style={localStyle.profession}>
           <View style={{flexDirection:'row'}}>
             <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
-              <Text style={{fontSize:20}}>{i+1}</Text>
+              <MyText style={{fontSize:20}}>{i+1}</MyText>
               <Pressable onPress={()=>remove(i)}>
-                <Text><Icon name="trash" color={themeColor} size={25}/></Text>
+                <MyText><Icon name="trash" color={themeColor} size={25}/></MyText>
               </Pressable>
             </View>
             <View style={{flex:4}}>
@@ -381,13 +381,13 @@ export const Links = (props) => {
           {(list.length > i+1) && <View style={localStyle.divider}></View>}
         </View>
       )}
-      {!list?.length && <Text style={localStyle.label}>Milyen elérhetőségeid vannak?</Text>}
+      {!list?.length && <MyText style={localStyle.label}>Milyen elérhetőségeid vannak?</MyText>}
       </ScrollView>
       <View>
         <Pressable style={[localStyle.adder,centered ? {borderRadius:0} : {}]} onPress={addNew}>
-          <Text style={localStyle.text}>
+          <MyText style={localStyle.text}>
             <Icon name="md-add" color={0} size={40}/>
-          </Text>
+          </MyText>
         </Pressable>
       </View>
     </View>)
@@ -488,12 +488,12 @@ const Header = (props) => {
     <>
     <View style={[localStyle.adder,{flexDirection:'row',borderWidth:0},centered ? {borderRadius:30} : {}]}>
       <View style={[localStyle.plusContainer,{color: color}]}>
-        <Text style={localStyle.plusText}><Icon name={icon} size={25} color={0}/></Text>
+        <MyText style={localStyle.plusText}><Icon name={icon} size={25} color={0}/></MyText>
       </View>
       {(width > 900 || !help) && 
       <View style={localStyle.textContainer}>
         <View style={{flex:1}}>
-          <Text style={[localStyle.text]}>{title}</Text>
+          <MyText style={[localStyle.text]}>{title}</MyText>
         </View>
         {!!helpText &&
         <TouchableOpacity onPress={()=>setHelp(!help)}>
@@ -505,7 +505,7 @@ const Header = (props) => {
     {(help && helpText) && 
     <View style={[localStyle.adder,{flexDirection:'row'},centered ? {borderRadius:30} : {}]}>
       <View style={localStyle.textContainer}>
-        <Text style={localStyle.text}>{helpText}</Text>
+        <MyText style={localStyle.text}>{helpText}</MyText>
       </View>
 
     </View>}

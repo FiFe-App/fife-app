@@ -1,13 +1,12 @@
 import { useNavigation } from "@react-navigation/native";
 import { child, get, onChildAdded, ref } from "firebase/database";
 import { useContext, useEffect, useState } from "react";
-import { Pressable, ScrollView, Text } from "react-native";
-import { View } from "react-native-web";
+import { View, Pressable, ScrollView } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { FirebaseContext } from "../../firebase/firebase";
 import { emptyUnreadMessages, removeHelp, setUnreadMessage } from "../../userReducer";
 import Chat from "../Chat";
-import { Auto, Col, NewButton, Row } from "../Components";
+import { Auto, Col, NewButton, Row, MyText } from "../Components";
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useWindowSize } from "../../hooks/window";
 import { styles } from "../styles";
@@ -127,12 +126,12 @@ const Notifications = ({style}) => {
                 onPress={()=>navigator.navigate(n.link,n.params)}
                 style={{backgroundColor:'white',flexDirection:'row',padding:5}}>
                   <Auto style={{flexGrow:1}}>
-                    <Text style={{fontWeight:'bold'}}>{n.title}{n?.text && <Text>{': '}</Text>}</Text>
-                    {n?.text && <Text>{n.text}</Text>}
+                    <MyText style={{fontWeight:'bold'}}>{n.title}{n?.text && <MyText>{': '}</MyText>}</MyText>
+                    {n?.text && <MyText>{n.text}</MyText>}
                   </Auto>
                   <Icon name="arrow-forward-outline" size={15}/>
               </Pressable>)
-            : <Text style={{textAlign:'center',marginTop:30}}>Nincs most új értesítésed</Text>}
+            : <MyText style={{textAlign:'center',marginTop:30}}>Nincs most új értesítésed</MyText>}
 
         </ScrollView>
       </View>
@@ -147,7 +146,7 @@ const Messenger = () => {
     if (help) return(
       <View style={{flex:1,justifyContent:'center',backgroundColor:'#ffdb5b44'}}>
         <View style={{textAlign:'center',flexGrow:1,justifyContent:'center'}}>
-          <Text style={{fontSize:30}}>Ez itt egy üzenőfal, ahova bárki regisztrált tag írhat.</Text>
+          <MyText style={{fontSize:30}}>Ez itt egy üzenőfal, ahova bárki regisztrált tag írhat.</MyText>
         </View>
         <NewButton title="Oksi, értettem!" onPress={()=>dispatch(removeHelp('messenger'))}/>
       </View>
@@ -164,15 +163,15 @@ const Navigation = () => {
   return (
     <Col>
       <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]}  onPress={()=>navigation.navigate('cserebere')}>
-        <Text style={styles.bigButtonText}>Cserebere</Text>
+        <MyText style={styles.bigButtonText}>Cserebere</MyText>
         <Icon name="shirt" color="#71bbff" size={60}/>
       </Pressable>
       <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]}  onPress={()=>navigation.navigate('terkep')}>
-        <Text style={styles.bigButtonText}>Térkép</Text>
+        <MyText style={styles.bigButtonText}>Térkép</MyText>
         <Icon name="map" color="#8de264" size={60}/>
       </Pressable>
       <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]} onPress={()=>navigation.navigate('esemenyek')}>
-        <Text style={styles.bigButtonText}>Programok</Text>
+        <MyText style={styles.bigButtonText}>Programok</MyText>
         <Icon name="calendar" color="#ff3e6f" size={60}/>
       </Pressable>
     </Col>

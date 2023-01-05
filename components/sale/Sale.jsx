@@ -1,8 +1,8 @@
 import { useState, useContext, useEffect } from "react";
-import {View, Text, ScrollView, Switch} from 'react-native'
+import {View, ScrollView, Switch} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
-import { FAB, Loading, NewButton, Row, TextInput } from '../Components'
+import { FAB, Loading, NewButton, Row, TextInput, MyText } from '../Components'
 import { default as NewSaleItem} from "./NewItem";
 import { search } from "../../textService/textService";
 
@@ -168,7 +168,7 @@ const Sale = ({route,navigation}) => {
                             placeholder="tól-"
                             onSubmitEditing={()=>searchFor(true)}
                         />
-                        <Text style={{fontSize:20}}>-</Text>
+                        <MyText style={{fontSize:20}}>-</MyText>
                         <DateTimePicker
                             setValue={(v)=>setSettings({...settings,maxDate:v})}
                             value={settings.maxDate}
@@ -186,7 +186,7 @@ const Sale = ({route,navigation}) => {
                 </View>
                 <View style={{}}>
                     <View style={{flexDirection:'row', alignItems:'center',margin:10,width:'50%'}}>
-                    <Text style={{flex:1,}}>Szinonímákkal</Text>
+                    <MyText style={{flex:1,}}>Szinonímákkal</MyText>
                     <Switch
                         trackColor={{ false: '#767577', true: '#3e3e3e' }}
                         thumbColor={settings?.synonims ? '#white' : 'white'}
@@ -197,7 +197,7 @@ const Sale = ({route,navigation}) => {
                     />
                     </View>
                     <View style={{flexDirection:'row', alignItems:'center',margin:10,width:'50%'}}>
-                        <Text style={{flex:1,}}>Sajátjaim</Text>
+                        <MyText style={{flex:1,}}>Sajátjaim</MyText>
                         <Switch
                             trackColor={{ false: '#767577', true: '#3e3e3e' }}
                             thumbColor={settings?.mine ? '#fff' : 'white'}
@@ -208,8 +208,8 @@ const Sale = ({route,navigation}) => {
                         />
                     </View>
                     {!!keys?.length &&
-                    <Text style={{margin:10}}>Keresőszavak: {keys.map((e,i)=>i < keys.length-1 ? e+', ' : e)}</Text>}
-                    <Text>Találatok száma: {list.length}</Text>
+                    <MyText style={{margin:10}}>Keresőszavak: {keys.map((e,i)=>i < keys.length-1 ? e+', ' : e)}</MyText>}
+                    <MyText>Találatok száma: {list.length}</MyText>
                     <NewButton title="Mehet"/>
                 </View>
             </Row>

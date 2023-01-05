@@ -1,9 +1,9 @@
 import { useState, useContext, useEffect, useCallback } from "react";
-import {View, Text, TouchableOpacity, ScrollView, Platform, Dimensions} from 'react-native'
+import {View, TouchableOpacity, ScrollView, Platform, Dimensions} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
 import { ref, child, get, set, onValue, onChildAdded, off, onChildChanged, query, orderByChild } from "firebase/database";
-import { ProfileImage } from './Components'
+import { ProfileImage, MyText } from './Components'
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { styles } from "./styles";
 import Chat from "./Chat";
@@ -133,8 +133,8 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
         <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fff' : '#f6f6f6'}]}>
             <ProfileImage style={styles.listIcon} uid={uid}/>
             <View style={{marginLeft: 5,flexGrow:1}}>
-              <Text style={{ fontWeight: 'bold',flex: 1, }}>{title}</Text>
-              <Text style={{ flex:2, }}>{last?.message}<Text style={{color:'grey'}}> - {elapsed}</Text></Text>
+              <MyText style={{ fontWeight: 'bold',flex: 1, }}>{title}</MyText>
+              <MyText style={{ flex:2, }}>{last?.message}<MyText style={{color:'grey'}}> - {elapsed}</MyText></MyText>
             </View>
             {!!newMessage &&
              <View style={{marginHorizontal:30,width:10,height:10,borderRadius:10,backgroundColor:'orange',justifyContent:'flex-end'}}/>}
