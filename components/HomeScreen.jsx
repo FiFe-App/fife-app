@@ -1,4 +1,4 @@
-    import React, { useState, useRef, useContext, useEffect, useCallback } from 'react';
+    import React, { useState, useRef, useContext, useEffect, useCallback, useLayoutEffect } from 'react';
 
   import { useHover } from 'react-native-web-hooks';
 
@@ -26,6 +26,8 @@
 import { HomeSide } from './home/HomeSide';
 import Snowfall from 'react-snowfall';
 import Search from './Search';
+import { child, get, onChildAdded, ref } from 'firebase/database';
+import { emptyUnreadMessages, removeUnreadMessage, setUnreadMessage } from '../userReducer';
   
 
   const Stack = createNativeStackNavigator();
@@ -161,7 +163,8 @@ import Search from './Search';
           <Auto style={{flex:3,zIndex:-1,justifyContent:'center'}}>
             <Col style={{flex:width<900?1:2}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
-                <Row style={{alignItems:'flex-end',flexGrow:1,paddingLeft:50,paddingVertical:20}}>
+                <Stickers style={{flex:1}}/>
+                <Row style={{alignItems:'flex-end',paddingLeft:50,paddingVertical:20}}>
                   <MyText style={{fontSize:40}}><TextFor text={greeting} embed={name}/></MyText>
                   <Smiley/>
                 </Row>
@@ -249,6 +252,123 @@ import Search from './Search';
     );
   }
 
+
+  const Stickers = ({style}) => {
+
+    const [notifications, setNotifications] = useState([
+    ]);
+    const {database, app, initMessaging} = useContext(FirebaseContext);
+    const navigator = useNavigation()
+    const uid = useSelector((state) => state.user.uid)
+    const allMessages = useSelector((state) => state.user.unreadMessage)
+    const dispatch = useDispatch()
+
+    const handleClose = (n) => {
+      if (n.link)
+        navigator.navigate(n.link,n.params)
+      if (n?.press) {
+        console.log('press');
+        n.press()
+      }
+        //setPopups(popups.filter((p,i)=>i!=index))
+      console.log('remove');
+    }
+    useEffect(() => {
+
+      if (database) {
+          const dbRef = ref(database,`users/${uid}/messages`);
+          const userRef = ref(database,`users`);
+
+          console.log('onChilAdded attatched');
+
+          const getMessages = () => {
+            //dispatch(emptyUnreadMessages())
+            if (allMessages.includes('notifications')) {
+              setNotifications(old=>[...old,{
+                press: initMessaging,
+                title:'Üzenetek',
+                key:'notifications',
+                text:'Hali! Ha szeretnéd, hogy értesülj a barátaid üzeneteiről, kapcsold be az értesítéseket, úgy, hogy rám kattintasz!'
+              }])
+            }
+            onChildAdded(dbRef, (childSnapshot) => {
+              const childKey = childSnapshot.key;
+              const read = childSnapshot.child('read').exists()
+              const last = childSnapshot.child('last').val() 
+              if (!allMessages.includes(childKey))
+              if (!read && last?.from != uid) {
+                get(child(userRef,childKey+'/data/name')).then((snapshot) => {
+                    const name = snapshot.val()
+                    setNotifications(old=>[...old,{
+                      link:'beszelgetes',
+                      params:{uid:childKey},
+                      title:'Új üzenet '+name+'tól',
+                      key:childKey,
+                      text:last?.message}])
+                  });
+                  dispatch(setUnreadMessage(childKey))
+              }
+          });
+
+          setTimeout(() => {
+            //getMessages()
+          }, 1000)
+          } 
+          getMessages()
+      }
+    }, [database]);
+
+    useEffect(() => {
+      if (Notification.permission === 'default') {
+        dispatch(setUnreadMessage('notifications'))
+      } else {
+        dispatch(removeUnreadMessage('notifications'))
+      }
+    }, []);
+
+    useEffect(() => {
+      if (Notification.permission !== 'default')
+      setNotifications(notifications.filter(n=>n.key!='notifications'))
+    }, [allMessages]);
+    return (
+      <View style={style}>
+          {notifications.length ? notifications.map(
+            (n,i)=>
+              <Sticker onPress={()=>handleClose(n)}>
+                {n.title}
+                {'\n'}
+                {n?.text}
+              </Sticker>)
+            : null}
+      </View>
+    )
+}
+
+  const Sticker = ({children,onPress}) => {
+    const getRandom = (min, max) => Math.floor(Math.random()*(max-min+1)+min);
+
+    const width = 300;
+    const [left, setLeft] = useState(null);
+    const [top, setTop] = useState(null);
+
+    const ref = useRef(null);
+    useLayoutEffect(() => {
+      setLeft(getRandom(10,ref.current.offsetWidth-width));
+      setTop(getRandom(10,ref.current.offsetHeight-50));
+      console.log(ref.current.offsetWidth);
+    }, []);
+    return(
+      <View ref={ref} style={{
+        flex:1}}>
+        <Pressable onPress={onPress} style={{
+          backgroundColor:'#fdf6d1',borderWidth:0,padding:10,
+          width:width,position:'absolute',left:left,top:top}}>
+          <MyText>{children}
+          </MyText>
+        </Pressable>
+      </View>
+    )
+  } 
 
   const Smiley = () => {
     const size = useRef(new Animated.Value(1)).current 

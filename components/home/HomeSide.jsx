@@ -57,28 +57,6 @@ const Notifications = ({style}) => {
     }
 
     useEffect(() => {
-      return
-      getMessages(ROOM_ID, (messages) => {
-        setData(messages);
-      });
-      const refToRoom = ref(getDatabase(app), `messages/room_${ROOM_ID}`);
-      const myQuery = query(refToRoom);
-      
-      // wrap your function inside setTimeout
-       setTimeout(() => {
-      
-        onChildAdded(
-          myQuery,(data) => {
-            console.log(data);
-          },
-          (error) => {
-            console.log(error);
-          }
-        );
-        return myQuery.off('child_added');
-      }, 1000) //add this ,1000 mean 1 second delay.
-    }, []);
-    useEffect(() => {
       if (database) {
           const dbRef = ref(database,`users/${uid}/messages`);
           const userRef = ref(database,`users`);

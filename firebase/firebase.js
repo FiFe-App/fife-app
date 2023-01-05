@@ -8,7 +8,7 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, on
 import { initializeApp } from 'firebase/app';
 import { get, getDatabase, ref, set } from "firebase/database";
 import { useDispatch } from 'react-redux';
-import { login as sliceLogin, logout as sliceLogout, setName, setSettings, setUserData } from '../userReducer';
+import { login as sliceLogin, logout as sliceLogout, removeUnreadMessage, setName, setSettings, setUnreadMessage, setUserData } from '../userReducer';
 import { Platform } from 'react-native';
 
 import { getMessaging, getToken, deleteToken } from "firebase/messaging";
@@ -67,30 +67,32 @@ export default ({ children }) => {
     const initMessaging = async (app,uid) => {
         const messaging = getMessaging(app);
         const db = getDatabase(app)
+        console.log('msg init');
         await Notification.requestPermission().then((permission) => {
-          if (permission === 'granted') {
-            console.log('Notification permission granted.');
+          if (permission !== 'default') {
+            dispatch(removeUnreadMessage('notification'))
+          } else {
+            setMessaging(messaging);
+            getToken(messaging, { 
+                vapidKey: 'BInTt__OonGUhBNBdQA57cu-VRHBm6N7vcsJBe_Q3o1Ei_2UgPSfM0ZzxyXsxohdrV_qooAywYzRilIv5OJ6VQE' ,
+                //serviceWorkerRegistration: ''
+            }).then((currentToken) => {
+            if (currentToken) {
+                console.log(currentToken);
+                set(ref(db,'/users/'+uid+'/data/fcm'),{token:currentToken})
+            } else {
+                // Show permission request UI
+                //alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
+                console.log('No registration token available. Request permission to generate one.');
+                // ...
+            }
+            }).catch((err) => {
+                console.log('An error occurred while retrieving token. ', err);
+                //alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
+            // ...
+            });
           }
         })
-        setMessaging(messaging);
-        getToken(messaging, { 
-            vapidKey: 'BInTt__OonGUhBNBdQA57cu-VRHBm6N7vcsJBe_Q3o1Ei_2UgPSfM0ZzxyXsxohdrV_qooAywYzRilIv5OJ6VQE' ,
-            //serviceWorkerRegistration: ''
-        }).then((currentToken) => {
-        if (currentToken) {
-            console.log(currentToken);
-            set(ref(db,'/users/'+uid+'/data/fcm'),{token:currentToken})
-        } else {
-            // Show permission request UI
-            alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
-            console.log('No registration token available. Request permission to generate one.');
-            // ...
-        }
-        }).catch((err) => {
-            console.log('An error occurred while retrieving token. ', err);
-            alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
-        // ...
-        });
     }
 
     const appCheck = (app) => {
@@ -110,6 +112,7 @@ export default ({ children }) => {
         const msg = getMessaging()
         if (msg) {
             deleteToken(msg).then(e=>console.log('token deleted?',e))
+            .catch(err=>console.error(err))
             dispatch(sliceLogout())
         }
     }
@@ -138,7 +141,6 @@ export default ({ children }) => {
                 console.log(userCredential);
 
                 dispatch(sliceLogin(user.uid))
-                initMessaging(retApp,user.uid)
 
                 const dbRef = ref(getDatabase(retApp),'users/' + user.uid + "/settings");
                 get(dbRef).then((snapshot) => {
@@ -318,7 +320,7 @@ export default ({ children }) => {
     }
 
     return (
-        <FirebaseContext.Provider value={{app,auth,database,api,messaging,storage,firestore}}>
+        <FirebaseContext.Provider value={{app,auth,database,api,messaging,storage,firestore,initMessaging}}>
             {children}
         </FirebaseContext.Provider>
     )

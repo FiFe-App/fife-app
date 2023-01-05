@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useCallback } from "react";
 import {View, ScrollView, Switch} from 'react-native'
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
@@ -14,6 +14,7 @@ import { collection, deleteDoc, deleteField, doc, getDocs, orderBy, query, updat
 import CloseModal, { UserModal } from "../Modal";
 import DateTimePicker from "../DateTimePicker";
 import { SaleListItem } from "./SaleListItem";
+import { useFocusEffect } from "@react-navigation/native";
 
 
 
@@ -38,32 +39,37 @@ const Sale = ({route,navigation}) => {
     const [searchResult, setSearchResult] = useState([]);
     const [selected, setSelected] = useState(null);
     
-    useEffect(() => {
-        if (database) {
-            const saleRef = collection(firestore, "sale");
-            const userRef = dbRef(database,`users`);
 
-            const q =(settings.maxDate && settings.minDate) ? query(saleRef, 
-                orderBy("date", "desc"),
-                where('owner',settings.author ? '==' : '!=',settings.author),
-                where('date','>',new Date(settings.minDate).getTime()),
-                where('date','<',new Date(settings.maxDate).getTime())
-                ) :
-                query(saleRef, orderBy("date", "desc")) ;
-            (async function(){
-                const querySnapshot = await getDocs(q);
-                setList([])
-                querySnapshot.forEach((doc) => {
-                    const childData = doc.data();
-                    get(child(userRef,childData.owner+'/data/name')).then((snapshot) => {
-                        const name = snapshot.val()
-                        setList(old=>[...old,{data:childData,name:name,index:doc.id}])
+    useFocusEffect(
+        useCallback(() => {
+            if (database) {
+                const saleRef = collection(firestore, "sale");
+                const userRef = dbRef(database,`users`);
+
+                const q =(settings.maxDate && settings.minDate) ? query(saleRef, 
+                    orderBy("date", "desc"),
+                    where('owner',settings.author ? '==' : '!=',settings.author),
+                    where('date','>',new Date(settings.minDate).getTime()),
+                    where('date','<',new Date(settings.maxDate).getTime())
+                    ) :
+                    query(saleRef, orderBy("date", "desc")) ;
+                (async function(){
+                    const querySnapshot = await getDocs(q);
+                    setList([])
+                    querySnapshot.forEach((doc) => {
+                        const childData = doc.data();
+                        get(child(userRef,childData.owner+'/data/name')).then((snapshot) => {
+                            const name = snapshot.val()
+                            setList(old=>[...old,{data:childData,name:name,index:doc.id}])
+                        });
                     });
-                });
-            })();
+                })();
 
-        }
-      }, [database,settings]);
+            }
+          return () => {
+          };
+        }, [])
+      );
 
     const deleteItem = () => {
         console.log('delete',selected);
