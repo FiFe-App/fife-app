@@ -148,12 +148,12 @@ const  LoginForm = () => {
               onSubmitEditing={()=>signIn(username, password, onChangeLoginError)}
           />
       </View>
-      <TouchableOpacity disabled={!username||!password} style={{width:70,backgroundColor:(!username||!password)?'gray':'black',justifyContent:'center',alignItems:"center",margin:5}} 
+      <Pressable disabled={!username||!password} style={{width:70,backgroundColor:(!username||!password)?'#444':'black',justifyContent:'center',alignItems:"center",margin:5}} 
         onPress={() => signIn(username, password, onChangeLoginError)}>
         {!loading ?
         <Icon name="arrow-forward-outline" color="white" size={40}/>
         :<Loading/>}
-      </TouchableOpacity>
+      </Pressable>
       </View>
       {!!loginError && <View style={styles.error}>
         <MyText style={{color:'#942400',fontSize:25}} >{loginError}</MyText>

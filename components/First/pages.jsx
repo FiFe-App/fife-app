@@ -7,6 +7,7 @@ import { Auto, B, Col, TextInput, MyText } from '../Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useRef } from 'react';
 import { useWindowSize } from '../../hooks/window';
+import AmiKell from './AmiKell';
 
 
 export const Pages = ({newData,setNewData,pageData, setPageData}) => {
@@ -110,6 +111,9 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
               </View>
             </Auto>
         </ScrollView>,
+        <ScrollView style={[pageStyle,{backgroundColor:'#9084d0'}]} contentContainerStyle={{paddingBottom:160}} key="2.2">
+          <AmiKell/>
+        </ScrollView>,
         <ScrollView style={[pageStyle,{backgroundColor:'#39c0db'}]} contentContainerStyle={{paddingBottom:160}} key="2.4">
             <MyText style={titleStyle}>Irányelveink</MyText>
             <MyText style={styles.subTitle}>Ha ennek az online közösségnek tagja szeretnél lenni, komolyan kell venned az irányelveinket: </MyText>
@@ -165,7 +169,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
               </Auto>
         </ScrollView>,
         <ScrollView style={[pageStyle,{backgroundColor:'#ffc74f'}]} contentContainerStyle={{paddingBottom:160}} key="4">
-            <MyText style={titleStyle}>Mihez értesz?</MyText>
+            <MyText style={titleStyle}>Hol vagy megtalálható?</MyText>
             <MyText style={styles.subTitle}>Elérhetőségeid. instagramod, saját webhelyed, olyan linkeket, ahol mások is elérhetik, hogy ki vagy te</MyText>
 
             <Links data={data} setData={setData}/>
@@ -181,7 +185,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
               </View>
             </Auto>
         </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#ff8fc9'}]} contentContainerStyle={{paddingBottom:160}} key="6.2">
+        <ScrollView style={[pageStyle,{backgroundColor:'#ffb28f'}]} contentContainerStyle={{paddingBottom:160}} key="6.2">
             <MyText style={titleStyle}>Regisztráció</MyText>
             <MyText style={styles.subTitle}>Add meg kérlek az email-címed, néhány adatod a regiszrációhoz</MyText>
             <Auto>

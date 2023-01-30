@@ -2,11 +2,11 @@ import { ProfileImage, Loading, Row, NewButton, Auto, MyText } from '../Componen
 
 import { ref, child, get, set, onValue } from "firebase/database";
 
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useCallback } from 'react';
 import { Platform, View, Pressable, Dimensions, Linking } from 'react-native';
 import {styles} from '../styles'
 import { Animated, Image, Easing } from 'react-native';
-import { Link, useNavigation } from '@react-navigation/native';
+import { Link, useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
@@ -35,57 +35,53 @@ const Profile = ({ navigation, route }) => {
     zoom: 4
   })
 
-
-  navigation = useNavigation()
-
-  function follow(){
-    const dbRef = ref(database, 'users/' + uid + "/likes/" + auth.currentUser.uid);
-    if (followButtonState == true) {
-          set(dbRef,{"owner":null});
-          setFollowButtonState(false);
-      } else {
-        set(dbRef, { "owner": auth.currentUser.uid });
-          setFollowButtonState(true);
-      }
-      getRecList();
+  const follow = async () => {
+    const dbRef = ref(database, 'users/' + uid + "/likes/" + myuid);
+    await set(dbRef,{"owner":followButtonState ? null : myuid});
+    setFollowButtonState(!followButtonState);
   }
 
-  useEffect(() => {
-    console.log(Object.keys(followers));
-  }, [followers]);
-  
-  function getRecList(){
+  const getRecList = () => {
     const dbRef = ref(database,'users/' + uid + "/likes");
     onValue(dbRef, (snapshot) => {
       if (snapshot.exists()) {
         const all = snapshot.val();
-        setFollowers(Object.keys(all));
-        if (all[auth.currentUser.uid] != undefined) {
-          setFollowButtonState(true);
-        }
+        console.log('all',Object.keys(all));
+        setFollowers(Object.keys(all) || []);
+        setFollowButtonState(Object.keys(all).includes(myuid));
       }
-      //else setFollowers([]);
     })
   }
   
-  useEffect(() => {
-    if (database) {
-      setMyProfile(myuid == uid);
-      getRecList();
-      const dbRef = ref(database);
-      get(child(dbRef, `users/${uid}/data`)).then((snapshot) => {
-        if (snapshot.exists()) {
-          var data = snapshot.val();
-          setProfile(data);
-          console.log(data);
-        } else {
-          navigation.push('profil-szerkesztese')
-        }
-      }).catch((error) => {
-        console.error(error);
-      });
-    }
-  }, [database,uid]);
+  useFocusEffect(
+    useCallback(() => {
+      console.log('loaded');
+      if (database) {
+        setMyProfile(myuid == uid);
+        //hulyr vagy 
+        const dbRef = ref(database);
+        get(child(dbRef, `users/${uid}/data`)).then((snapshot) => {
+          if (snapshot.exists()) {
+            var data = snapshot.val();
+            setProfile(data);
+            console.log(data);
+          } else {
+            navigation.push('profil-szerkesztese')
+          }
+        }).catch((error) => {
+          console.error(error);
+        });
+        const likeRef = ref(database,'users/' + uid + "/likes");
+        onValue(likeRef, (snapshot) => {
+          const all = snapshot.val() || [];
+          console.log('all',Object.keys(all));
+          setFollowers(Object.keys(all));
+          setFollowButtonState(Object.keys(all).includes(myuid));
+        })
+      }
+    }, [uid])
+  );
+  
   if (profile)
   return(
     <View style={{marginRight:-4,backgroundColor:bgColor,flex:1}}>
@@ -103,7 +99,7 @@ const Profile = ({ navigation, route }) => {
         <View style={[localStyles.container,{flex:width <= 900 ? 'none' : 1}]}>
             { !myProfile && <>
             <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('uzenetek',{selected:uid})}/>
-            <NewButton title={followButtonState ? 'Ő a barátom!' : 'Legyünk barátok!'} onPress={follow}/>
+            <NewButton title={followButtonState ? 'Ő a barátom!' : 'Ő még nem a barátom'} onPress={follow}/>
             </>
             }
           {myProfile &&

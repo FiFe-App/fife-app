@@ -273,9 +273,10 @@ import { emptyUnreadMessages, removeUnreadMessage, setUnreadMessage } from '../u
         //setPopups(popups.filter((p,i)=>i!=index))
       console.log('remove');
     }
-    useEffect(() => {
 
-      if (database) {
+    useFocusEffect(
+      useCallback(() => {
+        if (database) {
           const dbRef = ref(database,`users/${uid}/messages`);
           const userRef = ref(database,`users`);
 
@@ -315,20 +316,22 @@ import { emptyUnreadMessages, removeUnreadMessage, setUnreadMessage } from '../u
           }, 1000)
           } 
           getMessages()
-      }
-    }, [database]);
+        }
+
+        if (Notification.permission === 'default') {
+          dispatch(setUnreadMessage('notifications'))
+        } else {
+          dispatch(removeUnreadMessage('notifications'))
+        }
+      },[])
+    )
 
     useEffect(() => {
-      if (Notification.permission === 'default') {
-        dispatch(setUnreadMessage('notifications'))
-      } else {
-        dispatch(removeUnreadMessage('notifications'))
-      }
     }, []);
 
     useEffect(() => {
       if (Notification.permission !== 'default')
-      setNotifications(notifications.filter(n=>n.key!='notifications'))
+        setNotifications(notifications.filter(n=>n.key!='notifications'))
     }, [allMessages]);
     return (
       <View style={style}>

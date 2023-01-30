@@ -93,7 +93,7 @@ const ProfileImage = (props) => {
   return <View style={[props.style,{width: size, height: size}]}>
     { !loaded ?
     <ActivityIndicator style={{position:'absolute', width: size, height: size}} color='rgba(255,175,0,0.7)' />:
-    <ExpoFastImage style={{width: size, height: size}}
+    <ImageModal style={{width: size, height: size}}
       resizeMode="cover"
       modalImageResizeMode="center"
       source={{ uri: url }} onLoad={() => setLoaded(true)} onError={()=>{setUrl(defaultUrl)}}/>}
