@@ -1,16 +1,16 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Animated, Text, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput as RNTextInput, TouchableOpacity, ActivityIndicator, Platform, Dimensions } from 'react-native';
+import { Animated, Text, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput as RNTextInput, TouchableOpacity, ActivityIndicator, Platform, Modal } from 'react-native';
 import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
 import Icon from 'react-native-vector-icons/Ionicons'
-import { LinearGradient } from "expo-linear-gradient";
 import { useForm, Controller } from "react-hook-form";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { global } from './global';
-import { styles as newStyles } from './styles';
-import { useWindowSize } from '../hooks/window';
+import { global } from '../lib/global';
+import { styles as newStyles } from '../styles/styles';
+import {useWindowDimensions} from 'react-native';
+
 import ImageModal from 'react-native-image-modal';
-import ExpoFastImage from 'expo-fast-image';
-import { TextFor } from '../textService/textService';
+import { TextFor } from '../lib/textService/textService';
+import { useHover } from 'react-native-web-hooks';
 
 
 //Dimensions.get('window');
@@ -65,6 +65,7 @@ const getUri = async (path) => {
 
 
 const ProfileImage = (props) => {
+  // eslint-disable-next-line no-undef
   const defaultUrl = require('../assets/profile.jpeg');
   const [url, setUrl] = React.useState(null);
   const [loaded, setLoaded] = React.useState(false);
@@ -102,7 +103,7 @@ const ProfileImage = (props) => {
     
 }
 
-function NewButton({color = "#FFC372",title,onPress,disabled,style}) {
+function NewButton({color = "#ffde7e",title,onPress,disabled,style}) {
   return (
     <TouchableOpacity style={[styles.newButton, { backgroundColor: disabled ? '#d6b17f' : color, height:50 },style]} onPress={onPress} disabled={disabled}>
           <MyText style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{title}</MyText>
@@ -205,11 +206,11 @@ function Col(props) {
   );
 }
 
-function Auto({children,style}) {
+function Auto({children,style,breakPoint=900}) {
   
-  const width = useWindowSize().width;
+  const width = useWindowDimensions().width;
   return (
-    <View style={[{flexDirection: width <= 900 ? 'column' : 'row',width:'100%',height:'100%',flex: width <= 900 ? 'none' : 1},style]}>
+    <View style={[{flexDirection: width <= breakPoint ? 'column' : 'row',width:'100%',height:'100%',flex: width <= breakPoint ? 'none' : 1},style]}>
       {children}
     </View>
   )
@@ -335,7 +336,7 @@ const SearchBar = (props) => {
       <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, value } }) => (
-            <RNTextInput
+            <TextInput
               style={[newStyles.searchInput,{flex:1,fontSize:16,padding:10}]}
               onBlur={onBlur}
               autoCapitalize='none'
@@ -362,7 +363,7 @@ const SearchBar = (props) => {
 
 }
 
-const OpenNav = ({open,children,style}) => {
+const OpenNav = ({open,children,style}) => {
 
   const size = useRef(new Animated.Value(-390)).current 
 
@@ -394,7 +395,7 @@ const OpenNav = ({open,children,style}) => {
 }
 
 export const MyText = (props) => {
-  return <Text style={[{fontFamily:'Mulish_400Regular'},props?.style]}>{props?.children}</Text>
+  return <Text style={[{fontFamily:'SpaceMono_400Regular',letterSpacing:-1},props?.style]}>{props?.children}</Text>
 }
 
 const TextInput = React.forwardRef((props,ref) => {
@@ -404,7 +405,7 @@ const TextInput = React.forwardRef((props,ref) => {
       {...props}
       ref={ref}
       placeholderTextColor="grey"
-      style={[props.style,{fontFamily:'Mulish_400Regular'}, isFocused && 
+      style={[props.style,{fontFamily:'SpaceMono_400Regular'}, isFocused && 
         {backgroundColor:'#fbf7f0'},Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => {
         setIsFocused(false)
@@ -420,6 +421,7 @@ const TextInput = React.forwardRef((props,ref) => {
     />
   );
 });
+TextInput.displayName = 'TextInput'
 
 const B = ({children}) => {
   return <MyText style={{fontWeight:'bold'}}>{children}</MyText>

@@ -8,7 +8,7 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, on
 import { initializeApp } from 'firebase/app';
 import { get, getDatabase, ref, set } from "firebase/database";
 import { useDispatch } from 'react-redux';
-import { login as sliceLogin, logout as sliceLogout, removeUnreadMessage, setName, setSettings, setUnreadMessage, setUserData } from '../userReducer';
+import { login as sliceLogin, logout as sliceLogout, removeUnreadMessage, setName, setSettings, setUnreadMessage, setUserData } from '../lib/userReducer';
 import { Platform } from 'react-native';
 
 import { getMessaging, getToken, deleteToken } from "firebase/messaging";
@@ -127,13 +127,19 @@ export default ({ children }) => {
             await signInWithEmailAndPassword(a, newEmail, newPass)
             .then((userCredential) => {
                 const user = userCredential.user
-                dispatch(setUserData({
-                    email:user.email,
-                    emailVerified:user.emailVerified,
-                    providerData:user.providerData,
-                    createdAt:user.createdAt,
-                    lastLoginAt:user.lastLoginAt
-                }))
+                userCredential.user.getIdToken().then(token=>{
+                    console.log(token);
+
+                    dispatch(setUserData({
+                        authtoken:token,
+                        email:user.email,
+                        emailVerified:user.emailVerified,
+                        providerData:user.providerData,
+                        createdAt:user.createdAt,
+                        lastLoginAt:user.lastLoginAt
+                    }))
+
+                })
                 if (firstLogin) {
                     response = {success:true}
                     return
@@ -165,13 +171,13 @@ export default ({ children }) => {
                 console.error(error);
             
                 if (errorCode == "auth/invalid-email")
-                    response = {error:"Ez nem is egy email-cím!"};
+                    response = {error:"Ez nem is egy email-cím haver!"};
                 else if (errorCode == "auth/internal-error")
                     response = {error:"Hát... nem tudom mi történt bocs!"};
                 else if (errorCode == "auth/wrong-password")
                     response = {error:"Lehet elírtad a jelszavad"};
                 else if (errorCode == "auth/user-not-found")
-                    response = {error:"Haver, nincs ilyen felhasználó!"}
+                    response = {error:"Tesóó, nincs ilyen felhasználó!"}
                 else
                     response = {error:"error: " + errorCode + " - " + errorMessage};
             });
@@ -288,29 +294,6 @@ export default ({ children }) => {
                         return;
                       }
                       response = {error:'facebook login error'}
-                      return;
-                      // All the other cases are external providers.
-                      // Construct provider object for that provider.
-                      // TODO: implement getProviderForProviderId.
-                      var provider = getProviderForProviderId(methods[0]);
-                      // At this point, you should let the user know that they already have an account
-                      // but with a different provider, and let them validate the fact they want to
-                      // sign in with this provider.
-                      // Sign in to provider. Note: browsers usually block popup triggered asynchronously,
-                      // so in real scenario you should ask the user to click on a "continue" button
-                      // that will trigger the signInWithPopup.
-                      auth.signInWithPopup(provider).then(function(result) {
-                        // Remember that the user may have signed in with an account that has a different email
-                        // address than the first one. This can happen as Firebase doesn't control the provider's
-                        // sign in flow and the user is free to login using whichever account they own.
-                        // Step 4b.
-                        // Link to Facebook credential.
-                        // As we have access to the pending credential, we can directly call the link method.
-                        result.user.linkAndRetrieveDataWithCredential(pendingCred).then(function(usercred) {
-                          // Facebook account successfully linked to the existing Firebase user.
-                          goToApp();
-                        });
-                      });
                     });
                   }
 

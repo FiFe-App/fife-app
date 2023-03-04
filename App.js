@@ -1,26 +1,29 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useContext, useEffect, Suspense } from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // routes
-const HomeScreen = React.lazy(()=>import("./components/HomeScreen"))
-const LogoTitle = React.lazy(()=>import("./components/HomeScreen").then(module=>({default:module.LogoTitle})))
-const LoginScreen = React.lazy(()=>import("./components/login/Login"))
-const Search = React.lazy(()=>import("./components/Search"))
-const Profile = React.lazy(()=>import("./components/profile/Profile"))
-const First = React.lazy(()=>import("./components/first/First"))
-const Edit = React.lazy(()=>import("./components/profile/Edit"))
-const Messages = React.lazy(()=>import("./components/Messages"))
-const Chat = React.lazy(()=>import("./components/Chat"))
-const Sale = React.lazy(()=>import("./components/sale/Sale"))
-const Item = React.lazy(()=>import("./components/sale/NewItem"))
-const Events = React.lazy(()=>import("./components/events/Events"))
-const Event = React.lazy(()=>import("./components/events/Event"))
-const NewEvent = React.lazy(()=>import("./components/NewEvent"))
-const New = React.lazy(()=>import("./components/New"))
-const Maps = React.lazy(()=>import("./components/maps/Maps"))
-const Settings = React.lazy(()=>import("./components/settings"))
+const HomeScreen = React.lazy(()=>import("./pages/home/HomeScreen"))
+const LogoTitle = React.lazy(()=>import("./components/LogoTitle").then(module=>({default:module.LogoTitle})))
+const LoginScreen = React.lazy(()=>import("./pages/login/Login"))
+const Search = React.lazy(()=>import("./pages/Search"))
+const Profile = React.lazy(()=>import("./pages/profile/Profile"))
+const First = React.lazy(()=>import("./pages/first/First"))
+const Edit = React.lazy(()=>import("./pages/profile/Edit"))
+const Messages = React.lazy(()=>import("./pages/Messages"))
+const Chat = React.lazy(()=>import("./pages/Chat"))
+const Sale = React.lazy(()=>import("./pages/sale/Sale"))
+const Item = React.lazy(()=>import("./pages/sale/NewItem"))
+const Events = React.lazy(()=>import("./pages/events/Events"))
+const Event = React.lazy(()=>import("./pages/events/Event"))
+const NewEvent = React.lazy(()=>import("./pages/events/NewEvent"))
+const New = React.lazy(()=>import("./pages/New"))
+const Maps = React.lazy(()=>import("./pages/maps/Maps"))
+const Settings = React.lazy(()=>import("./pages/settings"))
+const BodyAndSoul = React.lazy(()=>import("./pages/BodyAndSoul"))
+const Server = React.lazy(()=>import("./pages/server"))
+const About = React.lazy(()=>import("./pages/About"))
 
 
 import Snowfall from 'react-snowfall'
@@ -28,9 +31,7 @@ import Snowfall from 'react-snowfall'
 // fonts
 import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins'
-import { Lato_400Regular } from '@expo-google-fonts/lato'
-import { Mulish_400Regular } from '@expo-google-fonts/mulish'
-
+import { SpaceMono_400Regular } from '@expo-google-fonts/space-mono'
 
 // routes
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -42,7 +43,7 @@ import { Provider } from 'react-redux'
 import FirebaseProvider from './firebase/firebase'
 import { FirebaseContext } from './firebase/firebase';
 
-import {store,persistor} from './components/store'
+import {store,persistor} from './lib/store'
 import { PersistGate } from 'redux-persist/integration/react'
 
 import { useSelector } from 'react-redux'
@@ -60,7 +61,7 @@ export default function App(props) {
   const linking = useState({prefixes: [prefix]})
 
   let [fontsLoaded] = useFonts({
-    AmaticSC_700Bold,Poppins_400Regular,Mulish_400Regular
+    AmaticSC_700Bold,Poppins_400Regular,SpaceMono_400Regular
   });
 
   if (!fontsLoaded)
@@ -143,6 +144,11 @@ const Navigator = () => {
           
           <Stack.Screen name="cserebere" component={Sale} options={{ title: "Cserebere" }} />
           <Stack.Screen name="uj-cserebere" component={Item} options={{ title: "Cserebere" }} />
+
+          <Stack.Screen name="test-es-lelek" component={BodyAndSoul} options={{ title: "Test és lélek" }} />
+          <Stack.Screen name="server" component={Server} options={{ title: "Teszt" }} />
+          
+          <Stack.Screen name="rolunk" component={About} options={{ title: "Rólunk" }} />
 
           </>}
         </>
