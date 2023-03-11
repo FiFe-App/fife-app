@@ -12,6 +12,7 @@ const styles = StyleSheet.create({
         alignSelf:'stretch',
         backgroundColor:'white',
         flex:1,
+        width: 200,
         margin:2,
     },
     moduleText: {

@@ -1,9 +1,9 @@
-import { ProfileImage, Loading, Row, NewButton, Auto, MyText } from '../../components/Components'
+import { ProfileImage, Loading, Row, NewButton, Auto, MyText, Popup } from '../../components/Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 
 import React, { useEffect, useContext, useCallback } from 'react';
-import { Platform, View, Pressable, Dimensions, Linking } from 'react-native';
+import { Platform, View, Pressable, Dimensions, Linking, ScrollView } from 'react-native';
 import {styles} from '../../styles/styles'
 import { Animated, Image, Easing } from 'react-native';
 import { Link, useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -14,6 +14,9 @@ import { FirebaseContext } from '../../firebase/firebase';
 import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
 import { useWindowDimensions } from 'react-native'
 import { Map } from './Edit';
+import axios from 'axios';
+import { config } from '../../firebase/authConfig';
+import { SaleListItem } from '../sale/SaleListItem';
 
 const bgColor = '#fffcf7'//'#ffd581dd'
 
@@ -24,6 +27,7 @@ const Profile = ({ navigation, route }) => {
   const uid = route?.params?.uid || myuid 
   
   const [profile, setProfile] = React.useState(null);
+  const [saleList, setSaleList] = React.useState([]);
   const [followButtonState, setFollowButtonState] = React.useState(true);
   const [followers, setFollowers] = React.useState([]);
   const [myProfile, setMyProfile] = React.useState(true);
@@ -79,6 +83,12 @@ const Profile = ({ navigation, route }) => {
           setFollowButtonState(Object.keys(all).includes(myuid));
         })
       }
+      axios.get('/sale',{...config(),params: {
+        author: uid,
+        category: -1
+      }}).then(res=>{
+        setSaleList(res.data)
+      }).catch(err=>{console.log('sale',err)})
     }, [uid])
   );
   
@@ -89,14 +99,18 @@ const Profile = ({ navigation, route }) => {
         <View style={{alignItems:'center'}}>
           <ProfileImage uid={uid} size={150} style={[localStyles.container,{paddingHorizontal:0}]}/>
         </View>
-        <View style={{flex:width <= 900 ? 'none' : 2}}>
+        <View style={{flex:width <= 900 ? 'none' : 2,zIndex:10}}>
           <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.name}</MyText></View>
           <Row style={{flex:width <= 900 ? 'none' : 1}}>
             <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.username}</MyText></View>
-            <View style={localStyles.fcontainer}><MyText style={localStyles.text}>Pajtásaim: {followers?.length}</MyText></View>
+            <Popup style={localStyles.fcontainer}
+            popup={<ScrollView style={{marginTop:200,zIndex:100,maxHeight:200}} contentContainerStyle={[localStyles.fcontainer]}>
+              {followers.map((f,i)=><ProfileImage key={i} uid={f} size={40} style={[localStyles.container,{paddingHorizontal:0}]}/>)}
+            </ScrollView>}
+            ><MyText style={localStyles.text}>Pajtásaim: {followers?.length}</MyText></Popup>
           </Row>
         </View>
-        <View style={[localStyles.container,{flex:width <= 900 ? 'none' : 1}]}>
+        <View style={[localStyles.container,{flex:width <= 900 ? 'none' : 1,zIndex:'auto'}]}>
             { !myProfile && <>
             <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('uzenetek',{selected:uid})}/>
             <NewButton title={profile.name + (followButtonState ? ' már a pajtásom!' : ' még nem a pajtásom')} onPress={follow}/>
@@ -108,7 +122,7 @@ const Profile = ({ navigation, route }) => {
 
         </View>
       </Auto>
-      <Auto style={{flex:1}}>
+      <Auto style={{flex:1,zIndex:-1}}>
         <View style={{flex:width <= 900 ? 'none' : 1}}>
           <Section title="Rólam">
             <MyText style={localStyles.subText}>{profile.bio}</MyText>
@@ -124,26 +138,36 @@ const Profile = ({ navigation, route }) => {
             }
           </Section>
         </View>
-        <Section title="Bizniszeim" style={{flex:width <= 900 ? 'none' : 1}} flex={width <= 900 ? 'none' : 2}>
-            <View style={{marginLeft:20}}>
-              {profile.profession && profile.profession.map((prof,index) =>
+        <View style={{flex:(width <= 900 ? 'none' : 2)}}>
+
+          <Section title="Bizniszeim" >
+              <View style={{marginLeft:20}}>
+                {profile.profession && profile.profession.map((prof,index) =>
+                  <ListItem title={prof.name} key={"prof"+index}>
+                    <MyText>{prof.description}</MyText>
+                  </ListItem>
+                )}
+              </View>
+          </Section>
+          <Section title="Elérhetőségeim" flex={1}>
+            <View style={[styles.label]}>
+              {profile.links && profile.links.map((prof,index) =>
                 <ListItem title={prof.name} key={"prof"+index}>
-                  <MyText>{prof.description}</MyText>
+                  <Pressable onPress={()=>Linking.openURL(prof.description)}>
+                    <MyText style={{color:'blue'}}>{prof.description}</MyText>
+                  </Pressable>
                 </ListItem>
               )}
             </View>
-        </Section>
-        <Section title="Elérhetőségeim" flex={width <= 900 ? 'none' : 2}>
-          <View style={[styles.label]}>
-            {profile.links && profile.links.map((prof,index) =>
-              <ListItem title={prof.name} key={"prof"+index}>
-                <Pressable onPress={()=>Linking.openURL(prof.description)}>
-                  <MyText style={{color:'blue'}}>{prof.description}</MyText>
-                </Pressable>
-              </ListItem>
-            )}
-          </View>
-        </Section>
+          </Section>
+        </View>
+          {!!saleList.length && <Section title="Cserebere" style={{flex:width <= 900 ? 'none' : 1}} flex={width <= 900 ? 'none' : 2}>
+            <ScrollView style={[styles.label,{marginLeft:5}]}>
+                {saleList.map(el=>{
+                  return <SaleListItem key={el.id} data={el}/>
+                })}
+            </ScrollView>
+          </Section>}
       </Auto>
     </View>
   )
@@ -181,7 +205,8 @@ const Profile = ({ navigation, route }) => {
       backgroundColor:'white',
       fontSize:30,
       paddingHorizontal:20,
-      justifyContent:'center',
+      justifyContent:'center', 
+      zIndex:'auto' 
     },
     container: {
       marginTop: 5,
@@ -189,6 +214,7 @@ const Profile = ({ navigation, route }) => {
       backgroundColor:'white',
       paddingHorizontal:20,
       justifyContent:'center',
+      zIndex:'auto' 
     },
     text:{
       fontWeight: 'bold',

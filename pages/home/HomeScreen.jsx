@@ -6,11 +6,11 @@
   import { useFocusEffect, useNavigation } from '@react-navigation/native';
   import { Animated } from "react-native";
   import Icon from 'react-native-vector-icons/Ionicons';
-  import { Auto, Col, MyText, Row, TextInput } from '../../components/Components';
+  import { Auto, Col, getUri, MyText, Row, TextInput } from '../../components/Components';
   import homeDesign from '../../styles/homeDesign';
 
   import { useSelector } from 'react-redux';
-  import { FirebaseContext } from '../../firebase/firebase';
+  import firebase, { FirebaseContext } from '../../firebase/firebase';
 
   import axios from 'axios';
   import { child, get, onChildAdded, ref } from 'firebase/database';
@@ -22,6 +22,7 @@
   import Search from '../Search';
   import HomeBackground from './HomeBackground';
 import Module from '../../components/homeComponents/Module';
+import { saleCategories } from '../../lib/categories';
   
   const EventData = [
     { 
@@ -61,7 +62,7 @@ import Module from '../../components/homeComponents/Module';
     { 
       id:'59ge9jefimefromk',
       title: 'Van ötleted a apphoz?',
-      place: 'Írd le nelünk és szívesen elkészítjük!',
+      place: 'Írd le nekünk és szívesen elkészítjük!',
       category: 'Visszajelzés',
       image: 'https://www.upvoty.com/wp-content/uploads/2020/01/how-to-saas-idea.png'
     },
@@ -74,9 +75,32 @@ import Module from '../../components/homeComponents/Module';
     },
   ]
 
-  const HomeScreen = ({route}) => {
+  const GroupsData = [
+    { 
+      id:'w4ifm8m948emm',
+      title: 'Pesti túrázók',
+      place: 'Hetente kirándulni megyünk!',
+      category: 'Kiszakadás',
+      image: 'https://www.mozgasvilag.hu/media_mv/10219/2021/other/85641-turatippek_during_SLIDER.jpg'
+    },
+    { 
+      id:'59ge9jefimefromk',
+      title: 'Csoportos lelkizés',
+      place: 'Vezetett csoport bárkinek',
+      category: 'Test és lélek',
+      image: 'https://www.benceganti.com/wp-content/uploads/2021/04/korvezetes_tabor1-1024x683.jpg'
+    },
+    { 
+      id:'49k9fk43iofmwe',
+      title: 'Kezdő webfejlesztés',
+      place: 'Tanulj meg csudi dolgokat készíteni a foteledből!',
+      category: '',
+      image: 'https://www.educative.io/api/page/6096075812241408/image/download/6443342641496064'
+    },
+  ]
+  const HomeScreen = () => {
     const name = useSelector((state) => state.user.name)
-    const {database, storage, app, auth, firestore} = useContext(FirebaseContext);
+    const nav = useNavigation()
     const opacity = useRef(new Animated.Value(1)).current 
     const opacity2 = useRef(new Animated.Value(0)).current 
     const height = useRef(new Animated.Value(0)).current 
@@ -85,42 +109,32 @@ import Module from '../../components/homeComponents/Module';
     const [greeting, setGreeting] = useState(getGreeting);
     const [list, setList] = useState([]);
     useFocusEffect(
-      useCallback(async () => {
-            try {
-              const res = (await axios.get('/sale/latest',config())).data
-              setList(res)
-            } catch (error) {
-              console.log('server not reachable',error);
+      useCallback(() => {
+        console.log('res');
+        const fn = async () => {
+
+          try {
+            let res = (await axios.get('/sale/latest',config())).data
+
+            res = await Promise.all(res.map( async (el,i)=> {
+              return {...el,image: await getUri('sale/'+el._id+'/'+0)}
+            }))
+            console.log('res',res);
+            setList(res)
+          } catch (error) {
+            if (error?.response?.data == 'Token expired') {
+              firebase.logout()
             }
-              /*const saleRef = collection(firestore, "sale");
-              const userRef = ref(database,`users`);
+            console.log('server not reachable',error);
+          }
 
-              const q = query(saleRef, orderBy("date", "desc"),limit(3)) ;
-              (async function(){
-                  const querySnapshot = await getDocs(q);
-                  setList([])
-                  querySnapshot.forEach((doc) => {
-                      const childData = doc.data();
-                      get(child(userRef,childData.owner+'/data/name')).then((snapshot) => {
-                          const name = snapshot.val()
-                          setList(old=>[...old,{data:childData,name:name,index:doc.id}])
-                      });
-                  });
-              })();*/
-
+        }
+        fn();
         return () => {
+          setList([])
         };
       }, [])
     );
-
-    useFocusEffect(
-      useCallback(() => {
-        return () => {
-          setSearchText('')
-        };
-      }, [route.params])
-    );
-
 
     useEffect(() => {
       if (searchText.length > 0) 
@@ -179,32 +193,39 @@ import Module from '../../components/homeComponents/Module';
               <Module title="events" link="esemenyek" data={EventData}/>
               <Module title="Funkciók" data={FunctionsData} />
               <Module title="sale" link="cserebere" 
-              data={list.map(el=>{return{
-                id:el.index,
-                title:el.title,
-                date:el.date,
-                image:`https://firebasestorage.googleapis.com/v0/b/fife-app.appspot.com/o/profiles%${el.author}%2Fprofile.jpg?alt=media&token=c19ebcdb-bc0e-49c2-b48a-605f589a1950`,
-                place:el.description,
-                category: 'Eladó'
-              }})}/>
+                data={list.map(el=>{return{
+                  id:el._id,
+                  title:el.title,
+                  date:el.date,
+                  image:el.image,
+                  place:el.description,
+                  category: saleCategories[el.category].name,
+                  color: saleCategories[el.category].color
+                }})}/>
               
             </Auto>}
           </Auto>
         </HomeBackground>
           {width > 900 && <>
             <Auto >
-              <Module title="events" link="esemenyek" data={EventData}/>
+              <Module title="Közösségek" data={GroupsData} />
               <Module title="sale" link="cserebere" 
-              data={list.map(el=>{return{
-                id:el.index,
-                title:el.title,
-                date:el.date,
-                image:`https://firebasestorage.googleapis.com/v0/b/fife-app.appspot.com/o/profiles%${el.author}%2Fprofile.jpg?alt=media&token=c19ebcdb-bc0e-49c2-b48a-605f589a1950`,
-                place:el.description,
-                category: 'Eladó'
-              }})}/>
+              data={list.map(el=>{
+                console.log('el',Object.keys(el))
+                return{
+                  id:el._id,
+                  title:el.title,
+                  date:el.date,
+                  image:el.image,
+                  place:el.description,
+                  category: saleCategories[el.category].name,
+                  color: saleCategories[el.category].color
+                }})}/>
             </Auto>
+            <Auto >
               <Module title="Funkciók" data={FunctionsData} />
+              <Module title="events" link="esemenyek" data={EventData}/>
+            </Auto>
           </>}
       </ScrollView>
     );
@@ -418,7 +439,7 @@ import Module from '../../components/homeComponents/Module';
   }
 
 
-  const isBright = function(color) { // #FF00FF
+  export const isBright = function(color) { // #FF00FF
     var textCol = "black";
     var c = color.substring(1);      // strip #
     var rgb = parseInt(c, 16);   // convert rrggbb to decimal

@@ -13,10 +13,9 @@ import { TextFor } from '../../lib/textService/textService';
 function Module(props) {
     const { data } = props;
     const { width } = useWindowDimensions();
-    const number = useSelector((state) => state.user)[props?.number]?.length || 0
     const navigation = useNavigation();
     const onPress = (to) => {
-      navigation.navigate(to, props.with);
+      navigation.push(to, props.with);
     }
     return (
         <View style={[homeDesign.moduleContainer,width>900 && {flex:1}]}>
@@ -27,12 +26,13 @@ function Module(props) {
             </Row>
           <ScrollView horizontal style={{height:170}} contentContainerStyle={homeDesign.moduleScrollView}>
             {data?.map((one,ind)=>{
+              console.log(props.title,one.image)
               const date = new Date(one.date)
               return (
                   <TouchableOpacity key={ind+'one'} style={homeDesign.module} onPress={()=>navigation.push(props.link,{id:one.id})}>
-                      <ImageBackground source={{uri:one.image}} resizeMode="cover" style={{height:100}}>
+                      <ImageBackground source={{uri:one.image}} resizeMode="cover" style={{height:100, width:'100%',}}>
                         <View style={{alignSelf: 'flex-start'}}>
-                          <MyText style={{margin:10,backgroundColor:'#cfc',padding:5}}>{one.category}</MyText>
+                          <MyText style={{margin:10,backgroundColor:(one?.color||'#cfc'),padding:5}}>{one.category}</MyText>
                         </View>
                       </ImageBackground>
                       <MyText style={[homeDesign.moduleText,{fontWeight:'bold'}]}>{one.title}</MyText>

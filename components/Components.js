@@ -11,6 +11,8 @@ import {useWindowDimensions} from 'react-native';
 import ImageModal from 'react-native-image-modal';
 import { TextFor } from '../lib/textService/textService';
 import { useHover } from 'react-native-web-hooks';
+import { child, get, getDatabase, ref } from 'firebase/database';
+import { isBright } from '../pages/home/HomeScreen';
 
 
 //Dimensions.get('window');
@@ -63,6 +65,16 @@ const getUri = async (path) => {
   return returnValue
 } 
 
+const getNameOf = async (uid) => {
+  const db = getDatabase();
+  const dbRef = ref(db);
+  const snapshot = await get(child(dbRef, `users/${uid}/data/name`))
+
+  if (snapshot.exists()) {
+    return snapshot.val()
+  }
+}
+
 
 const ProfileImage = (props) => {
   // eslint-disable-next-line no-undef
@@ -106,7 +118,7 @@ const ProfileImage = (props) => {
 function NewButton({color = "#ffde7e",title,onPress,disabled,style}) {
   return (
     <TouchableOpacity style={[styles.newButton, { backgroundColor: disabled ? '#d6b17f' : color, height:50 },style]} onPress={onPress} disabled={disabled}>
-          <MyText style={{ fontWeight: 'bold', color: "black", fontSize:18 }}>{title}</MyText>
+          <MyText style={{ fontWeight: 'bold', color: isBright(color) , fontSize:18 }}>{title}</MyText>
     </TouchableOpacity>
   );
 }
@@ -372,7 +384,7 @@ const OpenNav = ({open,children,style}) => {
     Animated.timing(
       size,
       {
-        toValue: 80,
+        toValue: 62,
         duration: 500,
       }
     ).start();
@@ -388,9 +400,12 @@ const OpenNav = ({open,children,style}) => {
   }, [open]);
 
   return (
-    <Animated.View style={style && {position:'absolute',top:size,width:'100%',zIndex:30}}>
-      {children}
-    </Animated.View>
+    <>
+      <View style={{height:60,width:'100%',backgroundColor:'#FDEEA2',position:'absolute'}}></View>
+      <Animated.View style={style && {position:'absolute',top:size,width:'100%',zIndex:-30}}>
+        {children}
+      </Animated.View>
+    </>
   )
 }
 
@@ -427,16 +442,18 @@ const B = ({children}) => {
   return <MyText style={{fontWeight:'bold'}}>{children}</MyText>
 }
 
-const Popup = ({children}) => {
+export const Popup = ({children,style,popup,popupStyle}) => {
   const [opened, setOpened] = useState(false);
   const ref = useRef(null);
   const isHovered = useHover(ref);
 
   return (
-    <Col>
+    <View ref={ref} style={style}>
       {children}
-      {!!opened && <View><MyText>asd</MyText></View>}
-    </Col>
+      {!!isHovered && <View style={[{position:"absolute"},popupStyle]}>
+        {popup}
+      </View>}
+    </View>
   )
 }
 
@@ -444,6 +461,7 @@ const Popup = ({children}) => {
 export {
   ProfileImage,
   getUri,
+  getNameOf,
   Slideshow,
   Loading,
   Row,

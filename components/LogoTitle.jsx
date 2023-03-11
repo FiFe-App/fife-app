@@ -32,15 +32,24 @@ export function LogoTitle() {
     }
 
     return (
-      <LinearGradient colors={['#FDEEA2', "#FDEEA2"]} style={{borderBottomWidth:2}} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
+      <LinearGradient style={{zIndex:100}} colors={['#FDEEA2', "#FDEEA2"]} style={{borderBottomWidth:2}} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
         <Helmet>
           <meta name="theme-color" content="#FDEEA2"/>
         </Helmet>
         <SafeAreaView>
+          <OpenNav open={open} style={{width:'100%',zIndex: -10}}>
+            <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
+            <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
+            <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
+            <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
+            <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
+            <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
+          </OpenNav>
           <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
+          {navigation.canGoBack()}
             { width < 900 &&
               <Pressable onPress={()=>navigation.navigate('fooldal')} style={{justifyContent:'center',alignItems:'center',flex:1}}>
-                {route.name != 'home' && <Icon name='home' size={30} color="#000"/>}
+                {route.name != 'home' && <Icon name='home-outline' size={30} color="#000"/>}
               </Pressable>
             }
             <Pressable onPress={()=>navigation.navigate('fooldal')}>
@@ -57,7 +66,6 @@ export function LogoTitle() {
               <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
               <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
               <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
-              <MenuLink setOpen={setOpen} title="Unatkozom" text="" color="#b51d1d" link={"unatkozom"} icon="bulb" />
               <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
             </View>
             :
@@ -69,15 +77,6 @@ export function LogoTitle() {
               </TouchableOpacity>
             </Row>}
           </View>
-          <OpenNav open={open} style={{width:'100%'}}>
-            <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
-            <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
-            <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
-            <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
-            <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
-            <MenuLink setOpen={setOpen} title="Unatkozom" text="" color="#b51d1d" link={"unatkozom"} icon="bulb" />
-            <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
-          </OpenNav>
         </SafeAreaView>
       </LinearGradient>)
   }

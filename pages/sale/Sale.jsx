@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { ScrollView, Switch, View } from 'react-native';
+import { Animated, ScrollView, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Auto, FAB, Loading, MyText, NewButton, Row, TextInput } from '../../components/Components';
 import { FirebaseContext } from '../../firebase/firebase';
@@ -19,6 +19,7 @@ import CloseModal, { UserModal } from "../../components/Modal";
 import { config } from "../../firebase/authConfig";
 import { SaleListItem } from "./SaleListItem";
 import Select from "../../components/Select";
+import { Item } from "./ItemOld";
 
 const categories = [
     'Minden',
@@ -29,7 +30,8 @@ const categories = [
     'Bármi egyéb'
 ]
 
-const Sale = ({route,navigation}) => {
+const Sale = ({ navigation, route }) => {
+    const id = route.params?.id;
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
     const {database, storage, app, auth, firestore} = useContext(FirebaseContext);
@@ -41,7 +43,9 @@ const Sale = ({route,navigation}) => {
         category: -1,
         author: null,
         minDate: null,
-        maxDate: null
+        maxDate: null,
+        skip: 0,
+        take: 5
     });
     const [keys, setKeys] = useState([]);
 
@@ -50,34 +54,31 @@ const Sale = ({route,navigation}) => {
 
     const [searchText, setSearchText] = useState('');
     const [searchResult, setSearchResult] = useState([]);
-    const [selected, setSelected] = useState(null);
+    const [selected, setSelected] = useState(id || null);
     
+    const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
+        const paddingToBottom = 20
+        return layoutMeasurement.height + contentOffset.y >=
+          contentSize.height - paddingToBottom
+    }
+
+    const loadMoreData = () => {
+        if (loading) return 
+
+        console.log('more',settings.skip,settings.take);
+        search()
+    }
+
+    useEffect(() => {
+        console.log('uef',selected);
+    }, [selected]);
 
     useFocusEffect(
         useCallback(() => {
             if (database) {
                 const userRef = dbRef(database,`users`);
+                setList([]);
                 search()
-
-                /*const q =(settings.maxDate && settings.minDate) ? query(saleRef, 
-                    orderBy("date", "desc"),
-                    where('author',settings.author ? '==' : '!=',settings.author),
-                    where('date','>',new Date(settings.minDate).getTime()),
-                    where('date','<',new Date(settings.maxDate).getTime())
-                    ) :
-                    query(saleRef, orderBy("date", "desc")) ;
-                (async function(){
-                    const querySnapshot = await getDocs(q);
-                    setList([])
-                    querySnapshot.forEach((doc) => {
-                        const childData = doc.data();
-                        get(child(userRef,childData.author+'/data/name')).then((snapshot) => {
-                            const name = snapshot.val()
-                            setList(old=>[...old,{data:childData,name:name,index:doc.id}])
-                        });
-                    });
-                })();*/
-
             }
           return () => {
           };
@@ -89,29 +90,10 @@ const Sale = ({route,navigation}) => {
         if (database && storage && selected)
         (async ()=> {
             axios.delete('/sale/'+selected,config()).then(res=>{
-                setList(list.filter(e=>e.id=!selected))
+                setList(list.filter(e=>e._id=!selected))
             })
-            /*await deleteDoc(doc(firestore, "sale", selected))
-                .catch(error=>console.log(error))
-            await updateDoc(doc(firestore, 'sale',selected), {
-                title: deleteField(),
-                description: deleteField(),
-                images: deleteField(),
-                date: deleteField(),
-                author: deleteField(),
-                booked: deleteField(),
-                bookedBy: deleteField(),
-              }).catch(error=>console.log(error))
-
-            const ref = sRef(storage, 'sale/'+selected);
-            listAll(ref)
-                .then(dir => {
-                dir.items.forEach(fileRef => this.deleteFile(ref.fullPath, fileRef.name));
-                dir.prefixes.forEach(folderRef => this.deleteFolder(folderRef.fullPath))
-                })
-                .catch(error => console.log(error));*/
         })().then(()=>{
-            setList(list.filter(e=>e.id=!selected))
+            setList(list.filter(e=>e._id=!selected))
         })
     }
 
@@ -126,9 +108,9 @@ const Sale = ({route,navigation}) => {
               .then((res)=>{
                 if (res.data) {
                     console.log(!isBook);
-                    setList(list.map((e,i)=> e.id==index ? {...e, booked:!isBook, bookedBy: uid} : e))
+                    setList(list.map((e,i)=> e._id==index ? {...e, booked:!isBook, bookedBy: uid} : e))
                 } else {
-                    setList(list.map((e,i)=> e.id==index ? {...e, booked:true, bookedBy: 'other'} : e))
+                    setList(list.map((e,i)=> e._id==index ? {...e, booked:true, bookedBy: 'other'} : e))
                 }
               })
               .catch(error=>console.log(error))
@@ -138,9 +120,14 @@ const Sale = ({route,navigation}) => {
 
     const search = async () => {
         setLoading(true)
-        await axios.get('/sale',{...config(),params:settings}).then(res=>{
+        console.log('more2',settings,list.length);
+        await axios.get('/sale',{...config(),params:{
+            ...settings,
+            skip:list.length,
+            search:searchText
+        }}).then(res=>{
             console.log(res.data);
-            setList(res.data)
+            setList(old=>[...old,...res.data])
         }).catch(err=>{
             //navigation.push('bejelentkezes');
             console.error(err);
@@ -149,6 +136,8 @@ const Sale = ({route,navigation}) => {
         setLoading(false)
     }
 
+    if (id && width < 900)
+    return <Item data={list.find(e=>e._id == selected)} toLoadId={selected} />
     return (
     <View style={{flex:1, flexDirection:'row'}}>
         <View style={{flex:1}}>
@@ -191,62 +180,74 @@ const Sale = ({route,navigation}) => {
                     />
                 </View>
                 <View style={{flex:1}}>
-                <View style={{maxWidth:300}}>
-                    <View style={{flexDirection:'row', alignItems:'center',margin:2}}>
-                        <MyText style={{flex:1,}}>Szinonímákkal</MyText>
-                        <Switch
-                            trackColor={{ false: '#767577', true: '#3e3e3e' }}
-                            thumbColor={settings?.synonims ? '#white' : 'white'}
-                            ios_backgroundColor="#3e3e3e"
-                            onValueChange={(e)=>{setSettings({...settings, synonims: e})}}
-                            value={settings?.synonims}
-                            style={{alignSelf:'flex-end'}}
-                        />
+                    <View style={{maxWidth:300}}>
+                        <View style={{flexDirection:'row', alignItems:'center',margin:2}}>
+                            <MyText style={{flex:1,}}>Szinonímákkal</MyText>
+                            <Switch
+                                trackColor={{ false: '#767577', true: '#3e3e3e' }}
+                                thumbColor={settings?.synonims ? '#white' : 'white'}
+                                ios_backgroundColor="#3e3e3e"
+                                onValueChange={(e)=>{setSettings({...settings, synonims: e})}}
+                                value={settings?.synonims}
+                                style={{alignSelf:'flex-end'}}
+                            />
+                        </View>
+                        <View style={{flexDirection:'row', alignItems:'center',margin:2}}>
+                            <MyText style={{flex:1,}}>Sajátjaim</MyText>
+                            <Switch
+                                trackColor={{ false: '#767577', true: '#3e3e3e' }}
+                                thumbColor={settings?.mine ? '#fff' : 'white'}
+                                ios_backgroundColor="#3e3e3e"
+                                onValueChange={(e)=>{setSettings({...settings, author: e ? uid : null})}}
+                                value={settings?.author == uid}
+                                style={{alignSelf:'flex-end'}}
+                            />
+                        </View>
                     </View>
-                    <View style={{flexDirection:'row', alignItems:'center',margin:2}}>
-                        <MyText style={{flex:1,}}>Sajátjaim</MyText>
-                        <Switch
-                            trackColor={{ false: '#767577', true: '#3e3e3e' }}
-                            thumbColor={settings?.mine ? '#fff' : 'white'}
-                            ios_backgroundColor="#3e3e3e"
-                            onValueChange={(e)=>{setSettings({...settings, author: e ? uid : null})}}
-                            value={settings?.author == uid}
-                            style={{alignSelf:'flex-end'}}
-                        />
-                    </View>
-                </View>
                     {!!keys?.length &&
                     <MyText style={{margin:10}}>Keresőszavak: {keys.map((e,i)=>i < keys.length-1 ? e+', ' : e)}</MyText>}
                     <MyText>Találatok száma: {list.length}</MyText>
-                    <NewButton title="Mehet" onPress={()=>search()}/>
+                    <NewButton title="Mehet" onPress={()=>{setList([]);search()}}/>
                 </View>
             </Auto>
-            <ScrollView>
-                {!loading ? 
-                    list.length ?
-                    list.map((e,i)=>{
-                        return (
-                            <SaleListItem 
-                                data={e}
-                                key={i} 
-                                i={i} 
-                                setSelected={setSelected}
-                                bookItem={bookItem}
-                                deleteItem={()=>setCloseModal(true)}
-                                openUserModal={()=>setUserModal(true)}
-                            />
-                        )
-                    })
-                    : <View style={{justifyContent:'center',alignItems:'center',margin:30}}>
-                        <MyText style={{fontSize:20}}>Nincs találat!</MyText>
-                    </View>
-                 : <Loading color='#FFC372' height={10}/>}
+            <ScrollView
+                scrollEventThrottle={16}
+                onScroll={event => {
+                        if (isCloseToBottom(event.nativeEvent)) {
+                        loadMoreData()
+                        }
+                    }
+                    }
+                >
+                {list.length ?
+                list.map((e,i)=>{
+                    return (
+                        <SaleListItem 
+                            data={e}
+                            key={i} 
+                            i={i} 
+                            selected={selected == e._id}
+                            setSelected={setSelected}
+                            bookItem={bookItem}
+                            deleteItem={()=>setCloseModal(true)}
+                            openUserModal={()=>setUserModal(true)}
+                        />
+                    )
+                })
+                : <View style={{justifyContent:'center',alignItems:'center',margin:30}}>
+                    <MyText style={{fontSize:20}}>Nincs találat!</MyText>
+                </View>}
+                 {loading && <Loading color='#FFC372' height={10}/>}
             </ScrollView>
             
         </View>
         {(width > 900) &&
             <View style={{flex:1,backgroundColor:'white'}}>
-                <NewSaleItem/>
+                {selected ? 
+                <Item data={list.find(e=>e._id == selected)} toLoadId={selected} 
+                            deleteItem={()=>setCloseModal(true)}/>
+                :
+                <NewSaleItem/>}
             </View>
         }
         {(width <= 900) &&

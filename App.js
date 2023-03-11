@@ -139,8 +139,6 @@ const Navigator = () => {
           <Stack.Screen name="esemenyek" component={Events} options={{ title: "Események" }} />
           <Stack.Screen name="esemeny" component={Event} />
           <Stack.Screen name="uj-esemeny" component={NewEvent} options={{ title: "Új esemény" }} />
-
-          <Stack.Screen name="unatkozom" component={New} options={{ title: "Unatkozom" }} />
           
           <Stack.Screen name="cserebere" component={Sale} options={{ title: "Cserebere" }} />
           <Stack.Screen name="uj-cserebere" component={Item} options={{ title: "Cserebere" }} />

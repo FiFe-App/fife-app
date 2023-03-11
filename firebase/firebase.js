@@ -113,7 +113,9 @@ export default ({ children }) => {
         if (msg) {
             deleteToken(msg).then(e=>console.log('token deleted?',e))
             .catch(err=>console.error(err))
-            dispatch(sliceLogout())
+            .finally(()=>{
+                dispatch(sliceLogout())
+            })
         }
     }
 

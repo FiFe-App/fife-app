@@ -13,15 +13,10 @@ import axios from "axios";
 import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
 import Select from "../../components/Select";
 import { config } from "../../firebase/authConfig";
+import { saleCategories } from '../../lib/categories';
 
 
-const categories = [
-  'Eladó tárgyak',
-  'Tárgyakat keresek',
-  'Kiadó lakás',
-  'Munka',
-  'Bármi egyéb'
-]
+const categories = saleCategories.map(c=>{return c.name});
 
 
 const NewItem = ({route,navigation,data}) => {
@@ -49,7 +44,8 @@ const NewItem = ({route,navigation,data}) => {
           category:category
         },config()).then(async (res)=>{
           if (images?.length) {
-            await uploadImages('sale',res).then(()=>{
+            console.log('res',res);
+            await uploadImages('sale',res.data).then(()=>{
               setImages([])
               setTitle('')
               setText('')
@@ -75,12 +71,12 @@ const NewItem = ({route,navigation,data}) => {
         const storage = getStorage(app);
 
         let uploadedImages = [];
-        images.forEach(async (image,index) => {
+        let index = 0
+        for (const image of images) {
           
           let localUri = image;
           let filename = localUri.split('/').pop();
           const ref = storageRef(storage, collection+'/'+item+'/'+index);
-
 
           const blob = await new Promise((resolve, reject) => {
               const xhr = new XMLHttpRequest();
@@ -96,24 +92,30 @@ const NewItem = ({route,navigation,data}) => {
               xhr.send(null);
           });
 
-          uploadBytes(ref, blob).then(async (snapshot) => {
-          }).then(res=>{
-            uploadImages.push(index)
+          await uploadBytes(ref, blob).then(async (snapshot) => {
+            uploadedImages.push(index)
+            console.log('pushed',index);
           }).catch(error=>console.error(error))
-        })
+          index++;
+        }
 
-
-        console.log(uploadedImages);
-        axios.patch('/sale/'+item,{
-          imageDesc: 
-          uploadedImages.map((im,ind)=>{
+        const data = {
+          descriptions: 
+          uploadedImages.map((im)=>{
             return imageTexts[im]
           }),
-          imageBookable: 
-          uploadedImages.map((im,ind)=>{
-            return imageTexts[im]
+          bookables: 
+          uploadedImages.map((im)=>{
+            return imageBookable[im]
           })
-        },config()).then(async (res)=>{
+        };
+        console.log('uploadedimgs',uploadedImages);
+        console.log('data',data);
+        axios.patch(
+          '/sale/'+item+'/images',
+          data,
+          config()
+        ).then(async (res)=>{
           console.log('updated db',res);
         })
       }
@@ -179,7 +181,7 @@ const NewItem = ({route,navigation,data}) => {
     )
 }
 
-const ImageAdder = ({setGlobalImages,setGlobalImageTexts,setGlobalImageBookbale}) => {
+const ImageAdder = ({setGlobalImages,setGlobalImageTexts,globalImageBookale,setGlobalImageBookbale}) => {
   const [images, setImages] = useState([]);
   const [separate, setSeparate] = useState([]);
   const [texts, setTexts] = useState([]);
@@ -199,6 +201,7 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,setGlobalImageBookbale}
       setImages([...images,result.uri]);
       setGlobalImages([...images,result.uri]);
       setTexts([...texts,''])
+      setGlobalImageBookbale([...separate,false])
       setSeparate([...separate,false])
     }
   };
@@ -207,11 +210,13 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,setGlobalImageBookbale}
     setGlobalImages(images.filter((image,i) => i !== index))
     setTexts(texts.filter((text,i) => i !== index))
     setSeparate(separate.filter((text,i) => i !== index))
+    setGlobalImageBookbale(separate.filter((text,i) => i !== index))
   }
 
   const handleSeparate = (index) => {
     console.log(separate.map((s,i) => i == index ? !s : s));
     setSeparate(separate.map((s,i) => i == index ? !s : s))
+    setGlobalImageBookbale(separate.map((s,i) => i == index ? !s : s))
   }
 
   const handleTextChange = (text,index) => {
