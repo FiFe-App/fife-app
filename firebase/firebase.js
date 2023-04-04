@@ -3,11 +3,12 @@
 
 import React, { createContext, useEffect, useState } from 'react'
 import firebaseConfig from './firebaseConfig';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, FacebookAuthProvider, signInWithPopup, fetchSignInMethodsForEmail } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged,
+    FacebookAuthProvider, signInWithPopup, fetchSignInMethodsForEmail, sendPasswordResetEmail } from "firebase/auth";
 
 import { initializeApp } from 'firebase/app';
 import { get, getDatabase, ref, set } from "firebase/database";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { login as sliceLogin, logout as sliceLogout, removeUnreadMessage, setName, setSettings, setUnreadMessage, setUserData } from '../lib/userReducer';
 import { Platform } from 'react-native';
 
@@ -33,6 +34,7 @@ export default ({ children }) => {
     const [api,setApi] = useState(null)
     const dispatch = useDispatch()
     const [messaging, setMessaging] = useState(null);
+    const uid = useSelector((state) => state.user.uid);
 
 
     useEffect(()=>{init()},[])
@@ -51,25 +53,26 @@ export default ({ children }) => {
 
             const appNew = initializeApp(firebaseConfig);
 
+            setApi({
+                    login,loadUid,register,facebookLogin,logout,forgotPassword
+                })
             setApp(appNew)
             appCheck(appNew)
             setDatabase(getDatabase(appNew))
             setFirestore(getFirestore(appNew))
             setStorage(getStorage(appNew))
             setAuth(getAuth(appNew))
-            setApi({
-                    login,loadUid,register,facebookLogin,logout
-                })
             return appNew;
         }
     }
 
-    const initMessaging = async (app,uid) => {
-        const messaging = getMessaging(app);
-        const db = getDatabase(app)
+    const initMessaging = async () => {
+        const messaging = getMessaging();
+        const db = getDatabase()
         console.log('msg init');
         await Notification.requestPermission().then((permission) => {
-          if (permission !== 'default') {
+            console.log(permission);
+          if (permission !== 'granted') {
             dispatch(removeUnreadMessage('notification'))
           } else {
             setMessaging(messaging);
@@ -79,7 +82,12 @@ export default ({ children }) => {
             }).then((currentToken) => {
             if (currentToken) {
                 console.log(currentToken);
-                set(ref(db,'/users/'+uid+'/data/fcm'),{token:currentToken})
+                console.log(uid);
+                set(ref(db,'/users/'+uid+'/data/fcm'),{token:currentToken}).catch(err=>{
+                    console.log(err);
+                }).then(res=>{
+                    console.log(res);
+                })
             } else {
                 // Show permission request UI
                 //alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
@@ -92,6 +100,8 @@ export default ({ children }) => {
             // ...
             });
           }
+        }).catch(err=>{
+            console.error(err);
         })
     }
 
@@ -106,6 +116,17 @@ export default ({ children }) => {
         // tokens as needed.
         isTokenAutoRefreshEnabled: true
         });
+    }
+
+    const forgotPassword = async (email) => {
+        const auth = getAuth()
+        if (!email || email == '') return 'Email nélkül nem tudjuk visszaállítani a jelszavad'
+        return sendPasswordResetEmail(auth,email).then(res=>{
+            return "Küldtünk egy email, amivel vissza tudod állítani a fiókodat a rendes kerékvágásba!"
+        }).catch(err=>{
+            console.log(err);
+            return 'Aj-aj hiba történt! Próbáld meg később légyszi'
+        })
     }
 
     const logout = () => {
@@ -172,14 +193,12 @@ export default ({ children }) => {
                 const errorMessage = error.message;
                 console.error(error);
             
-                if (errorCode == "auth/invalid-email")
-                    response = {error:"Ez nem is egy email-cím haver!"};
+                if (errorCode == "auth/invalid-email" || errorCode == "auth/user-not-found")
+                    response = {error:"Bakfitty! Nem jó az email cím, amit megadtál!"};
                 else if (errorCode == "auth/internal-error")
-                    response = {error:"Hát... nem tudom mi történt bocs!"};
+                    response = {error:"Bocsi, a szerveren hiba történt!"};
                 else if (errorCode == "auth/wrong-password")
-                    response = {error:"Lehet elírtad a jelszavad"};
-                else if (errorCode == "auth/user-not-found")
-                    response = {error:"Tesóó, nincs ilyen felhasználó!"}
+                    response = {error:"Bakfitty! Lehet elírtad a jelszavad"};
                 else
                     response = {error:"error: " + errorCode + " - " + errorMessage};
             });

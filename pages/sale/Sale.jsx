@@ -7,7 +7,7 @@ import { search } from "../../lib/textService/textService";
 import { default as NewSaleItem } from "./NewItem";
 
 import { ref as dbRef } from "firebase/database";
-import { useWindowDimensions } from "../../lib/hooks/window";
+import {useWindowDimensions} from 'react-native';
 
 import { useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
@@ -55,11 +55,16 @@ const Sale = ({ navigation, route }) => {
     const [searchText, setSearchText] = useState('');
     const [searchResult, setSearchResult] = useState([]);
     const [selected, setSelected] = useState(id || null);
+    const [hide, setHide] = useState(false);
     
     const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
-        const paddingToBottom = 20
+        const paddingToBottom = 0
         return layoutMeasurement.height + contentOffset.y >=
           contentSize.height - paddingToBottom
+    }
+    const isScrollDown = ({layoutMeasurement, contentOffset, contentSize}) => {
+        const paddingToBottom = 0
+        return contentOffset.y >= 20
     }
 
     const loadMoreData = () => {
@@ -70,6 +75,7 @@ const Sale = ({ navigation, route }) => {
     }
 
     useEffect(() => {
+        if (selected && width < 900) navigation.navigate('cserebere',{id:selected})
         console.log('uef',selected);
     }, [selected]);
 
@@ -148,7 +154,7 @@ const Sale = ({ navigation, route }) => {
                         style={{fontSize:15,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white'}}
                         placeholder="Keress csereberében"
                     />
-                    <Select
+                    {(!hide || width > 600) && <><Select
                         list={categories}
                         style={{fontSize:15,padding:10,marginVertical:0,margin:10,marginBottom:10,borderWidth:2,backgroundColor:'white',width:'95%'}}
                         placeholder="Válassz kategóriát"
@@ -178,8 +184,9 @@ const Sale = ({ navigation, route }) => {
                         style={{fontSize:15,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white'}}
                         placeholder="Szerző"
                     />
+                    </>}
                 </View>
-                <View style={{flex:1}}>
+                {(!hide || width > 600) && <View style={{flex:1}}>
                     <View style={{maxWidth:300}}>
                         <View style={{flexDirection:'row', alignItems:'center',margin:2}}>
                             <MyText style={{flex:1,}}>Szinonímákkal</MyText>
@@ -208,13 +215,17 @@ const Sale = ({ navigation, route }) => {
                     <MyText style={{margin:10}}>Keresőszavak: {keys.map((e,i)=>i < keys.length-1 ? e+', ' : e)}</MyText>}
                     <MyText>Találatok száma: {list.length}</MyText>
                     <NewButton title="Mehet" onPress={()=>{setList([]);search()}}/>
-                </View>
+                </View>}
             </Auto>
             <ScrollView
                 scrollEventThrottle={16}
                 onScroll={event => {
                         if (isCloseToBottom(event.nativeEvent)) {
                         loadMoreData()
+                        }
+                        const down = isScrollDown(event.nativeEvent);
+                        if (down != hide) {
+                            setHide(down)
                         }
                     }
                     }

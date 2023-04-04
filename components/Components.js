@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Animated, Text, StyleSheet, View, Image, Easing, Pressable, ScrollView, TextInput as RNTextInput, TouchableOpacity, ActivityIndicator, Platform, Modal } from 'react-native';
+import { Animated, Text, StyleSheet, View, Easing, Pressable, ScrollView, TextInput as RNTextInput, TouchableOpacity, ActivityIndicator, Platform, Modal } from 'react-native';
 import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useForm, Controller } from "react-hook-form";
@@ -7,6 +7,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { global } from '../lib/global';
 import { styles as newStyles } from '../styles/styles';
 import {useWindowDimensions} from 'react-native';
+import Image from 'expo-fast-image'
+import CachedImage from 'expo-cached-image'
+
 
 import ImageModal from 'react-native-image-modal';
 import { TextFor } from '../lib/textService/textService';
@@ -55,14 +58,8 @@ const getUri = async (path) => {
   const storage = getStorage();
   const imgRef = sRef(storage, path);
   //console.log('path',path);
-  let returnValue = null 
-  await getDownloadURL(imgRef).then(
-    uri=>{
-      returnValue = uri
-    }
-  )
-  //console.log(returnValue);
-  return returnValue
+  console.log(path);
+  return await getDownloadURL(imgRef)
 } 
 
 const getNameOf = async (uid) => {
@@ -76,42 +73,36 @@ const getNameOf = async (uid) => {
 }
 
 
-const ProfileImage = (props) => {
+const ProfileImage = ({uid,size=40}) => {
   // eslint-disable-next-line no-undef
   const defaultUrl = require('../assets/profile.jpeg');
   const [url, setUrl] = React.useState(null);
-  const [loaded, setLoaded] = React.useState(false);
   const storage = getStorage();
 
   useEffect(() => {
-    setLoaded(false)
-    if (props.uid){
-      getDownloadURL(sRef(storage, props?.uid ? `profiles/${props.uid}/profile.jpg` : props.uid))
+    console.log('UID',uid);
+    if (uid){
+      getDownloadURL(sRef(storage, uid ? `profiles/${uid}/profile.jpg` : uid))
       .then((url) => {
         setUrl(url);
-        setLoaded(true)
+        console.log(url);
       })
       .catch((error) => {
         console.log('e');
         setUrl(defaultUrl)
-        setLoaded(true)
       });
 
     }
-  }, [props.uid]);
+  }, [uid]);
 
-  var size = 40;
-  if (props.size) size = props.size;
-
-  return <View style={[props.style,{width: size, height: size}]}>
-    { !loaded ?
-    <ActivityIndicator style={{position:'absolute', width: size, height: size}} color='rgba(255,175,0,0.7)' />:
-    <ImageModal style={{width: size, height: size}}
-      resizeMode="cover"
-      modalImageResizeMode="center"
-      source={{ uri: url }} onLoad={() => setLoaded(true)} onError={()=>{setUrl(defaultUrl)}}/>}
+  if (!url) return <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
+  return <CachedImage style={{width: size, height: size}}
+      cacheKey={`${uid}-uid`}
+      placeholderContent={( 
+        <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
+      )} 
+      source={{ uri: url }}  />
     
-    </View>;
     
 }
 
@@ -377,6 +368,7 @@ const SearchBar = (props) => {
 
 const OpenNav = ({open,children,style}) => {
 
+  const width = useWindowDimensions().width;
   const size = useRef(new Animated.Value(-390)).current 
 
   useEffect(() => {
@@ -384,8 +376,9 @@ const OpenNav = ({open,children,style}) => {
     Animated.timing(
       size,
       {
-        toValue: 62,
+        toValue: width<470 ? 62 : 86,
         duration: 500,
+        useNativeDriver: false
       }
     ).start();
     else
@@ -401,8 +394,8 @@ const OpenNav = ({open,children,style}) => {
 
   return (
     <>
-      <View style={{height:60,width:'100%',backgroundColor:'#FDEEA2',position:'absolute'}}></View>
-      <Animated.View style={style && {position:'absolute',top:size,width:'100%',zIndex:-30}}>
+      <View style={{height:width<470 ? 60 : 80,width:'100%',backgroundColor:'#FDEEA2',position:'absolute'}}></View>
+      <Animated.View style={style && {position:'absolute',top:size,width:'100%',zIndex:-30,elevation: -30}}>
         {children}
       </Animated.View>
     </>

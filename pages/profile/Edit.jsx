@@ -1,21 +1,18 @@
 
-import React, { useEffect, useContext, useState } from 'react';
-import { View, Button, Image, Pressable, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { styles } from '../../styles/styles'
-import { useSelector } from 'react-redux'
+import React, { useContext, useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Image from 'expo-fast-image';
+import { useSelector } from 'react-redux';
 import { FirebaseContext } from '../../firebase/firebase';
-import { getAuth } from "firebase/auth";
 
-import Icon from 'react-native-vector-icons/Ionicons'
+import Icon from 'react-native-vector-icons/Ionicons';
 
-import * as ImagePicker from 'expo-image-picker';
-import { getDatabase, set, get, ref as databaseRef, onChildAdded, remove, query, equalTo } from 'firebase/database';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Auto, Loading, NewButton, Row, TextInput, MyText } from '../../components/Components';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
-import ImageModal from 'react-native-image-modal';
-import { useWindowDimensions } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+import { equalTo, get, getDatabase, query, ref as databaseRef, set } from 'firebase/database';
+import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
+import { ActivityIndicator, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { Auto, MyText, NewButton, Row, TextInput } from '../../components/Components';
 
 const themeColor = '#000';//#ba9007
 const color2 = '#fcf3d4'//'#FFC372'

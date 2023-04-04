@@ -1,17 +1,14 @@
-import { ProfileImage, Loading, Row, Col } from '../../components/Components'
+import { Loading, ProfileImage, Row } from '../../components/Components';
 
-import { ref, child, get, set, onValue } from "firebase/database";
 import { getAuth } from "firebase/auth";
+import { onValue, ref, set } from "firebase/database";
 
-import React, { useEffect } from 'react';
-import { Text, Platform, View, Button, Pressable } from 'react-native';
-import {styles} from '../../styles/styles'
-import { global } from '../../lib/global'
-import { Animated, Image, Easing } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons'
+import React, { useEffect } from 'react';
+import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import { global } from '../../lib/global';
+import { styles } from '../../styles/styles';
 //import MapView from 'react-native-maps';
-import { Dimensions } from 'react-native';
 
 
 const Event = ({ navigation, route }) => {

@@ -11,13 +11,13 @@ const styles = StyleSheet.create({
     module: {
         alignSelf:'stretch',
         backgroundColor:'white',
-        flex:1,
+        flexGrow:1,
         width: 200,
         margin:2,
     },
     moduleText: {
         backgroundColor:'white',
-        padding:2
+        padding:2,
     },
     moduleScrollView: {
         height:170,

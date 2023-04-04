@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-//import { Image, MyText, View, Button, TextInput } from 'react-native';
 import { Animated, Button, Dimensions, Easing, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 // routes
 
@@ -15,7 +14,7 @@ import { Helmet } from 'react-helmet';
 import { useWindowDimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
-import { MyText, TextInput } from '../../components/Components';
+import { B, MyText, TextInput } from '../../components/Components';
 import { FirebaseContext } from '../../firebase/firebase';
 import First from '../first/First';
 
@@ -77,7 +76,7 @@ const LoginScreen = ({ navigation, route }) => {
           FiFe App
         </MyText>
         }
-        <MyText style={{fontSize:60, fontFamily:'SpaceMono_400Regular',color:'rgb(255, 217, 90)',backgroundColor:'black',textAlign:'right',paddingLeft:30,paddingRight:30}}>légy közelebb</MyText>
+        <MyText style={{fontSize:60, fontFamily:'SpaceMono_400Regular',color:'rgb(255, 217, 90)',backgroundColor:'black',textAlign:'right',paddingLeft:30,paddingRight:30}}>cserebere buzinessz</MyText>
 
         <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
             {!true ?
@@ -106,16 +105,14 @@ const  LoginForm = () => {
   const [username, onChangeUsername] = React.useState("");
   const [password, onChangePassword] = React.useState("");
   const [loginError, onChangeLoginError] = React.useState(null);
-  const { api }  = useContext(FirebaseContext);
+  const context  = useContext(FirebaseContext);
   const user = useSelector((state) => state.user)
 
   const signIn = (email, password, printMessage) => {
     console.log('sign in');
     setLoading(true)
-    console.log(api);
-    console.log(useContext);
-    console.log(FirebaseContext);
-    api?.login(email,password).then((res) => {
+    console.log(context);
+    context?.api?.login(email,password).then((res) => {
       if (res?.success) {
         navigation.push('fooldal') 
         console.log('user',user);
@@ -129,6 +126,11 @@ const  LoginForm = () => {
     })
     
   }
+
+  const forgot = () => {
+    navigation.push('elfelejtett-jelszo')
+  }
+
   return (
     <View style={{justifyContent:'center',alignSelf:'center',alignItems:"center",flex:1}}>
       <View style={{flexDirection:'row',flex:1}}>
@@ -158,6 +160,9 @@ const  LoginForm = () => {
       </View>
       {!!loginError && <View style={styles.error}>
         <MyText style={{color:'#942400',fontSize:25}} >{loginError}</MyText>
+        <Pressable onPress={forgot} style={{padding:10,borderRadius:8,backgroundColor:'black',marginTop:16}}>
+          <MyText style={{color:'white'}}><B>Aj-aj nem tudok bejelentkezni!</B></MyText>
+        </Pressable>
       </View>}
     </View>
   )

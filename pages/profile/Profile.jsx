@@ -1,22 +1,20 @@
-import { ProfileImage, Loading, Row, NewButton, Auto, MyText, Popup } from '../../components/Components'
+import { Auto, Col, getNameOf, Loading, MyText, NewButton, Popup, ProfileImage, Row } from '../../components/Components';
 
-import { ref, child, get, set, onValue } from "firebase/database";
+import { child, get, onValue, ref, set } from "firebase/database";
 
-import React, { useEffect, useContext, useCallback } from 'react';
-import { Platform, View, Pressable, Dimensions, Linking, ScrollView } from 'react-native';
-import {styles} from '../../styles/styles'
-import { Animated, Image, Easing } from 'react-native';
-import { Link, useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useContext, useEffect } from 'react';
+import { Animated, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
+import { styles } from '../../styles/styles';
 
-import { useSelector } from 'react-redux'
+import { useSelector } from 'react-redux';
 import { FirebaseContext } from '../../firebase/firebase';
 
-import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
-import { useWindowDimensions } from 'react-native'
-import { Map } from './Edit';
 import axios from 'axios';
+import { useWindowDimensions } from 'react-native';
 import { config } from '../../firebase/authConfig';
 import { SaleListItem } from '../sale/SaleListItem';
+import { Map } from './Edit';
 
 const bgColor = '#fffcf7'//'#ffd581dd'
 
@@ -51,11 +49,17 @@ const Profile = ({ navigation, route }) => {
       if (snapshot.exists()) {
         const all = snapshot.val();
         console.log('all',Object.keys(all));
-        setFollowers(Object.keys(all) || []);
+        Object.keys(all).map(f=>{
+          setFollowers(async old=>[...old,{uid:f,name:await getNameOf(f)}])
+        })
+        //setFollowers(Object.keys(all) || []);
         setFollowButtonState(Object.keys(all).includes(myuid));
       }
     })
   }
+  useEffect(() => {
+    console.log('FFFF',followers);
+  }, [followers]);
   
   useFocusEffect(
     useCallback(() => {
@@ -79,7 +83,10 @@ const Profile = ({ navigation, route }) => {
         onValue(likeRef, (snapshot) => {
           const all = snapshot.val() || [];
           console.log('all',Object.keys(all));
-          setFollowers(Object.keys(all));
+          Object.keys(all).map(async f=>{
+            const name = await getNameOf(f);
+            setFollowers(old=>[...old,{uid:f,name}])
+          })
           setFollowButtonState(Object.keys(all).includes(myuid));
         })
       }
@@ -99,18 +106,24 @@ const Profile = ({ navigation, route }) => {
         <View style={{alignItems:'center'}}>
           <ProfileImage uid={uid} size={150} style={[localStyles.container,{paddingHorizontal:0}]}/>
         </View>
-        <View style={{flex:width <= 900 ? 'none' : 2,zIndex:10}}>
+        <View style={{flex:width <= 900 ? 'none' : 2,zIndex:10,elevation: 10}}>
           <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.name}</MyText></View>
           <Row style={{flex:width <= 900 ? 'none' : 1}}>
             <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.username}</MyText></View>
             <Popup style={localStyles.fcontainer}
-            popup={<ScrollView style={{marginTop:200,zIndex:100,maxHeight:200}} contentContainerStyle={[localStyles.fcontainer]}>
-              {followers.map((f,i)=><ProfileImage key={i} uid={f} size={40} style={[localStyles.container,{paddingHorizontal:0}]}/>)}
+            popup={<ScrollView style={{marginTop:200,zIndex:100,elevation: 100,maxHeight:200}} contentContainerStyle={[localStyles.fcontainer]}>
+              {followers.map((f,i)=><Row key={i}>
+                <Col>
+                  <MyText>{f.name}</MyText>
+                  <ProfileImage uid={f.uid} size={40} style={[localStyles.container,{paddingHorizontal:0}]}/>
+                </Col> 
+              </Row>
+              )}
             </ScrollView>}
             ><MyText style={localStyles.text}>Pajtásaim: {followers?.length}</MyText></Popup>
           </Row>
         </View>
-        <View style={[localStyles.container,{flex:width <= 900 ? 'none' : 1,zIndex:'auto'}]}>
+        <View style={[localStyles.container,{flex:width <= 900 ? 'none' : 1,zIndex:'auto',elevation: 'auto'}]}>
             { !myProfile && <>
             <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('uzenetek',{selected:uid})}/>
             <NewButton title={profile.name + (followButtonState ? ' már a pajtásom!' : ' még nem a pajtásom')} onPress={follow}/>
@@ -122,7 +135,7 @@ const Profile = ({ navigation, route }) => {
 
         </View>
       </Auto>
-      <Auto style={{flex:1,zIndex:-1}}>
+      <Auto style={{flex:1,zIndex:-1,elevation: -1}}>
         <View style={{flex:width <= 900 ? 'none' : 1}}>
           <Section title="Rólam">
             <MyText style={localStyles.subText}>{profile.bio}</MyText>

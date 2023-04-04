@@ -23,11 +23,13 @@ exports.newMessage = functions.database.ref('/users/{uid}/messages/{uid2}/last')
         if (!change.after.exists()) {
         return null;
         }
+        const uid2 = context.params.uid2
+        const uid = context.params.uid
         const newMsg = change.after.val()
         if (newMsg.from == context.params.uid) return null;
         const db = admin.database();
-        const ref = db.ref('users/'+context.params.uid+'/data/fcm/token');
-        const name = db.ref('users/'+context.params.uid2+'/data/name');
+        const ref = db.ref('users/'+uid+'/data/fcm/token');
+        const name = db.ref('users/'+uid2+'/data/name');
         ref.once("value", function(snapshot) {
             name.once("value", function(nameSnapshot) {
             const token = snapshot.val();
@@ -48,13 +50,7 @@ exports.newMessage = functions.database.ref('/users/{uid}/messages/{uid2}/last')
                     body: newMsg.message,
                 }
             };
-
-            admin.messaging().send(payload).then((response) => {
-                // Response is a message ID string.
-                return {success: true};
-            }).catch((error) => {
-                return {error: error.code};
-            });
+            admin.messaging().send(payload)
             })
         });
 

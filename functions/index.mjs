@@ -1,0 +1,35 @@
+import express from "express";
+import cors from "cors";
+import "./lib/loadEnvironment.mjs";
+import "express-async-errors";
+import sale from "./routes/sale.mjs";
+import users from "./routes/users.mjs";
+import search from "./routes/search.mjs";
+import places from "./routes/places.mjs";
+import { checkAuth } from "./lib/auth.mjs";
+import serverless from 'serverless-http';
+
+const app = express();
+const router = express.Router()
+
+
+app.use(cors());
+app.use(express.json());
+
+// Load the /posts routes
+router.use("/sale", checkAuth, sale);
+router.use("/users", checkAuth, users);
+router.use("/places", checkAuth, places);
+router.use("/search", checkAuth, search);
+
+
+// Global error handling
+router.use((err, _req, res, next) => {
+  console.log(err);
+  res.status(500).send("Uh oh! An unexpected error occured.")
+})
+
+app.use('/.netlify/functions/index',router)
+
+
+export const handler = serverless(app)

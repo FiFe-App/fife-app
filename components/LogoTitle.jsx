@@ -32,12 +32,12 @@ export function LogoTitle() {
     }
 
     return (
-      <LinearGradient style={{zIndex:100}} colors={['#FDEEA2', "#FDEEA2"]} style={{borderBottomWidth:2}} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
+      <LinearGradient style={{zIndex:100,elevation: 100}} colors={['#FDEEA2', "#FDEEA2"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
         <Helmet>
           <meta name="theme-color" content="#FDEEA2"/>
         </Helmet>
         <SafeAreaView>
-          <OpenNav open={open} style={{width:'100%',zIndex: -10}}>
+          <OpenNav open={open} style={{width:'100%',zIndex: -10,elevation: -10}}>
             <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
             <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
             <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>

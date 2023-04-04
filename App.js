@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useState, useContext, useEffect, Suspense } from 'react';
+import React, { Suspense, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -24,34 +24,33 @@ const Settings = React.lazy(()=>import("./pages/settings"))
 const BodyAndSoul = React.lazy(()=>import("./pages/BodyAndSoul"))
 const Server = React.lazy(()=>import("./pages/server"))
 const About = React.lazy(()=>import("./pages/About"))
+const Forgot = React.lazy(()=>import("./pages/login/Forgot"))
 
-
-import Snowfall from 'react-snowfall'
+import Snowfall from 'react-snowfall';
 
 // fonts
-import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
-import { Poppins_400Regular } from '@expo-google-fonts/poppins'
-import { SpaceMono_400Regular } from '@expo-google-fonts/space-mono'
+import { AmaticSC_700Bold, useFonts } from '@expo-google-fonts/amatic-sc';
+import { Poppins_400Regular } from '@expo-google-fonts/poppins';
+import { SpaceMono_400Regular } from '@expo-google-fonts/space-mono';
 
 // routes
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
-import { NavigationContainer } from '@react-navigation/native';
 
 
-import { Provider } from 'react-redux'
-import FirebaseProvider from './firebase/firebase'
-import { FirebaseContext } from './firebase/firebase';
+import { Provider } from 'react-redux';
+import FirebaseProvider, { FirebaseContext } from './firebase/firebase';
 
-import {store,persistor} from './lib/store'
-import { PersistGate } from 'redux-persist/integration/react'
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistor, store } from './lib/store';
 
-import { useSelector } from 'react-redux'
+import { useSelector } from 'react-redux';
 
 import { Helmet } from 'react-helmet';
 
-import { onMessage } from "firebase/messaging";
 import { LinearGradient } from 'expo-linear-gradient';
+import { onMessage } from "firebase/messaging";
 import { Loading, MyText } from './components/Components';
 
 const Stack = createNativeStackNavigator();
@@ -63,7 +62,7 @@ export default function App(props) {
   let [fontsLoaded] = useFonts({
     AmaticSC_700Bold,Poppins_400Regular,SpaceMono_400Regular
   });
-
+  
   if (!fontsLoaded)
   return <LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />
     return (
@@ -106,7 +105,7 @@ const SnowfallWrap = () => {
   if (settings.snowfall) 
   return (
     <Snowfall
-      style={{position:'absolute',zIndex:10}}
+      style={{position:'absolute',zIndex:10,elevation: 10}}
       snowflakeCount={200}
       color="#ffffff"/>
   )
@@ -120,6 +119,7 @@ const Navigator = () => {
         <>
           <Stack.Screen name="bejelentkezes" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="az-approl" component={First} options={{ headerShown: false }} />
+          <Stack.Screen name="elfelejtett-jelszo" component={Forgot} options={{ headerShown: false }} />
           {
           //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
           }

@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from "react";
-import {View, TouchableOpacity, ScrollView, TextInput, Switch, Image} from 'react-native'
+import {View, TouchableOpacity, ScrollView, TextInput, Switch} from 'react-native'
+import Image from 'expo-fast-image';
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
 import { FAB, getUri, Loading, NewButton, ProfileImage, Row, MyText } from '../../components/Components'

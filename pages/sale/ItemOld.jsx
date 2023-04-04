@@ -25,6 +25,8 @@ export const Item = ({route,navigation,data,toLoadId,deleteItem}) => {
       setLoading(true)
       axios.get('/sale/'+toLoadId,config()).then(async res=>{
         res.data.authorName = await getNameOf(res.data.author)
+        if (bookedBy)
+        res.data.bookedBy = await getNameOf(res.data.bookedBy)
         setLoadData(res.data)
         setElapsed(elapsedTime(res.data.created_at))
         console.log(res.data);
@@ -45,6 +47,7 @@ export const Item = ({route,navigation,data,toLoadId,deleteItem}) => {
         loadImgs()
       }).catch(err=>{
         console.log('err',err);
+        setLoading(false)
       })
     }, [toLoadId]);
 
@@ -52,27 +55,30 @@ export const Item = ({route,navigation,data,toLoadId,deleteItem}) => {
       <>
         {!loading ?
       <ScrollView style={{flex:1,padding:0}}>
-        <MyText style={styles.author}>{'Ezt '+authorName+' töltötte fel, '+elapsed}</MyText>
-        <Row>
-          <MyText style={{marginBottom:20,fontSize:25,flexGrow:1}}>{title}</MyText>
-          {author == uid && <Row>
-            <NewButton style={{marginBottom:20,fontSize:25,padding:10}} title='szerkesztés' />
-            <NewButton style={{marginBottom:20,fontSize:25,padding:10}} title='törlés' color='#aa2786' onPress={deleteItem}/>
-          </Row>}
-        </Row>
-        <MyText style={{marginBottom:20,fontSize:20}}>{description}</MyText>
-        <ScrollView horizontal>
-          {images.map((img,ind)=>
-            <View key={"img"+ind} style={styles.image}>
-              {imagesBookable[ind] ? <NewButton title='Foglalható' /> : <NewButton style={{backgroundColor:'#fff'}} disabled />}
+        { loadData ? <>
+          {false && <MyText style={styles.author}>{'Ezt '+authorName+' töltötte fel, '+elapsed}</MyText>}
+          {booked && <MyText style={[styles.author,{background:'#669d51'}]}>{'Ezt '+bookedBy+' lefoglalta!'}</MyText>}
+          <Row>
+            <MyText style={{marginBottom:20,fontSize:25,flexGrow:1}}>{title}</MyText>
+            {author == uid && <Row>
+              <NewButton style={{marginBottom:20,fontSize:25,padding:10}} title='szerkesztés' />
+              <NewButton style={{marginBottom:20,fontSize:25,padding:10}} title='törlés' color='#aa2786' onPress={deleteItem}/>
+            </Row>}
+          </Row>
+          <MyText style={{marginBottom:20,fontSize:20}}>{description}</MyText>
+          <ScrollView horizontal>
+            {images.map((img,ind)=>
+              <View key={"img"+ind} style={styles.image}>
+                {imagesBookable[ind] ? <NewButton title='Foglalható' /> : <NewButton style={{backgroundColor:'#fff'}} disabled />}
 
-              <Pressable onPress={()=>setOpenedImage(ind)}>
-                <ExpoFastImage source={img} modalImageResizeMode="contain" resizeMode="cover" style={{height:200,width:200}}/>
-              </Pressable>
-              <MyText>{imagesDesc[ind]}</MyText>
-            </View>
-          )}
-        </ScrollView>
+                <Pressable onPress={()=>setOpenedImage(ind)}>
+                  <ExpoFastImage source={img} modalImageResizeMode="contain" resizeMode="cover" style={{height:200,width:200}}/>
+                </Pressable>
+                <MyText>{imagesDesc[ind]}</MyText>
+              </View>
+            )}
+          </ScrollView>
+        </> : <MyText>Nem jött adat :(</MyText>}
         
       </ScrollView>
       :<Loading color="#FFC372" height={10}/>}

@@ -2,12 +2,11 @@
 import { ImageBackground, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
-import { MyText, ProfileImage, Row } from '../../components/Components';
 import homeDesign from '../../styles/homeDesign';
+import { MyText, Row } from '../Components';
 
-import { useSelector } from 'react-redux';
 
-import { useWindowDimensions } from 'react-native'
+import { useWindowDimensions } from 'react-native';
 import { TextFor } from '../../lib/textService/textService';
 
 function Module(props) {
@@ -25,8 +24,7 @@ function Module(props) {
               </TouchableOpacity>
             </Row>
           <ScrollView horizontal style={{height:170}} contentContainerStyle={homeDesign.moduleScrollView}>
-            {data?.map((one,ind)=>{
-              console.log(props.title,one.image)
+            {data?.length ? data?.map((one,ind)=>{
               const date = new Date(one.date)
               return (
                   <TouchableOpacity key={ind+'one'} style={homeDesign.module} onPress={()=>navigation.push(props.link,{id:one.id})}>
@@ -35,12 +33,20 @@ function Module(props) {
                           <MyText style={{margin:10,backgroundColor:(one?.color||'#cfc'),padding:5}}>{one.category}</MyText>
                         </View>
                       </ImageBackground>
-                      <MyText style={[homeDesign.moduleText,{fontWeight:'bold'}]}>{one.title}</MyText>
-                      <MyText style={homeDesign.moduleText}>{one.place}</MyText>
-                      {one.date && <MyText style={homeDesign.moduleText}>{date.getFullYear()+' / '+(date.getMonth()+1)+' / '+date.getDate()}</MyText>}
+                      <View style={{justifyContent:'flex-start',height:'50%'}}>
+                        <MyText style={[homeDesign.moduleText,{fontWeight:'bold'}]}>{one.title}</MyText>
+                        <MyText style={[homeDesign.moduleText,{overflow:'hidden',flex:1}]}>{one.place}</MyText>
+                      </View>
                   </TouchableOpacity>
               )
-            })}
+            }) : [1,1,1]?.map((one,ind)=>{
+              const date = new Date(one.date)
+              return (
+                  <TouchableOpacity key={ind+'one'} style={[homeDesign.module,{backgroundColor:'#ffffff33'}]}>
+                  </TouchableOpacity>
+              )
+            })
+            }
 
           </ScrollView>
         </View>

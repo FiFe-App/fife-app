@@ -223,9 +223,10 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,globalImageBookale,setG
     console.log(text,index,'of'+texts.length);
     let arr = texts;
     console.log(texts.map((e,i)=>i==index ? text : e));
+    console.log(arr);
     setTexts(
       texts.map((e,i)=>i==index ? text : e))
-    setGlobalImageTexts(arr)
+    setGlobalImageTexts(texts.map((e,i)=>i==index ? text : e))
   }
   return(
     <ScrollView  style={{width:'100%',marginHorizontal:5}}>

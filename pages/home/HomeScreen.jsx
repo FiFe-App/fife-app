@@ -1,28 +1,27 @@
   import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-  import { Image, ImageBackground, Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
+  import Image from 'expo-fast-image';
+import { Platform, Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
 
-  import { AmaticSC_700Bold, useFonts } from '@expo-google-fonts/amatic-sc';
   import { useFocusEffect, useNavigation } from '@react-navigation/native';
-  import { Animated } from "react-native";
-  import Icon from 'react-native-vector-icons/Ionicons';
-  import { Auto, Col, getUri, MyText, Row, TextInput } from '../../components/Components';
-  import homeDesign from '../../styles/homeDesign';
+import { Animated } from "react-native";
+import Icon from 'react-native-vector-icons/Ionicons';
+import { Auto, B, Col, getUri, MyText, Row, TextInput } from '../../components/Components';
 
   import { useSelector } from 'react-redux';
-  import firebase, { FirebaseContext } from '../../firebase/firebase';
+import { FirebaseContext } from '../../firebase/firebase';
 
   import axios from 'axios';
-  import { child, get, onChildAdded, ref } from 'firebase/database';
-  import { useDispatch } from 'react-redux';
-  import { config } from '../../firebase/authConfig';
-  import {useWindowDimensions} from 'react-native';
-  import { getGreeting, TextFor } from '../../lib/textService/textService';
-  import { removeUnreadMessage, setUnreadMessage } from '../../lib/userReducer';
-  import Search from '../Search';
-  import HomeBackground from './HomeBackground';
+import { child, get, onChildAdded, ref } from 'firebase/database';
+import { useWindowDimensions } from 'react-native';
+import { useDispatch } from 'react-redux';
 import Module from '../../components/homeComponents/Module';
+import { config } from '../../firebase/authConfig';
 import { saleCategories } from '../../lib/categories';
+import { getGreeting, TextFor } from '../../lib/textService/textService';
+import { removeUnreadMessage, setUnreadMessage } from '../../lib/userReducer';
+import Search from '../Search';
+import HomeBackground from './HomeBackground';
   
   const EventData = [
     { 
@@ -110,22 +109,33 @@ import { saleCategories } from '../../lib/categories';
     const [list, setList] = useState([]);
     useFocusEffect(
       useCallback(() => {
-        console.log('res');
         const fn = async () => {
-
+          
+          let res 
           try {
-            let res = (await axios.get('/sale/latest',config())).data
-
-            res = await Promise.all(res.map( async (el,i)=> {
-              return {...el,image: await getUri('sale/'+el._id+'/'+0)}
-            }))
-            console.log('res',res);
-            setList(res)
+            res = (await axios.get('/sale/latest',config()))
+              
           } catch (error) {
             if (error?.response?.data == 'Token expired') {
-              firebase.logout()
+              console.log('Token expired');
+              return
+              //firebase.logout()
             }
             console.log('server not reachable',error);
+          }
+
+            console.log('body',res);
+          try {
+            
+            res = await Promise.all(res.data.map( async (el,i)=> {
+              return {...el,image: await getUri('sale/'+el._id+'/'+0)}
+            }))
+            setList(res)
+          } catch (error) {
+
+            console.log('error');
+          setList([])
+            
           }
 
         }
@@ -164,7 +174,7 @@ import { saleCategories } from '../../lib/categories';
     return (
       <ScrollView style={{flex:1}} >
         <HomeBackground >
-          <Auto style={{flex:3,zIndex:-1,justifyContent:'center'}}>
+          <Auto style={{flex:3,zIndex:-1,elevation: -1,justifyContent:'center'}}>
             <Col style={{flex:width<900?1:2}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
                 <Stickers style={{flex:1}}/>
@@ -184,34 +194,16 @@ import { saleCategories } from '../../lib/categories';
                 onBlur={close}
                 value={searchText}
                 style={{width:'100%',height:100,fontSize:width>900?40:20,padding:20,margin:0,backgroundColor:'#fbf7f0'}}/>
-              { !!searchText && <TouchableOpacity onPress={()=>setSearchText('')} style={{position:'absolute',right:0,bottom:0,width:100,height:100,zIndex:1,justifyContent:'center',alignItems:'center'}}>
+              { !!searchText && <TouchableOpacity onPress={()=>setSearchText('')} style={{position:'absolute',right:0,bottom:0,width:100,height:100,zIndex:1,elevation: 1,justifyContent:'center',alignItems:'center'}}>
                 <Icon style={{justifyContent:'center'}} name="close" size={60}/>
               </TouchableOpacity>}
             </Col>
-            {width < 900 && 
-            <Auto style={{flex:1}}>
-              <Module title="events" link="esemenyek" data={EventData}/>
-              <Module title="Funkciók" data={FunctionsData} />
-              <Module title="sale" link="cserebere" 
-                data={list.map(el=>{return{
-                  id:el._id,
-                  title:el.title,
-                  date:el.date,
-                  image:el.image,
-                  place:el.description,
-                  category: saleCategories[el.category].name,
-                  color: saleCategories[el.category].color
-                }})}/>
-              
-            </Auto>}
           </Auto>
         </HomeBackground>
-          {width > 900 && <>
-            <Auto >
-              <Module title="Közösségek" data={GroupsData} />
-              <Module title="sale" link="cserebere" 
+            {width < 900 && 
+            <Auto style={{flex:1}}>
+              <Module title="Új cserebere cikkek" link="cserebere" 
               data={list.map(el=>{
-                console.log('el',Object.keys(el))
                 return{
                   id:el._id,
                   title:el.title,
@@ -221,6 +213,24 @@ import { saleCategories } from '../../lib/categories';
                   category: saleCategories[el.category].name,
                   color: saleCategories[el.category].color
                 }})}/>
+              <Module title="Funkciók" data={FunctionsData} />
+              <Module title="events" link="esemenyek" data={EventData}/>
+              
+            </Auto>}
+          {width > 900 && <>
+            <Auto >
+              <Module title="Új cserebere cikkek" link="cserebere" 
+              data={list.map(el=>{
+                return{
+                  id:el._id,
+                  title:el.title,
+                  date:el.date,
+                  image:el.image,
+                  place:el.description,
+                  category: saleCategories[el.category].name,
+                  color: saleCategories[el.category].color
+                }})}/>
+              <Module title="Közösségek" data={GroupsData} />
             </Auto>
             <Auto >
               <Module title="Funkciók" data={FunctionsData} />
@@ -265,7 +275,7 @@ import { saleCategories } from '../../lib/categories';
             if (allMessages.includes('notifications')) {
               setNotifications(old=>[...old,{
                 press: initMessaging,
-                title:'Üzenetek',
+                title:'Értesítések',
                 key:'notifications',
                 text:'Hali! Ha szeretnéd, hogy értesülj a pajtásaid üzeneteiről, kapcsold be az értesítéseket, úgy, hogy rám kattintasz!'
               }])
@@ -296,7 +306,7 @@ import { saleCategories } from '../../lib/categories';
           getMessages()
         }
 
-        if (Notification.permission === 'default') {
+        if (Platform.OS == 'web' && Notification.permission === 'default') {
           dispatch(setUnreadMessage('notifications'))
         } else {
           dispatch(removeUnreadMessage('notifications'))
@@ -308,17 +318,16 @@ import { saleCategories } from '../../lib/categories';
     }, []);
 
     useEffect(() => {
-      if (Notification.permission !== 'default')
+      if (Platform.OS == 'web' && Notification.permission !== 'default')
         setNotifications(notifications.filter(n=>n.key!='notifications'))
     }, [allMessages]);
     return (
       <View style={style}>
           {notifications.length ? notifications.map(
             (n,i)=>
-              <Sticker onPress={()=>handleClose(n)}>
-                {n.title}
-                {'\n'}
-                {n?.text}
+              <Sticker key={'sticker'+i} onPress={()=>handleClose(n)}>
+                <B>{n.title}</B>
+                {' '+n?.text}
               </Sticker>)
             : null}
       </View>
@@ -343,7 +352,7 @@ import { saleCategories } from '../../lib/categories';
         flex:1}}>
         <Pressable onPress={onPress} style={{
           backgroundColor:'#fdf6d1',borderWidth:0,padding:10,
-          width:width,position:'absolute',left:left,top:top}}>
+          width:'100%'}}>
           <MyText>{children}
           </MyText>
         </Pressable>
@@ -380,7 +389,7 @@ import { saleCategories } from '../../lib/categories';
       }}
       >
       <Pressable onPress={handleGrow}>
-        <Image source={require('../../assets/logo.png')} style={{width:50,height:50,zIndex:10}}/>
+        <Image source={require('../../assets/logo.png')} style={{width:50,height:50,zIndex:10,elevation: 10}}/>
       </Pressable>
     </Animated.View>
     )

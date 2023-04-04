@@ -3,7 +3,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { useSelector } from 'react-redux';
 import { getDatabase, set, ref as databaseRef } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Image } from 'react-native';
 //import profile from '../../assets/profile'
 
 import { FirebaseContext } from '../../firebase/firebase';

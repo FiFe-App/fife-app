@@ -1,3 +1,8 @@
+[build]
+  functions="functions"
+[dev]
+  functions="functions"
+
 [[redirects]]
   from = "/*"
   to = "/"

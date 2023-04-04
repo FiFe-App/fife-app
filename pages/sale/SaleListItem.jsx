@@ -46,7 +46,10 @@ export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,open
         bookItem(id,isBook)
     }
     const onPress = () => {
+        if (setSelected)
             setSelected(data._id)
+        else navigation.push('cserebere',{id:data._id})
+            //if (width <)
             console.log('select',data);
     }
     const handleDelete = () => {
@@ -65,7 +68,7 @@ export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,open
                 {lodedImages ?
                     <ExpoFastImage source={lodedImages[0]} style={{width:100,height:100,margin:5}}/>
                     : <ProfileImage style={{}} size={100} uid={author}/>}
-                <View style={{marginLeft: 5, flexGrow:1, alignItems:'stretch'}}>
+                <View style={{marginLeft: 5,flex:1}}>
                         <Row>
                             <MyText style={{marginRight:5,backgroundColor:categories[category].color,padding:5}}>{categories[category].name}</MyText>
                             <MyText style={{ fontWeight: 'bold',fontSize:20 }}>{title}</MyText>

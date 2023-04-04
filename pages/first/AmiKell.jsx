@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Image, Pressable, StyleSheet, View } from "react-native";
-import { useWindowDimensions } from "../../lib/hooks/window";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Auto, MyText } from "../../components/Components";
+import { useWindowDimensions } from "../../lib/hooks/window";
 
 const modules = [
     [
