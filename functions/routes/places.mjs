@@ -29,7 +29,8 @@ const categories = [
 
 // Get a list of 50 posts
 router.get("/", async (req, res) => {
-  res.send(categories).status(200);
+  res.send(JSON.parse(JSON.stringify(categories))).status(200);
+  return "HELO"
 });
 
 // Get a single post

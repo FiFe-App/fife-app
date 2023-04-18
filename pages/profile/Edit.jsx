@@ -13,11 +13,12 @@ import { equalTo, get, getDatabase, query, ref as databaseRef, set } from 'fireb
 import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { ActivityIndicator, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Auto, MyText, NewButton, Row, TextInput } from '../../components/Components';
+import { deepEqual } from '../../lib/functions';
 
 const themeColor = '#000';//#ba9007
-const color2 = '#fcf3d4'//'#FFC372'
+const color2 = '#aaa'//'#FFC372'
 //const themeColor = '#fcf3d4';FFC372
-const bgColor = '#F2EFE6'
+const bgColor = '#FDEEA2'
 
 const Edit = ({ navigation, route }) => {
   const uid = useSelector((state) => state.user.uid)
@@ -144,15 +145,6 @@ const Edit = ({ navigation, route }) => {
     } 
   }, [newData?.username]);
 
-
-  function deepEqual(x, y) {
-    return (x && y && typeof x === 'object' && typeof y === 'object') ?
-      (Object.keys(x).length === Object.keys(y).length) &&
-        Object.keys(x).reduce(function(isEqual, key) {
-          return isEqual && deepEqual(x[key], y[key]);
-        }, true) : (x === y);
-  }
-
   useEffect(() => {
     if (navigation && newData) {
       if (deepEqual(newData,data))
@@ -192,11 +184,11 @@ const Edit = ({ navigation, route }) => {
   </View>)
   else 
   return (
-    <View style={{flex:1}}>
-    <ScrollView style={[localStyle.container,{padding: width > 900 ? 50 : 5}]}>   
-          <Pressable onPress={()=>{navigation.push('profil')}}>
-            <MyText style={{fontSize:35}}><Icon name="arrow-back-outline" size={35}/> Vissza a profilodhoz</MyText>
-          </Pressable>
+    <View style={[localStyle.container,{flex:1,paddingLeft: width > 900 ? 50 : 5}]}> 
+    <Pressable onPress={()=>{navigation.push('profil')}}>
+      <MyText style={{fontSize:35}}><Icon name="chevron-back-outline" size={35}/> Vissza a profilodhoz</MyText>
+    </Pressable>
+    <ScrollView style={[{padding: width > 900 ? 50 : 5,paddingTop:10}]}>  
       <Auto >
         <View style={{flex:1,marginHorizontal: width > 900 ? 20 : 0}}>        
           <View style={localStyle.imageContainer}>

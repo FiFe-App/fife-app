@@ -15,13 +15,14 @@ export const CloseModal = ({modalVisible,setModalVisible,handleOK}) => {
     <Modal
     animationType='fade'
     transparent={true}
+    onRequestClose={()=>setModalVisible(false)}
     visible={modalVisible}
     >
     <View style={styles.centeredView}>
         <View style={styles.modalView}>
         <MyText style={styles.modalText}>Biztos törlöd a posztod?</MyText>
 
-        <Row style={{padding:20,margin:10,alignItems:'space-around'}}>
+        <Row style={{padding:0,margin:0,alignItems:'space-around'}}>
             <TouchableOpacity
                 style={{ ...styles.openButton, backgroundColor: "none" }}
                 onPress={() => {
@@ -34,6 +35,7 @@ export const CloseModal = ({modalVisible,setModalVisible,handleOK}) => {
                 style={{ ...styles.openButton, backgroundColor: "#ff3b69" }}
                 onPress={() => {
                   handleOK()
+                  setModalVisible(!modalVisible);
                 }}
             >
                 <MyText style={styles.textStyle}>Törlés</MyText>
@@ -167,11 +169,13 @@ const styles = StyleSheet.create({
     elevation: 2
   },
   textStyle: {
+    fontSize:20,
     color: "white",
     fontWeight: "bold",
     textAlign: "center"
   },
   modalText: {
+    fontSize: 24,
     marginBottom: 15,
     textAlign: "left"
   }

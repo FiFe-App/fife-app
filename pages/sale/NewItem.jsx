@@ -1,11 +1,11 @@
 
 import * as ImagePicker from 'expo-image-picker';
 import { useContext, useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import ImageModal from 'react-native-image-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from "react-redux";
-import { B, Loading, MyText, NewButton, TextInput } from "../../components/Components";
+import { B, Loading, MyText, NewButton, Row, TextInput } from "../../components/Components";
 
 import { FirebaseContext } from "../../firebase/firebase";
 
@@ -14,13 +14,16 @@ import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
 import Select from "../../components/Select";
 import { config } from "../../firebase/authConfig";
 import { saleCategories } from '../../lib/categories';
+import { useNavigation } from '@react-navigation/native';
 
 
 const categories = saleCategories.map(c=>{return c.name});
 
 
-const NewItem = ({route,navigation,data}) => {
+const NewItem = ({route,data}) => {
     const uid = useSelector((state) => state.user.uid)
+    const navigation = useNavigation();
+    const width = useWindowDimensions().width
     const { app } = useContext(FirebaseContext);
     const [loading, setLoading] = useState(false);
     const [title, setTitle] = useState('');
@@ -123,15 +126,21 @@ const NewItem = ({route,navigation,data}) => {
 
     return (
       <>
-      <View style={{flex:1,padding:10}}>
+      {width < 900 && <Pressable onPress={()=>navigation.push('cserebere')} style={{backgroundColor:'#FDEEA2'}}>
+        <Row style={{padding:10,alignItems:'center'}}>
+          <Icon name="chevron-back" size={32}/>
+          <MyText style={{fontSize:32}}>Vissza</MyText>
+        </Row>
+      </Pressable>}
+      <View style={{flex:1,padding:10,backgroundColor:'#FDEEA2'}}>
         <MyText style={{marginBottom:10,fontSize:25}}>
         <B>Hirdess!</B> Válassz kategóriát, és töltsd fel a hirdetésedet.
         </MyText>
-        <View style={[{flexDirection: "row", backgroundColor: '#fdfdfd'}]}>
+        <View style={[{flexDirection: "row"}]}>
           <View style={{margin: 5,flex:1}}>
             <TextInput 
-              style={{fontSize:20, borderWidth:2,padding:5,
-                      backgroundColor: loading ? 'lightgray' : 'none',
+              style={{fontSize:20, padding:5,
+                      backgroundColor: loading ? 'gray' : '#fbf7f0',
                       cursor: loading ? 'not-allowed' : 'text'
                     }} 
               placeholder="Cím"
@@ -142,8 +151,8 @@ const NewItem = ({route,navigation,data}) => {
 
             <Select
               list={categories}
-              style={{fontSize:20, borderWidth:2,padding:5,marginTop:5,
-                      backgroundColor: loading ? 'lightgray' : 'none',
+              style={{fontSize:20, padding:5,marginTop:5,borderWidth:0,
+                      backgroundColor: loading ? 'gray' : '#fbf7f0',
                       cursor: loading ? 'not-allowed' : 'pointer'
                     }} 
               placeholder="Válassz kategóriát"
@@ -152,8 +161,8 @@ const NewItem = ({route,navigation,data}) => {
                   setCategory(index)
               }} />
             <TextInput multiline numberOfLines={5} 
-              style={{ marginVertical:5, borderWidth:2,padding:5,fontSize:20, 
-                        backgroundColor: loading ? 'lightgray' : 'none',
+              style={{ marginVertical:5, padding:5,fontSize:20, 
+                      backgroundColor: loading ? 'gray' : '#fbf7f0',
                         cursor: loading ? 'not-allowed' : 'text'
                     }} 
               placeholder="Leírás" 
@@ -237,7 +246,7 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,globalImageBookale,setG
           <Pressable style={styles.close} onPress={()=>deleteImage(index)}><Icon name="close" size={20} color="white"/></Pressable>
           <View style={{flex:1}}>
             <TextInput onChangeText={text=>handleTextChange(text,index)} value={texts[index]}
-            style={{borderWidth:2,height:150,padding:10}} multiline numberOfLines={3} placeholder={"Mondj valamit erről a képről"}/>
+            style={{height:150,padding:10}} multiline numberOfLines={3} placeholder={"Mondj valamit erről a képről"}/>
           </View>
           <Pressable style={{justifyContent:'center',alignItems:'center',padding:10
           ,backgroundColor:separate[index] ? '#ffe8ae' : '#fbf7f0d7'}}
@@ -260,7 +269,7 @@ const styles = StyleSheet.create({
   square: {
     width:150,
     height:150,
-    borderWidth:2,
+    
     justifyContent:'center',
     alignItems:'center',
     backgroundColor:'#f7f7f7'

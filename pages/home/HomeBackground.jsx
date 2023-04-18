@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient"
   const HomeBackground = ({style,children}) => 
   {
     return(
-    <LinearGradient colors={["#2ac6fd",'#fdf1b9']} style={[style,{}]} start={{ x: 0.8, y: 0.0 }} end={{ x: 1, y: 0.4 }} >
+    <LinearGradient colors={["#FDEEA2",'#c4df98']} style={[style,{zIndex:10}]} start={{ x: 0, y: 0.099 }} end={{ x: 0, y: 1 }} >
         {children}
     </LinearGradient>)
   }

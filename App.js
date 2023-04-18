@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { Suspense, useContext, useEffect, useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // routes
@@ -25,6 +25,8 @@ const BodyAndSoul = React.lazy(()=>import("./pages/BodyAndSoul"))
 const Server = React.lazy(()=>import("./pages/server"))
 const About = React.lazy(()=>import("./pages/About"))
 const Forgot = React.lazy(()=>import("./pages/login/Forgot"))
+const PrivacyPolicy = React.lazy(()=>import("./pages/PrivacyPolicy"))
+const TermsAndServices = React.lazy(()=>import("./pages/TermsAndServices"))
 
 import Snowfall from 'react-snowfall';
 
@@ -115,11 +117,16 @@ const SnowfallWrap = () => {
 const Navigator = () => {
   const user = useSelector((state) => state.user);
   return (
-    <Stack.Navigator initialRouteName="bejelentkezes" screenOptions={{ header: () => <LogoTitle />, title:"FiFe App"}}>
+    <Stack.Navigator initialRouteName="rolunk" 
+    fallback={<View style={{backgroundColor:'#FDEEA2',flex:1}}></View>} 
+    screenOptions={{ header: () => <LogoTitle />, title:"FiFe App"}}>
         <>
+          <Stack.Screen name="rolunk" component={About} options={{ headerShown: false }} />
           <Stack.Screen name="bejelentkezes" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="az-approl" component={First} options={{ headerShown: false }} />
           <Stack.Screen name="elfelejtett-jelszo" component={Forgot} options={{ headerShown: false }} />
+          <Stack.Screen name="adatvedelem" component={PrivacyPolicy} options={{ headerShown: false }} />
+          <Stack.Screen name="hasznalati-feltetelek" component={TermsAndServices} options={{ headerShown: false }} />
           {
           //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
           }
@@ -146,7 +153,6 @@ const Navigator = () => {
           <Stack.Screen name="test-es-lelek" component={BodyAndSoul} options={{ title: "Test és lélek" }} />
           <Stack.Screen name="server" component={Server} options={{ title: "Teszt" }} />
           
-          <Stack.Screen name="rolunk" component={About} options={{ title: "Rólunk" }} />
 
           </>}
         </>

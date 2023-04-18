@@ -16,6 +16,8 @@ import { TextFor } from '../lib/textService/textService';
 import { useHover } from 'react-native-web-hooks';
 import { child, get, getDatabase, ref } from 'firebase/database';
 import { isBright } from '../pages/home/HomeScreen';
+import ExpoFastImage from 'expo-fast-image';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 //Dimensions.get('window');
@@ -59,36 +61,48 @@ const getUri = async (path) => {
   const imgRef = sRef(storage, path);
   //console.log('path',path);
   console.log(path);
-  return await getDownloadURL(imgRef)
+  const url = await getDownloadURL(imgRef)
+  console.log(url);
+  return url
 } 
 
 const getNameOf = async (uid) => {
-  const db = getDatabase();
-  const dbRef = ref(db);
-  const snapshot = await get(child(dbRef, `users/${uid}/data/name`))
+  const name = await AsyncStorage.getItem('name-'+uid)
+  if (name) {
+    console.log('name');
+    return name;}
+  else {
+  
+    const db = getDatabase();
+    const dbRef = ref(db);
+    const snapshot = await get(child(dbRef, `users/${uid}/data/name`))
+    console.log('snapshot');
+  
+    if (snapshot.exists()) {
+      AsyncStorage.setItem('name-'+uid,snapshot.val())
+      return snapshot.val()
+    }
+    await AsyncStorage.setItem('name-'+uid,'NINCS NÉV')
+    return 'NINCS NÉV'
 
-  if (snapshot.exists()) {
-    return snapshot.val()
   }
 }
 
 
-const ProfileImage = ({uid,size=40}) => {
+const ProfileImage = ({uid,size=40,style}) => {
   // eslint-disable-next-line no-undef
   const defaultUrl = require('../assets/profile.jpeg');
   const [url, setUrl] = React.useState(null);
   const storage = getStorage();
 
   useEffect(() => {
-    console.log('UID',uid);
     if (uid){
       getDownloadURL(sRef(storage, uid ? `profiles/${uid}/profile.jpg` : uid))
       .then((url) => {
         setUrl(url);
-        console.log(url);
       })
       .catch((error) => {
-        console.log('e');
+        console.log('e',error);
         setUrl(defaultUrl)
       });
 
@@ -96,7 +110,7 @@ const ProfileImage = ({uid,size=40}) => {
   }, [uid]);
 
   if (!url) return <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
-  return <CachedImage style={{width: size, height: size}}
+  return <ExpoFastImage style={[{width: size, height: size},style]}
       cacheKey={`${uid}-uid`}
       placeholderContent={( 
         <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
@@ -108,8 +122,8 @@ const ProfileImage = ({uid,size=40}) => {
 
 function NewButton({color = "#ffde7e",title,onPress,disabled,style}) {
   return (
-    <TouchableOpacity style={[styles.newButton, { backgroundColor: disabled ? '#d6b17f' : color, height:50 },style]} onPress={onPress} disabled={disabled}>
-          <MyText style={{ fontWeight: 'bold', color: isBright(color) , fontSize:18 }}>{title}</MyText>
+    <TouchableOpacity style={[styles.newButton, { backgroundColor: color, opacity: disabled ? 0.2 : 1, height:50 },style]} onPress={onPress} disabled={disabled}>
+          <MyText style={{ fontWeight: 'bold', color: isBright(color) , fontSize:18, whiteSpace:'pre' }}>{title}</MyText>
     </TouchableOpacity>
   );
 }
@@ -213,7 +227,7 @@ function Auto({children,style,breakPoint=900}) {
   
   const width = useWindowDimensions().width;
   return (
-    <View style={[{flexDirection: width <= breakPoint ? 'column' : 'row',width:'100%',height:'100%',flex: width <= breakPoint ? 'none' : 1},style]}>
+    <View style={[{flexDirection: width <= breakPoint ? 'column' : 'row',width:'100%',flex: width <= breakPoint ? 'none' : 1},style]}>
       {children}
     </View>
   )
@@ -225,7 +239,7 @@ function FAB(props){
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}
      style={[styles.touchableOpacityStyle,styles.floatingButtonStyle,{backgroundColor:color, width: size, height: size}]}>
-      <Icon name={icon} size={size} color="#fff" />
+      <Icon name={icon} size={size} color="#000" />
     </TouchableOpacity>
   )
 }
@@ -319,7 +333,6 @@ const SearchBar = (props) => {
     global.searchList.push(data.text);
     global.search = data.text;
     setShowHistory(false);
-    console.log('push');
     navigation.push("kereses", { key: data.text });
   };
   const onBlur = () => {
@@ -335,7 +348,7 @@ const SearchBar = (props) => {
     </Pressable>
   );
   return (
-    <View style={{alignSelf:'center',flexWrap:'wrap',flexGrow:1}}>
+    <View style={{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:10}}>
       <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, value } }) => (
@@ -354,7 +367,7 @@ const SearchBar = (props) => {
           name="text"
         />
 
-        <Pressable onPress={handleSubmit(onSubmit)}style={{width:30}} >
+        <Pressable onPress={handleSubmit(onSubmit)}style={{width:30,marginLeft:-40}} >
           <Icon name="search-outline" size={25} color="black" />
         </Pressable>
       </View>
@@ -486,8 +499,18 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     justifyContent: 'center',
+    borderRadius: 8,
     right: 30,
     bottom: 30,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 10,
+      height: 12,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 0.00,
+
+    elevation: 24,
   },
   floatingButtonStyle: {
     resizeMode: 'contain',

@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { Animated, ScrollView, Switch, View } from 'react-native';
+import { Animated, ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Auto, FAB, Loading, MyText, NewButton, Row, TextInput } from '../../components/Components';
 import { FirebaseContext } from '../../firebase/firebase';
@@ -20,6 +20,7 @@ import { config } from "../../firebase/authConfig";
 import { SaleListItem } from "./SaleListItem";
 import Select from "../../components/Select";
 import { Item } from "./ItemOld";
+import { deepEqual } from "../../lib/functions";
 
 const categories = [
     'Minden',
@@ -34,6 +35,8 @@ const Sale = ({ navigation, route }) => {
     const id = route.params?.id;
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [lastQuery, setlastQuery] = useState(null);
     const {database, storage, app, auth, firestore} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
     const { width } = useWindowDimensions();
@@ -47,6 +50,7 @@ const Sale = ({ navigation, route }) => {
         skip: 0,
         take: 5
     });
+    const [changed, setChanged] = useState(false);
     const [keys, setKeys] = useState([]);
 
     const [closeModal, setCloseModal] = useState(false);
@@ -55,6 +59,7 @@ const Sale = ({ navigation, route }) => {
     const [searchText, setSearchText] = useState('');
     const [searchResult, setSearchResult] = useState([]);
     const [selected, setSelected] = useState(id || null);
+    const [toDelete, setToDelete] = useState(null);
     const [hide, setHide] = useState(false);
     
     const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
@@ -63,6 +68,7 @@ const Sale = ({ navigation, route }) => {
           contentSize.height - paddingToBottom
     }
     const isScrollDown = ({layoutMeasurement, contentOffset, contentSize}) => {
+        if (list.length < 5) return false
         const paddingToBottom = 0
         return contentOffset.y >= 20
     }
@@ -70,13 +76,15 @@ const Sale = ({ navigation, route }) => {
     const loadMoreData = () => {
         if (loading) return 
 
-        console.log('more',settings.skip,settings.take);
-        search()
+        search(list.length)
     }
 
     useEffect(() => {
+        setChanged(true);
+    }, [settings]);
+
+    useEffect(() => {
         if (selected && width < 900) navigation.navigate('cserebere',{id:selected})
-        console.log('uef',selected);
     }, [selected]);
 
     useFocusEffect(
@@ -84,7 +92,7 @@ const Sale = ({ navigation, route }) => {
             if (database) {
                 const userRef = dbRef(database,`users`);
                 setList([]);
-                search()
+                search(0)
             }
           return () => {
           };
@@ -92,15 +100,13 @@ const Sale = ({ navigation, route }) => {
       );
 
     const deleteItem = () => {
-        console.log('delete',selected);
-        if (database && storage && selected)
+        console.log('delete',toDelete);
+        if (database && storage && toDelete)
         (async ()=> {
-            axios.delete('/sale/'+selected,config()).then(res=>{
-                setList(list.filter(e=>e._id=!selected))
+            axios.delete('/sale/'+toDelete,config()).then(res=>{
+                setList(list.filter(e=>e._id!=toDelete))
             })
-        })().then(()=>{
-            setList(list.filter(e=>e._id=!selected))
-        })
+        })()
     }
 
     const bookItem = (index,isBook) => {
@@ -119,25 +125,36 @@ const Sale = ({ navigation, route }) => {
                     setList(list.map((e,i)=> e._id==index ? {...e, booked:true, bookedBy: 'other'} : e))
                 }
               })
-              .catch(error=>console.log(error))
+              .catch(error=>console.error(error))
               
         })()
     }
 
-    const search = async () => {
+    const search = async (skip) => {
+        setChanged(false)
+        if (deepEqual(lastQuery,{
+            ...settings,
+            skip,
+            search:searchText
+        })) return
         setLoading(true)
-        console.log('more2',settings,list.length);
         await axios.get('/sale',{...config(),params:{
             ...settings,
-            skip:list.length,
+            skip,
             search:searchText
         }}).then(res=>{
-            console.log(res.data);
             setList(old=>[...old,...res.data])
         }).catch(err=>{
             //navigation.push('bejelentkezes');
             console.error(err);
+            setError(err);
             setList([])
+        }).finally(()=>{
+            setlastQuery({
+                ...settings,
+                skip,
+                search:searchText
+            })
         })
         setLoading(false)
     }
@@ -145,21 +162,20 @@ const Sale = ({ navigation, route }) => {
     if (id && width < 900)
     return <Item data={list.find(e=>e._id == selected)} toLoadId={selected} />
     return (
-    <View style={{flex:1, flexDirection:'row'}}>
+    <View style={{flex:1, flexDirection:'row',backgroundColor:'#FDEEA2'}}>
         <View style={{flex:1}}>
-            <Auto breakPoint={width > 900 ? 1200 : 600} style={{flex:'none',height:'none'}}>
-                <View style={{padding:10}}>
+            <Auto breakPoint={width > 900 ? 1300 : 600} style={{flex:'none',height:'none'}}>
+                <View style={{padding:0}}>
                     <TextInput
                         onChangeText={setSearchText}
-                        style={{fontSize:15,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white'}}
+                        style={{fontSize:15,padding:10,margin:10,backgroundColor:'white'}}
                         placeholder="Keress csereberében"
                     />
                     {(!hide || width > 600) && <><Select
                         list={categories}
-                        style={{fontSize:15,padding:10,marginVertical:0,margin:10,marginBottom:10,borderWidth:2,backgroundColor:'white',width:'95%'}}
+                        style={{fontSize:15,padding:10,marginVertical:0,margin:10,marginBottom:10,backgroundColor:'white',width:'96.5%',borderWidth:0}}
                         placeholder="Válassz kategóriát"
                         onSelect={(selectedItem, index) => {
-                            console.log(selectedItem, index)
                             const i = index == 0 ? -1 : index-1
                             setSettings({...settings,category:i})
                         }} />
@@ -167,62 +183,45 @@ const Sale = ({ navigation, route }) => {
                         <DateTimePicker
                             setValue={(v)=>setSettings({...settings,minDate:v})}
                             value={settings.minDate}
-                            style={{fontSize:15,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white',fontSize:15}}
+                            style={{fontSize:15,padding:10,margin:10,backgroundColor:'white',fontSize:15,borderWidth:0}}
                             placeholder="tól-"
                         />
                         <MyText style={{fontSize:15}}>-</MyText>
                         <DateTimePicker
                             setValue={(v)=>setSettings({...settings,maxDate:v})}
                             value={settings.maxDate}
-                            style={{fontSize:15,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white',fontSize:15}}
+                            style={{fontSize:15,padding:10,margin:10,backgroundColor:'white',fontSize:15,borderWidth:0}}
                             placeholder="-ig"
                         />
                     </Row>
 
-                    <TextInput
-                        onChangeText={v=>setSettings({...settings,author:v})}
-                        style={{fontSize:15,padding:10,margin:10,borderWidth:2,marginTop:-2,backgroundColor:'white'}}
-                        placeholder="Szerző"
-                    />
                     </>}
                 </View>
-                {(!hide || width > 600) && <View style={{flex:1}}>
-                    <View style={{maxWidth:300}}>
-                        <View style={{flexDirection:'row', alignItems:'center',margin:2}}>
-                            <MyText style={{flex:1,}}>Szinonímákkal</MyText>
-                            <Switch
-                                trackColor={{ false: '#767577', true: '#3e3e3e' }}
-                                thumbColor={settings?.synonims ? '#white' : 'white'}
-                                ios_backgroundColor="#3e3e3e"
-                                onValueChange={(e)=>{setSettings({...settings, synonims: e})}}
-                                value={settings?.synonims}
-                                style={{alignSelf:'flex-end'}}
-                            />
+                {(!hide || width > 600) && <View style={{flex:1,margin:5,marginLeft:0}}>
+                    <View style={{minWidth:300}}>
+                        <View style={{flexDirection:'row', alignItems:'center',borderBottomWidth:5,borderColor:'#ffffff',marginHorizontal:5}}>
+                            <NewButton color={settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: null})}} title="Mindenki másé"
+                            style={{flex:1,marginBottom:0,marginLeft:0}} />
+                            <NewButton color={!settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: uid})}} 
+                            style={{flex:1,marginBottom:0,marginRight:0}} title="Sajátjaim" />
                         </View>
-                        <View style={{flexDirection:'row', alignItems:'center',margin:2}}>
-                            <MyText style={{flex:1,}}>Sajátjaim</MyText>
-                            <Switch
-                                trackColor={{ false: '#767577', true: '#3e3e3e' }}
-                                thumbColor={settings?.mine ? '#fff' : 'white'}
-                                ios_backgroundColor="#3e3e3e"
-                                onValueChange={(e)=>{setSettings({...settings, author: e ? uid : null})}}
-                                value={settings?.author == uid}
-                                style={{alignSelf:'flex-end'}}
-                            />
-                        </View>
+
+                        <TextInput
+                            onChangeText={v=>setSettings({...settings,author:v})}
+                            style={{fontSize:15,padding:10,margin:5,marginTop:5,backgroundColor:'white'}}
+                            placeholder="Szerző"
+                        />
                     </View>
-                    {!!keys?.length &&
-                    <MyText style={{margin:10}}>Keresőszavak: {keys.map((e,i)=>i < keys.length-1 ? e+', ' : e)}</MyText>}
-                    <MyText>Találatok száma: {list.length}</MyText>
-                    <NewButton title="Mehet" onPress={()=>{setList([]);search()}}/>
+                    <NewButton title="Keresés!" onPress={()=>{setList([]);search(0)}}/>
                 </View>}
             </Auto>
+            {changed && <MyText style={{textAlign:'center',padding:10}}>Kattints a Keresésre, hogy frissítsd a találatokat!</MyText>}
             <ScrollView
                 scrollEventThrottle={16}
                 onScroll={event => {
-                        if (isCloseToBottom(event.nativeEvent)) {
-                        loadMoreData()
-                        }
+                        if (isCloseToBottom(event.nativeEvent)) 
+                            loadMoreData()
+                        
                         const down = isScrollDown(event.nativeEvent);
                         if (down != hide) {
                             setHide(down)
@@ -240,14 +239,16 @@ const Sale = ({ navigation, route }) => {
                             selected={selected == e._id}
                             setSelected={setSelected}
                             bookItem={bookItem}
-                            deleteItem={()=>setCloseModal(true)}
+                            deleteItem={()=>{setCloseModal(true);setToDelete(e._id)}}
                             openUserModal={()=>setUserModal(true)}
                         />
                     )
-                })
+                }) 
                 : <View style={{justifyContent:'center',alignItems:'center',margin:30}}>
-                    <MyText style={{fontSize:20}}>Nincs találat!</MyText>
-                </View>}
+                    {!error ?
+                    <MyText style={{fontSize:20}}>Nincs találat!</MyText>:
+                    <MyText style={{fontSize:20}}>{error.message}</MyText>}
+                </View> }
                  {loading && <Loading color='#FFC372' height={10}/>}
             </ScrollView>
             
@@ -256,7 +257,7 @@ const Sale = ({ navigation, route }) => {
             <View style={{flex:1,backgroundColor:'white'}}>
                 {selected ? 
                 <Item data={list.find(e=>e._id == selected)} toLoadId={selected} 
-                            deleteItem={()=>setCloseModal(true)}/>
+                        setSelected={setSelected}    deleteItem={()=>setCloseModal(true)}/>
                 :
                 <NewSaleItem/>}
             </View>

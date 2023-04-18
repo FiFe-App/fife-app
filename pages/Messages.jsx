@@ -90,7 +90,7 @@ const Messages = ({route,navigation}) => {
         });
       }, [selected,width]);
     return (
-    <View style={{flex:1, flexDirection:'row'}}>
+    <View style={{flex:1, flexDirection:'row',backgroundColor:'#fff'}}>
         <ScrollView style={{flex:1}}>
             {!!list.length && list.map((e,i)=>{
                 return (
@@ -130,7 +130,8 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
     }, [uid]);
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fff' : '#f6f6f6'}]}>
+        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fdfbf0' : '#fff'},
+            selected && {shadowOffset: {width: 2, height: 4},shadowOpacity: 0.2,shadowRadius: 1,}]}>
             <ProfileImage style={styles.listIcon} uid={uid}/>
             <View style={{marginLeft: 5,flexGrow:1}}>
               <MyText style={{ fontWeight: 'bold',flex: 1, }}>{title}</MyText>

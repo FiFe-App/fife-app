@@ -28,14 +28,16 @@ function Module(props) {
               const date = new Date(one.date)
               return (
                   <TouchableOpacity key={ind+'one'} style={homeDesign.module} onPress={()=>navigation.push(props.link,{id:one.id})}>
-                      <ImageBackground source={{uri:one.image}} resizeMode="cover" style={{height:100, width:'100%',}}>
+                      <ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8}} 
+                      source={{uri:one.image}} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8}}>
                         <View style={{alignSelf: 'flex-start'}}>
                           <MyText style={{margin:10,backgroundColor:(one?.color||'#cfc'),padding:5}}>{one.category}</MyText>
                         </View>
                       </ImageBackground>
                       <View style={{justifyContent:'flex-start',height:'50%'}}>
                         <MyText style={[homeDesign.moduleText,{fontWeight:'bold'}]}>{one.title}</MyText>
-                        <MyText style={[homeDesign.moduleText,{overflow:'hidden',flex:1}]}>{one.place}</MyText>
+                        <MyText style={[homeDesign.moduleText,{overflow:'hidden',flex:1,borderBottomLeftRadius:8,borderBottomRightRadius:8}]}>
+                        {one.place}</MyText>
                       </View>
                   </TouchableOpacity>
               )

@@ -1,18 +1,18 @@
 
-import React, { useEffect, useContext, useState } from 'react';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Platform, View, Button, Pressable, ActivityIndicator, Animated, ScrollView, TextInputBase, Switch  } from 'react-native';
-import { Dimensions } from 'react-native';
-import { Auto, Loading, NewButton, Row, TextInput, MyText } from '../../components/Components';
-import Icon from 'react-native-vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useContext, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Switch, View } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { Auto, MyText, NewButton, Row, TextInput } from '../../components/Components';
 
 
-import {getMaps,LocationData} from "./mapService";
-import { FirebaseContext } from '../../firebase/firebase';
 import * as Location from 'expo-location';
-import { useWindowDimensions } from 'react-native'
 import { push, ref, set } from 'firebase/database';
+import { useWindowDimensions } from 'react-native';
+import { FirebaseContext } from '../../firebase/firebase';
+import { getMaps, LocationData } from "./mapService";
+import { MapElement } from '../../components/MapElement';
 
 
 const defaultFilterList = [
@@ -32,7 +32,7 @@ const Maps = ({navigation, route}) => {
     const [map,setMap] = useState(null)
     const [categoryList, setCategoryList] = useState(null);
     const [markers, setMarkers] = useState([]);
-    const [maplist,setMapList] = useState(null)
+    const [maplist,setMapList] = useState([])
     const [search, setSearch] = React.useState('');
     const [filterList,setFilterList] = useState(null);
     const [settings, setSettings] = useState({secure:true});
@@ -60,6 +60,8 @@ const Maps = ({navigation, route}) => {
         )
       })
     }
+
+    //MAP LOAD
     useFocusEffect(
       React.useCallback(() => {
         console.log('maps loading');
@@ -128,6 +130,7 @@ const Maps = ({navigation, route}) => {
       }, [])
     );
 
+    //MAP INIT-LOCATION
     useEffect(() => {
       if (map) {
         map.setView([47.4983, 19.0408], 13)
@@ -149,6 +152,7 @@ const Maps = ({navigation, route}) => {
       }
     }, [map]);
 
+    // NEW PLACE MARKER
     useEffect(() => {
 
       if (newMarker)
@@ -161,6 +165,7 @@ const Maps = ({navigation, route}) => {
       }
     }, [newMarker,newPlace]);
 
+    //SELECTED MAP MARKERS
     useEffect(()=>{
       if (map) {
 
@@ -194,63 +199,28 @@ const Maps = ({navigation, route}) => {
       }
     },[selectedMap,selected,settings,newPlace])
 
+    // GENERATE MAPLIST
     useEffect(()=>{
       const searchL = search.toLowerCase()
-      if (categoryList)
-      setMapList(
-        categoryList.map((map,index) => {
+      if (categoryList){
+        const cl = categoryList.filter((map,index) => {
           if (
             map?.name?.toLowerCase().includes(searchL) || 
             !searchL || 
             map?.locations?.find(e=>e?.name.toLowerCase().includes(searchL) || 
             e?.description?.toLowerCase().includes(searchL))
           ) {
-            const placeList = map.locations.map((place,index2)=>{
-
-              if (!settings.secure || place?.likes != null)
-              if (place?.name?.toLowerCase().includes(searchL) || place?.description?.toLowerCase().includes(searchL) || !searchL)
-              return (
-                <Pressable style={[localStyles.mapLink,{left:10,marginHorizontal:40,borderColor:selected==place ? map.color : 'black'}]} 
-                           key={"place"+index2} onPress={()=>{
-                              if (selected==place) {
-                                setSelected(null)
-                                setIds({mapId:null,locationId:null})
-                              }
-                              else {
-                                setSelected(place);
-                                setIds({...ids,locationId:categoryList.find(e=>e.name == selectedMap?.name).locations.find(e=>e.name==place.name).key})
-                              }
-                            }}>
-                  <MyText style={{color:selected==place ? map.color : 'black'}}>{place.name}</MyText>
-                </Pressable>)
-            })
-            return(
-              <View key={index} style={{justifyContent:'flex-end'}}>
-                  <Pressable  onPress={()=>{
-                    if (selectedMap?.name==map.name) {
-                      setSelectedMap({id:null,name:null});
-                      setIds({mapId:null,locationId:null})
-                    } else {
-                      setSelectedMap({id:index+1,name:map.name});
-                      //setIds({...ids,mapId:categoryList.findIndex(e=>e.name==map.name)})
-                    }
-                  }}
-                  style={[localStyles.mapLink,selectedMap?.name==map.name ? {borderColor:map.color} : {}]}>
-                    <Icon style={{ marginHorizontal: 12 }}name='map' size={25} color={selectedMap?.name==map.name ?  map.color : "#000"} />
-                    <MyText style={selectedMap?.name==map.name ?  {color:map.color} : {}}>{map.name}</MyText>
-                    <Icon style={{ marginHorizontal: 12, flex:1, textAlign:'right' }} name='arrow-forward' size={25} color={selectedMap?.name==map.name ?  map.color : "#000"} />
-                  </Pressable>
-                  {selectedMap?.name == map.name && 
-                  <ScrollView >
-                    {placeList}
-                  </ScrollView>}
-              </View>
-            )
+            return true;
           }
         })
-      )
+        setMapList(
+          cl
+        )
+
+      }
     },[search,selectedMap,selected,filter,settings,categoryList])
 
+    // FLY TO SELECTED
     useEffect(()=>{
       console.log('selected',selected);
       if (map,selected) {
@@ -266,9 +236,6 @@ const Maps = ({navigation, route}) => {
     }, [selectedMap]);
 
     useEffect(() => {
-      console.log('ids',ids);
-    }, [ids]);
-    useEffect(() => {
       console.log('mapdata',categoryList);
       if (categoryList) {
         const {selected = null, selectedMap} = route?.params || {};
@@ -282,8 +249,8 @@ const Maps = ({navigation, route}) => {
     //#endregion
 
     return (
-      <Auto style={{flex:1}}>
-        {open && <View style={[localStyles.side,{flex: width <= 900 ? 2 : 1}]}>
+      <Auto style={{flex:1,backgroundColor:'#FDEEA2'}}>
+        {open && <View style={[localStyles.side,{flex: width <= 900 ? 2 : 1,backgroundColor:'#FDEEA2'}]}>
           <ScrollView>
             <TextInput
               style={localStyles.searchInput}
@@ -304,13 +271,12 @@ const Maps = ({navigation, route}) => {
               />
             </View>
             <ScrollView style={{}}>
-              {maplist || <ActivityIndicator size="large" />}
+              {maplist.map((map,index)=>{return <MapElement map={map} selectedMap={selectedMap} setSelectedMap={setSelectedMap} setIds={setIds} index={index} searchL={search} selected={selected}/>}
+              ) || <ActivityIndicator size="large" />}
             </ScrollView>  
             </ScrollView>
-        {width > 900 && (selected ?        
+        {width > 900 && (selected &&        
             <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected}  mapId={selectedMap.id}/>
-            :
-            <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>
             )}            
         </View>}
           {width < 900 &&
@@ -318,11 +284,11 @@ const Maps = ({navigation, route}) => {
             onPress={()=>setOpen(!open)}>
             <AntDesign name={!open ? 'caretdown' : 'caretup'} size={20}/>
           </Pressable>}
-        <div id="map" style={localStyles.map}/>
-        {width <= 900 && (selected ?        
+        <div id="map" style={localStyles.map}>
+        </div>
+        <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>
+        {width <= 900 && (selected &&
             <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected} mapId={selectedMap.id}/>
-            :
-            <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>
             )}
       </Auto>
     )
@@ -366,7 +332,7 @@ const NewPlace = ({setNewPlace,newPlace,selectedMap}) => {
     }
   }
 
-  if (!open) return <NewButton title="Tudok egy új helyet!" onPress={()=>setOpen(true)} style={{borderWidth:0}}/>
+  if (!open) return <NewButton title="Tudok egy új helyet!" onPress={()=>setOpen(true)} style={{borderWidth:0,position:'absolute',right:5,bottom:5,padding:10}}/>
   else return (
     <View style={{margin:10}}>
       <Row style={{flex:1,padding:10}}>
@@ -411,7 +377,6 @@ const localStyles = {
     searchInput: {
         margin: 5,
         borderColor: "black",
-        borderWidth: 2,
         backgroundColor: "white",
         padding: 10,
         fontWeight: "bold",
@@ -428,6 +393,7 @@ const localStyles = {
     },
     map: {
       flex:3,
+      zIndex:-10
     },
     side: {
       backgroundColor: 'white',

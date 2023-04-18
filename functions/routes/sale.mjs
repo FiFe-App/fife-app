@@ -18,7 +18,8 @@ router.get("/", async (req, res) => {
     title: {$regex: search || ''}
   }
   if (category != -1) query.category =  Number(category)
-  if (author) query.author =  author
+  if (author) query.author = author
+  else query.author = { $ne: req.uid }
   const options = {};
   const results = await sale.find(query, options)
   .sort({created_at:-1})
@@ -52,15 +53,13 @@ router.get("/:id", async (req, res) => {
       id: req.params.id
     }
   })
-  console.log(result);
   if (!result) {
     res.send("Not found").status(404);
     return
   }
-  else {
-    res.send({data:result}).status(200);
-    return "sad"
-  }
+//  res.send(result)
+  res.send(JSON.parse(JSON.stringify(result)))
+  return "hello"; 
 
 });
 
@@ -113,6 +112,7 @@ router.post("/", async (req, res) => {
     data: req.body
   })
   console.log(result);
+  if (!result) res.send("could not create").status(404);
   res.send(result.id).status(204);
 });
 
@@ -131,7 +131,7 @@ router.patch("/comment/:id", async (req, res) => {
 
 // Delete an entry
 router.patch("/:id", async (req, res) => {
-  const result = await prisma.sale.update({
+  const result = await prisma.sale.updateMany({
     where: {
       id: req.params.id,
       author: req.uid
@@ -144,10 +144,10 @@ router.patch("/:id", async (req, res) => {
 });
 // Delete an entry
 router.delete("/:id", async (req, res) => {
-  const result = await prisma.sale.delete({
+  const result = await prisma.sale.deleteMany({
     where: {
-      id: req.params.id,
-      author: req.uid
+          id: req.params.id,
+          author: req.uid
     }
   })
 

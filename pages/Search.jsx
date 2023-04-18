@@ -99,18 +99,20 @@ const Search = ({ route, style }) => {
     if (!route.params.key) return null
 
     return(
-        <View style={style}>
-            {progress < ready ?
-                <>
-                <Loading color="#f5d142" />
-                </>:
-                (array.length == 0 
-                    ?   <View>
-                            <TextFor style={styles.noResultText} text="no_result"/>
-                            <MyText style={styles.noResultSubText}>{AutoPrefix(route.params.key)} kifejezés nem hozott eredményt.</MyText>
-                        </View>
-                    :   <ScrollView style={{flex:1}}>{array}</ScrollView>)
-            }
+        <View style={{flex:1,backgroundColor:'#FDEEA2'}}>
+            <View style={{backgroundColor:'#FDEEA2'}}>
+                {progress < ready ?
+                    <>
+                    <Loading color="#f5d761" />
+                    </>:
+                    (array.length == 0
+                        ?   <View>
+                                <TextFor style={styles.noResultText} text="no_result"/>
+                                <MyText style={styles.noResultSubText}>{AutoPrefix(route.params.key)} kifejezés nem hozott eredményt.</MyText>
+                            </View>
+                        :   <ScrollView contentContainerStyle={{alignItems:'center',padding:50}}>{array}</ScrollView>)
+                }
+            </View>
         </View>
     )
 }
@@ -119,9 +121,9 @@ function Item({title,text,uid,link,params}) {
     const navigation = useNavigation();
     const onPress = () => {
         if (link)
-        navigation.navigate(link,params || {});
+        navigation.push(link,params || {});
         else
-        navigation.navigate("profil", {uid});
+        navigation.push("profil", {uid});
         }
     return (
         <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row"}]}>
@@ -141,10 +143,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderColor: "rgb(240,240,240)",
         backgroundColor: 'white',
+        width:'100%',
         borderBottomWidth: 2,
         borderTopWidth: 1,
         padding: 12,
         marginTop: -1,
+        maxWidth:500
     },
     noResultText: {
         fontSize: 30,
@@ -155,6 +159,9 @@ const styles = StyleSheet.create({
         fontSize: 20,
         margin: 50,
         marginTop:10
+    },
+    listIcon: {
+        borderRadius: 8
     },
     searchList: {
         padding: 16,

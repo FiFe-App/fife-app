@@ -142,7 +142,7 @@ const Chat = ({route, navigation, propUid, global}) => {
             <ScrollView 
             snapToEnd
             ref={(scroll) => {setScrollView(scroll)}}
-            style={{flex:1,backgroundColor:'white'}} contentContainerStyle={styles.messages}>
+            style={{flex:1,backgroundColor:'#fff'}} contentContainerStyle={styles.messages}>
                 <View style={{flex:1}}>
                     {!loading ?
                     messages.map((e,i,arr)=> {
@@ -192,7 +192,7 @@ const Message = (props) => {
 
 const styles = StyleSheet.create({
     messages: {
-        backgroundColor: 'white',
+        backgroundColor: '#fff',
         paddingVertical:20,
         paddingHorizontal:10,
     },
@@ -207,7 +207,8 @@ const styles = StyleSheet.create({
         fontSize:20,
     },
     mine: {
-        backgroundColor: 'gray',
+        backgroundColor: '#FDEEA2',
+        color: 'black',
         alignSelf:'flex-end'
     },
     other: {

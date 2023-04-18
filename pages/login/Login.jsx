@@ -14,9 +14,10 @@ import { Helmet } from 'react-helmet';
 import { useWindowDimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
-import { B, MyText, TextInput } from '../../components/Components';
+import { B, MyText, NewButton, TextInput } from '../../components/Components';
 import { FirebaseContext } from '../../firebase/firebase';
 import First from '../first/First';
+import { equalTo, get, query, ref } from 'firebase/database';
 
 
 const LoginScreen = ({ navigation, route }) => {
@@ -161,7 +162,7 @@ const  LoginForm = () => {
       {!!loginError && <View style={styles.error}>
         <MyText style={{color:'#942400',fontSize:25}} >{loginError}</MyText>
         <Pressable onPress={forgot} style={{padding:10,borderRadius:8,backgroundColor:'black',marginTop:16}}>
-          <MyText style={{color:'white'}}><B>Aj-aj nem tudok bejelentkezni!</B></MyText>
+          <MyText style={{color:'white'}}><B>Aj-aj elfelejtettem a jelszavamat!</B></MyText>
         </Pressable>
       </View>}
     </View>
@@ -174,6 +175,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
   const [passwordAgain, onChangePasswordAgain] = React.useState("");
   const [loginError, onChangeLoginError] = React.useState("");
   const {app, auth, user, api}  = useContext(FirebaseContext);
+  const width = useWindowDimensions().width
 
   useEffect(() => {
     console.log(dataToAdd);
@@ -208,36 +210,39 @@ export const RegisterForm = ({setData,dataToAdd}) => {
     })
   }
   return (
-    <View style={{alignSelf:'center',flex:1}}>
-      <View style={{flexWrap:'wrap'}}>
+    <View style={{flex:width <= 900 ? 'none' : 1}}>
+      <View style={{maxWidth:500}}>
+        <MyText>Email-cím</MyText>
         <TextInput
           style={styles.searchInput}
           onChangeText={onChangeEmail}
           editable
-          placeholder="Email-cím"
+          placeholder="email@gmail.com"
         />
+        <MyText>Jelszó</MyText>
         <TextInput
           style={styles.searchInput}
           onChangeText={onChangePassword}
           editable
             textContentType="password"
             secureTextEntry
-            placeholder="Jelszó"
+            placeholder="***************"
         />
+        <MyText>Jelszó újra</MyText>
         <TextInput
           style={styles.searchInput}
           onChangeText={onChangePasswordAgain}
           editable
             textContentType="password"
             secureTextEntry
-            placeholder="Jelszó újra"
+            placeholder="***************"
         />
       </View>
       <MyText style={styles.error} >{loginError}</MyText>
-      <Button style={styles.headline} title="Kész!" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
+      <NewButton style={styles.headline} title="Kész!" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
         signUp(email,password)
-      } />
-      <Button title="Facebook Bejelentkezés"  onPress={fbLogin} color="#4267B2"/>
+      } />{false&&
+      <Button title="Facebook Bejelentkezés"  onPress={fbLogin} color="#4267B2"/>}
     </View>
   )
 }
@@ -245,31 +250,52 @@ export const RegisterForm = ({setData,dataToAdd}) => {
 export const MoreInfoForm = ({setData}) => {
   const navigation = useNavigation()
   const [name, onChangeName] = useState('');
+  const [username, onChangeUsername] = useState('');
+  const [usernameValid, setUsernameValid] = useState(true);
   const [bio, onChangeBio] = useState('');
-  const [loginError, onChangeLoginError] = React.useState("");
-  const {app, auth, user, api}  = useContext(FirebaseContext);
+  const {database}  = useContext(FirebaseContext);
+  const width = useWindowDimensions().width
+
+  useEffect(() => {
+    if (database) {
+      if (username && username.length > 3 && username.length < 20 && username.match(/^([a-z0-9_])*$/)) {
+        const usernameRef = query(ref(database, 'usernames'), equalTo(null,username.toLowerCase()))
+        get(usernameRef).then(snapshot=>{
+          console.log(snapshot.val());
+          if (snapshot.exists() && snapshot.val()[username]) {
+            setUsernameValid(false)
+          } else setUsernameValid(true)
+        })
+      } else setUsernameValid(false)
+    } 
+  }, [username]);
 
   useEffect(() => {
     console.log(name & bio);
     setData({name,bio})
   }, [name,bio]);
   return (
-    <View style={{flex:1}}>
-      <View style={{}}>
+    <View style={{flex:width <= 900 ? 'none' : 1}}>
+      <View style={{maxWidth:500}}>
+        <MyText>Neved, vagy ahogy szeretnéd, hogy szólítsanak:)</MyText>
         <TextInput
           style={styles.searchInput}
           onChangeText={onChangeName}
           editable
-          placeholder="Neved, vagy ahogy szeretnéd, hogy szólítsanak:)"
+          placeholder="Fiatal Felnőtt"
         />
-        <TextInput
-          style={[styles.searchInput,{height:200}]}
-          onChangeText={onChangeBio}
-          editable
-          numberOfLines={5}
-          multiline
-          placeholder="Rólad"
-        />
+        <MyText>Az egyedi felhasználóneved</MyText>
+        <View style={[{flexDirection:'row',alignItems:'center'}]}>
+            <Icon style={{position:"absolute",alignSelf:'center',top:15,left:15}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={usernameValid ? "green" : "red"}/>
+            <TextInput
+              style={[styles.searchInput,{paddingLeft:50,flex:1}]}
+              onChangeText={onChangeUsername}
+              editable
+              placeholder="fifevok69420"
+            />
+          </View>
+            {!usernameValid && !!username && <MyText style={[localStyle.label,{color:'red'}]}>Nem lehet ez a felhasználóneved!</MyText>}
+
       </View>
     </View>
   )

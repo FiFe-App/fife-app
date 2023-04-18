@@ -28,7 +28,6 @@ export const styles = StyleSheet.create({
         fontSize: 50,
         fontWeight: "bold",
         padding: 10,
-        borderBottomWidth: 2,
     },
     subTitle: {
         fontSize: 40,
@@ -44,7 +43,6 @@ export const styles = StyleSheet.create({
     button: {
         width: 40,
         borderColor: "black",
-        borderWidth: 2,
         borderRadius: 10,
         backgroundColor: "yellow",
         color: "black"
@@ -52,7 +50,7 @@ export const styles = StyleSheet.create({
     searchInput: {
         margin: 5,
         borderColor: "black",
-        borderWidth: 2,
+        borderRadius: 8,
         backgroundColor: "white",
         padding: 10,
         fontSize:20,
@@ -95,7 +93,6 @@ export const styles = StyleSheet.create({
     },
     menuLinkHover: {
         backgroundColor:'white',
-        borderWidth: 2,
         borderTopWidth:0,
         borderRadius: 0,
         marginLeft:11,
@@ -115,11 +112,11 @@ export const styles = StyleSheet.create({
     },
     list: {
         alignItems: "center",
-        borderColor: "rgb(240,240,240)",
-        backgroundColor: 'white',
-        borderBottomWidth: 2,
-        borderTopWidth: 1,
+        borderBottomWidth: 0,
+        borderTopWidth: 0,
         padding: 12,
         marginTop: -1,
+        margin: 6,
+        borderRadius: 8
     },
 });

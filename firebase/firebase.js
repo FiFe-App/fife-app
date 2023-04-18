@@ -18,8 +18,6 @@ import { getFirestore } from '@firebase/firestore';
 
 const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check");
 
-
-
 // we create a React Context, for this to be accessible
 // from a component later
 const FirebaseContext = createContext(null)
@@ -119,12 +117,16 @@ export default ({ children }) => {
     }
 
     const forgotPassword = async (email) => {
-        const auth = getAuth()
+        const retApp = await init()
+        const a = getAuth(retApp)
         if (!email || email == '') return 'Email nélkül nem tudjuk visszaállítani a jelszavad'
-        return sendPasswordResetEmail(auth,email).then(res=>{
-            return "Küldtünk egy email, amivel vissza tudod állítani a fiókodat a rendes kerékvágásba!"
+        return sendPasswordResetEmail(a,email).then(res=>{
+            return "Küldtünk egy emailt, amivel vissza tudod állítani a fiókodat a rendes kerékvágásba!\n(Nézd meg a spam mappát is!)"
         }).catch(err=>{
             console.log(err);
+            console.log(err.code);
+            if (err.code == 'auth/invalid-email')
+                return 'Ez az email-cím nem szerepel a rendszerben:(';
             return 'Aj-aj hiba történt! Próbáld meg később légyszi'
         })
     }

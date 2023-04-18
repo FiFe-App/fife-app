@@ -32,7 +32,7 @@ export function LogoTitle() {
     }
 
     return (
-      <LinearGradient style={{zIndex:100,elevation: 100}} colors={['#FDEEA2', "#FDEEA2"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
+      <LinearGradient style={{zIndex:100,elevation: 100,}} colors={['#FDEEA2', "#FDEEA2"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
         <Helmet>
           <meta name="theme-color" content="#FDEEA2"/>
         </Helmet>
@@ -62,10 +62,10 @@ export function LogoTitle() {
             <View style={{flexDirection:'row',marginRight:20,marginBottom:5,flex:8}}>
               <SearchBar/>
               <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
-              <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
-              <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
               <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
               <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
+              <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
+              <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
               <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
             </View>
             :
@@ -117,17 +117,16 @@ export function LogoTitle() {
         justifyContent:'center',
         padding:10,
         paddingRight:15,
-        marginBottom:10,
-        marginLeft:15,
-        marginBottom:-7,
+        borderRadius: 8,
+        marginVertical:17,
+        marginHorizontal:5,
       },
       hover: {
         backgroundColor:'white',
-        borderWidth: 2,
         borderTopWidth:0,
-        borderRadius: 0,
-        marginLeft:11,
-        marginBottom:-7,
+        borderRadius: 8,
+        marginVertical:17,
+        marginHorizontal:5,
       }
     }
     else
@@ -135,11 +134,9 @@ export function LogoTitle() {
       default:{
         elevation: 10,
         justifyContent:'center',
-        backgroundColor: '#FDE6A2',
+        backgroundColor: '#FDEEA2',
         padding:15,
         paddingRight:15,
-        borderTopWidth:2,
-        borderBottomWidth:2,
         margin:0,
         marginTop:-2,
       },

@@ -128,12 +128,17 @@ import HomeBackground from './HomeBackground';
           try {
             
             res = await Promise.all(res.data.map( async (el,i)=> {
-              return {...el,image: await getUri('sale/'+el._id+'/'+0)}
+              try {
+                return {...el,image: await getUri('sale/'+el._id+'/'+0)}
+              } catch (error) {
+                return {...el,image: null}
+              }
             }))
+            console.log(res);
             setList(res)
           } catch (error) {
 
-            console.log('error');
+            console.log('error',error);
           setList([])
             
           }
@@ -172,10 +177,10 @@ import HomeBackground from './HomeBackground';
     }
 
     return (
-      <ScrollView style={{flex:1}} >
+      <ScrollView style={{flex:1,backgroundColor:'#c4df98'}} >
         <HomeBackground >
-          <Auto style={{flex:3,zIndex:-1,elevation: -1,justifyContent:'center'}}>
-            <Col style={{flex:width<900?1:2}}>
+          <Auto style={{flex:3,zIndex:10,elevation: 10,justifyContent:'center'}}>
+            <Col style={{flex:width<900?1:2,alignItems:'center',shadowOpacity:2,}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
                 <Stickers style={{flex:1}}/>
                 <Row style={{alignItems:'flex-end',paddingLeft:50,paddingVertical:20}}>
@@ -183,20 +188,6 @@ import HomeBackground from './HomeBackground';
                   <Smiley/>
                 </Row>
               </Animated.View> 
-              <Animated.View style={{opacity:opacity2,flex:opacity2}}>
-                <Search route={{params:{key:searchText}}} style={{flex:1}} />
-              </Animated.View>
-              
-              <TextInput
-                placeholder={TextFor({pureText:true,text:'search_text'})}
-                onChangeText={setSearchText}
-                onFocus={open}
-                onBlur={close}
-                value={searchText}
-                style={{width:'100%',height:100,fontSize:width>900?40:20,padding:20,margin:0,backgroundColor:'#fbf7f0'}}/>
-              { !!searchText && <TouchableOpacity onPress={()=>setSearchText('')} style={{position:'absolute',right:0,bottom:0,width:100,height:100,zIndex:1,elevation: 1,justifyContent:'center',alignItems:'center'}}>
-                <Icon style={{justifyContent:'center'}} name="close" size={60}/>
-              </TouchableOpacity>}
             </Col>
           </Auto>
         </HomeBackground>

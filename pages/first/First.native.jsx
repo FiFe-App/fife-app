@@ -64,3 +64,27 @@ const styles = StyleSheet.create({
 
 
 export default First;
+
+
+const a = 
+<ScrollView style={[pageStyle,{backgroundColor:'#945adb'}]} contentContainerStyle={{paddingBottom:160}} key="3">
+<MyText style={titleStyle}>A saját bizniszed {"\n"}<MyText style={{fontWeight:"normal"}}>Ez alapján fognak mások megtalálni</MyText></MyText>
+  <Auto>
+    <View style={{flex:width<=900?'none':1}}>
+      <MyText style={[styles.text]}>
+      • Szoktál sapkákat kötni? Ha beírod, és valaki rákeres a 'sapka', vagy 'kötés' szóra megtalálhat téged!{"\n"}
+      • Programozói állásod van, de szívesen segítenél másoknak, írd ide, és megtalálnak téged!{"\n"}
+      • Bármilyen hobbid, munkád van, ha szerinted hasznos lehet ha megtalálják mások, vedd bele
+      </MyText>
+      <MyText style={[styles.text]}>
+        Amiket beírhatsz:{"\n"}
+          Kategória: 
+          Írd a leírásba, a kategórián belül pontosan mihez értesz, miben tudsz segíteni másoknak, hol tanultad.
+          És képeket is hozzáfűzhetsz.
+      </MyText>
+    </View>
+    <View style={{margin:5,marginTop:-1,flex:width<=900?'none':1}}>
+      <Professions data={data} setData={setData}/>
+    </View>
+  </Auto>
+</ScrollView>

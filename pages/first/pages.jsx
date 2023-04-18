@@ -57,6 +57,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
 
     useEffect(() => {
       setPageData(data)
+      console.log(data);
     }, [data]);
 
     useEffect(() => {
@@ -66,7 +67,6 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
     
     return [
         <ScrollView style={[pageStyle,{backgroundColor:'none'}]} contentContainerStyle={{paddingBottom:160}} key="1">
-            <ScrollView >
               <MyText style={titleStyle}>Szia! Üdvözöllek a Fiatal Felnőttek alkalmazásában!</MyText>
               <Auto key="Auto">
                 <View style={{flex:2}}>
@@ -84,7 +84,6 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                   <Image source={require('../../assets/img-main.jpg')} resizeMode="contain" style={{flex:1,width:'100%'}}/>
                 </View>
               </Auto>
-            </ScrollView>
         </ScrollView>,
         <ScrollView style={[pageStyle,{backgroundColor:'#B1ECEA'}]} contentContainerStyle={{paddingBottom:160}} key="1.2">
             <MyText style={titleStyle} adjustsFontSizeToFit>Hozzáállás</MyText>
@@ -113,12 +112,13 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 <MyText style={styles.text}>
                     Ahhoz, hogy ez az alkalmazás működhessen, arra van szükség, hogy a tagok egymás segítésére,
                     tájékozódásra, információcserére használják az appot, ne csupán önnön érdekből vagy rosszindulatból legyenek itt. 
-                    Éppen ezért minden felhasználónak lesz egy megbízhatósági skálája, ami megmutatja
-                    hányan gondolják róla azt, hogy bizalommal lehet hozzá fordulni.{'\n\n'}
+                    Éppen ezért bizonyos funkciókat csak akkor használhatsz, ha elegen gondolják rólad azt,
+                    hogy bizalommal lehet hozzád fordulni.{'\n\n'}
+                    Ha ismersz valakit, aki megbízható, jelöld a <B>pajtásodnak</B>, hogy mindenki tudja, hogy megbízol benne! {'\n\n'}
                     Ha viszont valaki szemétkedik, egy kattintással jelentheted számunkra a profilt, 
                     és ha indokolt, kitöröljük a profilját végleg.
                 </MyText>
-                <MyText style={styles.text}>Csak az jelölhet megbízhatónak valakit, akit már annak jelölt valaki más.</MyText>
+                <MyText style={styles.text}>Csak az jelölhet pajtásává valakit, akit már annak jelölt valaki más.</MyText>
               </View>
               <View style={{flex:width<=900?'none':1}}>
               <Image resizeMode='center' source={require('../../assets/img-main.jpg')} style={{flex:1}}/>
@@ -161,57 +161,16 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
               </View>
             </View>
         </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#945adb'}]} contentContainerStyle={{paddingBottom:160}} key="3">
-            <MyText style={titleStyle}>A saját bizniszed {"\n"}<MyText style={{fontWeight:"normal"}}>Ez alapján fognak mások megtalálni</MyText></MyText>
-              <Auto>
-                <View style={{flex:width<=900?'none':1}}>
-                  <MyText style={[styles.text]}>
-                  • Szoktál sapkákat kötni? Ha beírod, és valaki rákeres a 'sapka', vagy 'kötés' szóra megtalálhat téged!{"\n"}
-                  • Programozói állásod van, de szívesen segítenél másoknak, írd ide, és megtalálnak téged!{"\n"}
-                  • Bármilyen hobbid, munkád van, ha szerinted hasznos lehet ha megtalálják mások, vedd bele
-                  </MyText>
-                  <MyText style={[styles.text]}>
-                    Amiket beírhatsz:{"\n"}
-                      Kategória: 
-                      Írd a leírásba, a kategórián belül pontosan mihez értesz, miben tudsz segíteni másoknak, hol tanultad.
-                      És képeket is hozzáfűzhetsz.
-                  </MyText>
-                </View>
-                <View style={{margin:5,marginTop:-1,flex:width<=900?'none':1}}>
-                  <Professions data={data} setData={setData}/>
-                </View>
-              </Auto>
-        </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#ffc74f'}]} contentContainerStyle={{paddingBottom:160}} key="4">
-            <MyText style={titleStyle}>Az internet mely bugyraiban vagy megtalálható?</MyText>
-            <MyText style={styles.subTitle}>Elérhetőségeid. instagramod, saját webhelyed, olyan linkeket, ahol mások is elérhetik, hogy ki vagy te</MyText>
-
-            <Links data={data} setData={setData}/>
-        </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#ff8fc9'}]} contentContainerStyle={{paddingBottom:160}} key="6">
-            <MyText style={titleStyle}>Rólad</MyText>
-            <MyText style={styles.subTitle}>Add meg, a neved, és ha van kedved írj magadról valamit.</MyText>
-            <Auto>
+        <ScrollView style={[pageStyle,{backgroundColor:'#ffb28f'}]} contentContainerStyle={{paddingBottom:160,alignItems:'center'}} key="6.2">
+            <MyText style={titleStyle}>Mindjárt kész is vagy!</MyText>
+            <MyText style={styles.subTitle}>Add meg kérlek még az néhány adatod, az email-címed, és a jelszavad a befejezéshez.</MyText>
+            <Auto style={{justifyContent:'center'}}>
               <MoreInfoForm data={data.moreInfo} setData={(newData)=>setData({...data,name:newData.name,bio:newData.bio})} />
-              
-              <View style={{flex:1,margin:10,justifyContent:'flex-start'}}>
-                <Image resizeMode="center" source={require('../../assets/profile.jpeg')} style={{flex:1}}/>
-              </View>
-            </Auto>
-        </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#ffb28f'}]} contentContainerStyle={{paddingBottom:160}} key="6.2">
-            <MyText style={titleStyle}>Regisztráció</MyText>
-            <MyText style={styles.subTitle}>Add meg kérlek az email-címed, néhány adatod a regiszrációhoz</MyText>
-            <Auto>
-              <View>
-                <RegisterForm dataToAdd={data}/>
-              </View>
-              <View style={{flex:1,margin:10,justifyContent:'flex-start'}}>
-                <Image resizeMode="center" source={require('../../assets/profile.jpeg')} style={{flex:1}}/>
-              </View>
+              <RegisterForm dataToAdd={data}/>
             </Auto>
         </ScrollView>
 ]}
+
 
 const styles = StyleSheet.create({
     viewPager: {

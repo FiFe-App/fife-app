@@ -88,15 +88,15 @@ const First = ({scrollView}) => {
         <View style={{backgroundColor:'rgba(255,255,255,0.5)',width:percent/(allPages.length-1)*100+'%'}}/>
         <View style={{backgroundColor:'none',width:100-percent/(allPages.length-1)*100+'%'}}/>
       </View>
-      <Pressable 
+      {page < allPages.length-1 &&<TouchableOpacity 
         style={[styles.button,{right:10}]} 
         onPress={()=>scrollView2.scrollTo({x:(page+1)*width,y:0,animated:true})}>
-        <MyText style={styles.buttonText}>{page == pages.length-1 ? 'Befejezés' : 'Tovább'}</MyText>
-      </Pressable>
-      {page > 0 && <Pressable 
+        <MyText style={styles.buttonText}>{page > pages.lenght-1 ? 'Befejezés' : 'Tovább'}</MyText>
+      </TouchableOpacity>}
+      {page > 0 && <TouchableOpacity 
       style={[styles.button,{left:10}]} onPress={()=>scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})}>
         <MyText style={styles.buttonText}>Vissza</MyText>
-      </Pressable>}
+      </TouchableOpacity>}
 
       {false && <View style={{ flex: 1, flexDirection:'row' }}>
         <TouchableOpacity style={[styles.button]} onPress={()=>backDisabled ? handleToHome() : goTo(page-1)}>

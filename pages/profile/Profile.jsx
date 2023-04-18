@@ -5,7 +5,7 @@ import { child, get, onValue, ref, set } from "firebase/database";
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useContext, useEffect } from 'react';
 import { Animated, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
-import { styles } from '../../styles/styles';
+import styles from '../../styles/profileDesign';
 
 import { useSelector } from 'react-redux';
 import { FirebaseContext } from '../../firebase/firebase';
@@ -16,7 +16,7 @@ import { config } from '../../firebase/authConfig';
 import { SaleListItem } from '../sale/SaleListItem';
 import { Map } from './Edit';
 
-const bgColor = '#fffcf7'//'#ffd581dd'
+const bgColor = '#FDEEA2'//'#ffd581dd'
 
 const Profile = ({ navigation, route }) => {
   const {database, app, auth} = useContext(FirebaseContext);
@@ -43,20 +43,6 @@ const Profile = ({ navigation, route }) => {
     setFollowButtonState(!followButtonState);
   }
 
-  const getRecList = () => {
-    const dbRef = ref(database,'users/' + uid + "/likes");
-    onValue(dbRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const all = snapshot.val();
-        console.log('all',Object.keys(all));
-        Object.keys(all).map(f=>{
-          setFollowers(async old=>[...old,{uid:f,name:await getNameOf(f)}])
-        })
-        //setFollowers(Object.keys(all) || []);
-        setFollowButtonState(Object.keys(all).includes(myuid));
-      }
-    })
-  }
   useEffect(() => {
     console.log('FFFF',followers);
   }, [followers]);
@@ -83,6 +69,7 @@ const Profile = ({ navigation, route }) => {
         onValue(likeRef, (snapshot) => {
           const all = snapshot.val() || [];
           console.log('all',Object.keys(all));
+          setFollowers([])
           Object.keys(all).map(async f=>{
             const name = await getNameOf(f);
             setFollowers(old=>[...old,{uid:f,name}])
@@ -101,39 +88,46 @@ const Profile = ({ navigation, route }) => {
   
   if (profile)
   return(
-    <View style={{marginRight:-4,backgroundColor:bgColor,flex:1}}>
+    <View style={{paddingRight:25,paddingBottom:25,backgroundColor:bgColor,flex:1}}>
       <Auto style={{height:'none',flex:'none'}}>
-        <View style={{alignItems:'center'}}>
-          <ProfileImage uid={uid} size={150} style={[localStyles.container,{paddingHorizontal:0}]}/>
+        <View style={[localStyles.container,{width:150,paddingLeft:0}]}>
+          <ProfileImage uid={uid} size={150} style={[{paddingHorizontal:0,background:'none',borderRadius:8}]}/>
         </View>
         <View style={{flex:width <= 900 ? 'none' : 2,zIndex:10,elevation: 10}}>
           <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.name}</MyText></View>
           <Row style={{flex:width <= 900 ? 'none' : 1}}>
             <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.username}</MyText></View>
             <Popup style={localStyles.fcontainer}
-            popup={<ScrollView style={{marginTop:200,zIndex:100,elevation: 100,maxHeight:200}} contentContainerStyle={[localStyles.fcontainer]}>
-              {followers.map((f,i)=><Row key={i}>
-                <Col>
-                  <MyText>{f.name}</MyText>
-                  <ProfileImage uid={f.uid} size={40} style={[localStyles.container,{paddingHorizontal:0}]}/>
-                </Col> 
+            popup={<ScrollView style={styles.popup} contentContainerStyle={[{backgroundColor:'white'}]}>
+              {followers.map((f,i)=><Row key={i} style={{margin:5,alignItems:'center'}}>
+                  <ProfileImage uid={f.uid} size={40} style={[{marginRight:5,borderRadius:8}]}/>
+                  <MyText style={{fontSize:18}}>{f.name}</MyText>
               </Row>
               )}
             </ScrollView>}
             ><MyText style={localStyles.text}>Pajtásaim: {followers?.length}</MyText></Popup>
           </Row>
         </View>
-        <View style={[localStyles.container,{flex:width <= 900 ? 'none' : 1,zIndex:'auto',elevation: 'auto'}]}>
-            { !myProfile && <>
-            <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('uzenetek',{selected:uid})}/>
-            <NewButton title={profile.name + (followButtonState ? ' már a pajtásom!' : ' még nem a pajtásom')} onPress={follow}/>
-            </>
-            }
-          {myProfile &&
-            <NewButton title={"Módosítás"} onPress={() => navigation.navigate('profil-szerkesztese')} />
+        { !myProfile && <Col>
+            <Pressable onPress={() => navigation.navigate('uzenetek',{selected:uid})}
+             style={[localStyles.container, {flex:width <= 900 ? 'none' : 1,alignItems:'center',backgroundColor:'#ffde7e',shadowOpacity:0.5}]}>
+                <MyText style={{fontSize:28}}>Üzenetküldés</MyText>
+            </Pressable>  
+            <Pressable onPress={follow}
+             style={[localStyles.container, {flex:width <= 900 ? 'none' : 1,alignItems:'center',backgroundColor:'#ffde7e',shadowOpacity:0.5}]}>
+                <MyText style={{fontSize:28}}>{profile.name + (followButtonState ? ' már a pajtásom!' : ' még nem a pajtásom')} </MyText>
+            </Pressable> 
+        </Col>}
+            
+
+          {myProfile && 
+            <Pressable onPress={() => navigation.navigate('profil-szerkesztese')}
+             style={[localStyles.container, {flex:width <= 900 ? 'none' : 1,alignItems:'center',backgroundColor:'#ffd048',shadowOffset:{width:-2,height:4}}]}>
+                <MyText style={{fontSize:28,color:'black'}}>Módosítás</MyText>
+            </Pressable>  
+            
             }
 
-        </View>
       </Auto>
       <Auto style={{flex:1,zIndex:-1,elevation: -1}}>
         <View style={{flex:width <= 900 ? 'none' : 1}}>
@@ -184,7 +178,7 @@ const Profile = ({ navigation, route }) => {
       </Auto>
     </View>
   )
-  else return (<Loading color={"#f5d142"}/>)
+  else return (<View style={{backgroundColor:bgColor,flex:1}}><Loading color={"#f5d142"}/></View>)
 }
 
   function Section(props){
@@ -213,21 +207,31 @@ const Profile = ({ navigation, route }) => {
   const localStyles = {
     fcontainer: {
       flex:1,
-      marginTop: 5,
-      marginLeft: 5,
+      marginTop: 25,
+      marginLeft: 25,
       backgroundColor:'white',
       fontSize:30,
       paddingHorizontal:20,
       justifyContent:'center', 
-      zIndex:'auto' 
+      zIndex:'auto', 
+      shadowColor: '#171717',
+      shadowOffset: {width: 2, height: 4},
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      borderRadius:8
     },
     container: {
-      marginTop: 5,
-      marginLeft: 5,
+      marginTop: 25,
+      marginLeft: 25,
       backgroundColor:'white',
       paddingHorizontal:20,
       justifyContent:'center',
-      zIndex:'auto' 
+      zIndex:'auto' ,
+      shadowColor: '#171717',
+      shadowOffset: {width: 2, height: 4},
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      borderRadius:8
     },
     text:{
       fontWeight: 'bold',
@@ -258,7 +262,7 @@ const Profile = ({ navigation, route }) => {
     },
     sectionText:{
       fontWeight: 'bold',
-      fontSize:22,
+      fontSize:26,
 
     },
     map: {

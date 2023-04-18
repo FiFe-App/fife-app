@@ -19,9 +19,47 @@ import { config } from '../../firebase/authConfig';
 export const getMaps = async (db) => {
     try {
       
-      const data = await axios.get('/places',config())
-      console.log('getMaps',data);
-      return data.data
+      //const data = await axios.get('/places',config())
+      console.log('getMaps',{data:[
+        "Adományboltok",
+        "Turik",
+        "Nyilvános vécék",
+        "Ivóvíz lelőhelyek",
+        "FiFe kocsmák",
+        "Csomagolásmentes boltok",
+        "Piacok",
+        "Bulihelyek",
+        "Ruhaleadó helyek",
+        "Szelektív gyűjtők",
+        "Komposztok",
+        "Közösségi helyek, kertek",
+        "Fotóboltok",
+        "Biszbasz boltok, régiség boltok",
+        "Galériák",
+        "Művészmozik",
+        "Kifőzdék",
+        "Biztonságos biciklitárolók"
+      ]});
+      return [
+        "Adományboltok",
+        "Turik",
+        "Nyilvános vécék",
+        "Ivóvíz lelőhelyek",
+        "FiFe kocsmák",
+        "Csomagolásmentes boltok",
+        "Piacok",
+        "Bulihelyek",
+        "Ruhaleadó helyek",
+        "Szelektív gyűjtők",
+        "Komposztok",
+        "Közösségi helyek, kertek",
+        "Fotóboltok",
+        "Biszbasz boltok, régiség boltok",
+        "Galériák",
+        "Művészmozik",
+        "Kifőzdék",
+        "Biztonságos biciklitárolók"
+      ]
     } catch (error) {
       console.log(error);
       return null
