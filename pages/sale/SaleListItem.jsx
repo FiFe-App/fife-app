@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import ExpoFastImage from 'expo-fast-image';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -13,8 +13,9 @@ import { saleCategories } from '../../lib/categories';
 
 const categories = saleCategories
 
-export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,openUserModal}) {
+export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,openUserModal,readOnly}) {
     const navigation = useNavigation();
+    const route = useRoute();
     const {title,description,author,name,created_at,imagesDesc,imageBookable,_id,booked,bookedBy,category} = data
     const myUid = useSelector((state) => state.user.uid)
     const [loadedImage, setLoadedImage] = useState(null);
@@ -63,13 +64,13 @@ export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,open
     return (
         <>
         <View style={[styles.list, { backgroundColor: selected ? '#fff8ce' : '#fdfdfd'}]}>
-        <TouchableOpacity onPressOut={onPress} style={{flexDirection:'row',width:'100%',alignSelf:'flex-start'}}>
+        <TouchableOpacity onPress={onPress} style={{flexDirection:'row',width:'100%',alignSelf:'flex-start'}}>
                 <View
                 >{loadedImage ?
                     <ExpoFastImage source={loadedImage[0]} style={{width:100,height:100,margin:5,borderRadius:8}}/>
                     : <ProfileImage size={100} uid={author} style={{width:100,height:100,margin:5,borderRadius:8}}/>}
                     
-                    <View 
+                    {!readOnly && <View 
                         onStartShouldSetResponder={(event) => true}
                         onTouchEnd={(e) => {
                             e.stopPropagation();
@@ -109,10 +110,10 @@ export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,open
                             </TouchableOpacity>
                     
                         }
-                    </View>
+                    </View>}
                 </View>
                 <Auto breakPoint={600}>
-                    <View style={{marginLeft: 5,flex:'none',}}>
+                    <View style={{marginLeft: 5,width:'100%'}}>
                             <Row>
                                 <MyText style={{marginRight:5,backgroundColor:categories[category].color,padding:5}}>{categories[category].name}</MyText>
                                 <MyText style={{ fontWeight: 'bold',fontSize:20 }}>{title}</MyText>
@@ -121,7 +122,7 @@ export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,open
                             <MyText style={{ fontWeight: 'bold',fontSize:20 }}>{name}</MyText>
                             <MyText> {elapsed}</MyText>
                         </Row>
-                        <OpenableText style={{ margin:5, }} open={false} text={description}/>
+                        <OpenableText style={{ margin:5, whiteSpace:'normal'}} open={false} text={description}/>
                     </View>
                 </Auto>
                 
@@ -146,10 +147,10 @@ export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,open
   })
 
   const OpenableText = ({text,open,style}) => {
-    const short = '' || text.substring(0,50).replace(/(\r\n|\n|\r)/gm, "");
-    if (text.length > 50) {
+    const short = '' || text.substring(0,200).replace(/(\r\n|\n|\r)/gm, "");
+    if (text.length > 200) {
         return (
-            <MyText style={style}>{!!open ? text : short+'...'}</MyText>
+                <MyText style={style}>{!!open ? text : short+'...'}</MyText>
         )
     } else return <MyText style={style}>{text}</MyText>
   }

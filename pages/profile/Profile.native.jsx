@@ -105,11 +105,11 @@ export const Profile = ({ navigation, route }) => {
       <View style={{justifyContent: "center"}}>
           { !myProfile && <>
           <NewButton title={followButtonText} onPress={follow}/>
-          <NewButton title="Üzenetküldés" onPress={() => navigation.navigate('beszelgetes',{uid:uid})}/>
+          <NewButton title="Üzenetküldés" onPress={() => navigation.push('beszelgetes',{uid:uid})}/>
           </>
           }
         {myProfile &&
-          <NewButton title={"Módosítás"} onPress={() => navigation.navigate('profil-szerkesztese')} />
+          <NewButton title={"Módosítás"} onPress={() => navigation.push('profil-szerkesztese')} />
           }
       </View>
 

@@ -22,6 +22,7 @@ import { equalTo, get, query, ref } from 'firebase/database';
 
 const LoginScreen = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
+  const small = useWindowDimensions().width<900;
   const [canLogin, setCanLogin] = React.useState(route.params?.logout || false);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
@@ -30,6 +31,14 @@ const LoginScreen = ({ navigation, route }) => {
   const [scrollView, setScrollView] = useState(null);
 
   
+  const containerStyle= {
+    alignItems:'center',
+    justifyContent:'center',
+    height:useWindowDimensions().height,
+
+    backgroundColor: '#fff',
+  }
+
     React.useEffect(() => {
       if (api && !canLogin)
         api.login().then((res)=>{
@@ -43,7 +52,7 @@ const LoginScreen = ({ navigation, route }) => {
     const handleMoreInfo = () => {
       console.log('more');
       if (width <= 900)
-        navigation.navigate('az-approl')
+        navigation.push('az-approl')
       else
         scrollView.scrollToEnd(true)
     }
@@ -67,17 +76,20 @@ const LoginScreen = ({ navigation, route }) => {
       <Helmet>
         <meta name="theme-color" content="rgba(255,196,0,1)"/>
       </Helmet>
-      <LinearGradient colors={["rgba(255,196,0,1)", "#fcf3d4"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={localStyle.container}>
+      <LinearGradient colors={["rgba(255,196,0,1)", "#fcf3d4"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
+        
+      <NewButton title="Rólunk" onPress={()=>navigation.push('rolunk')} style={{padding:10}} textStyle={{fontSize:30}} color="#bbff6e"/>
         {width > 900 ?
           <MyText style={{fontSize:'10vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>
           FiFe App
         </MyText>
         : 
-        <MyText style={{fontSize:100, fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100,textAlign:'center'}}>
+        <MyText style={{fontSize:70, fontFamily:'Raleway_800ExtraBold',color:'black',flex:1,marginTop:90,textAlign:'center'}}>
           FiFe App
         </MyText>
         }
-        <MyText style={{fontSize:60, fontFamily:'SpaceMono_400Regular',color:'rgb(255, 217, 90)',backgroundColor:'black',textAlign:'right',paddingLeft:30,paddingRight:30}}>cserebere buzinessz</MyText>
+        <MyText style={{fontSize:small?30:60, fontFamily:'SpaceMono_400Regular',color:'rgb(255, 217, 90)',backgroundColor:'black',textAlign:'right',paddingLeft:30,paddingRight:30}}>
+        <B>MÉG NEM TUDSZ REGISZTRÁLNI</B> </MyText>
 
         <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
             {!true ?
@@ -101,6 +113,7 @@ const LoginScreen = ({ navigation, route }) => {
 
 const  LoginForm = () => {
   const { width } = useWindowDimensions();
+  const small = useWindowDimensions().width<900;
   const navigation = useNavigation()
   const [loading, setLoading] = useState(false);
   const [username, onChangeUsername] = React.useState("");
@@ -133,7 +146,7 @@ const  LoginForm = () => {
   }
 
   return (
-    <View style={{justifyContent:'center',alignSelf:'center',alignItems:"center",flex:1}}>
+    <View style={{justifyContent:'center',alignItems:"center",flex:1}}>
       <View style={{flexDirection:'row',flex:1}}>
         <View style={{flexWrap:'wrap'}}>
           <TextInput
@@ -152,7 +165,7 @@ const  LoginForm = () => {
             onSubmitEditing={()=>signIn(username, password, onChangeLoginError)}
           />
       </View>
-      <Pressable style={{width:70,backgroundColor:'black',justifyContent:'center',alignItems:"center",margin:5}} 
+      <Pressable style={{width:70,backgroundColor:'black',justifyContent:'center',alignItems:"center",margin:5,borderRadius:8}} 
         onPress={() => signIn(username, password, onChangeLoginError)}>
         {!loading ?
         <Icon name="arrow-forward-outline" color="white" size={40}/>
@@ -179,7 +192,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
 
   useEffect(() => {
     console.log(dataToAdd);
-  }, []);
+  }, [dataToAdd]);
 
   const signUp = (email, password, printMessage) => {
     console.log('sign in');
@@ -271,9 +284,8 @@ export const MoreInfoForm = ({setData}) => {
   }, [username]);
 
   useEffect(() => {
-    console.log(name & bio);
-    setData({name,bio})
-  }, [name,bio]);
+    setData({name,bio,username:usernameValid?username:null})
+  }, [name,bio,username,usernameValid]);
   return (
     <View style={{flex:width <= 900 ? 'none' : 1}}>
       <View style={{maxWidth:500}}>
@@ -330,13 +342,6 @@ const Loading = () => {
 } 
 
 const localStyle = StyleSheet.create({
-  container: {
-    alignItems:'center',
-    justifyContent:'flex-start',
-    height:Dimensions.get('window').height,
-
-    backgroundColor: '#fff',
-  },
   title: {
     fontFamily: "Raleway_800ExtraBold",
     fontSize:'4.0vw', 

@@ -126,7 +126,7 @@ const NewItem = ({route,data}) => {
 
     return (
       <>
-      {width < 900 && <Pressable onPress={()=>navigation.push('cserebere')} style={{backgroundColor:'#FDEEA2'}}>
+      {width <= 900 && <Pressable onPress={()=>navigation.push('cserebere')} style={{backgroundColor:'#FDEEA2'}}>
         <Row style={{padding:10,alignItems:'center'}}>
           <Icon name="chevron-back" size={32}/>
           <MyText style={{fontSize:32}}>Vissza</MyText>
@@ -258,7 +258,7 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,globalImageBookale,setG
       </View>
         )}
       <Pressable style={[styles.square,{}]} onPress={pickImage}>
-        <MyText style={{fontSize:20}}>Új kép</MyText>
+        <MyText style={{fontSize:20}}>+ Új kép</MyText>
       </Pressable>
 
     </ScrollView>

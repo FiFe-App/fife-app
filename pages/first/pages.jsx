@@ -3,7 +3,7 @@ import { Professions, Links } from '../profile/Edit';
 import { StyleSheet, View, Button, Platform,ScrollView, Pressable, Image, FlatList, Dimensions,  } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { MoreInfoForm, RegisterForm } from "../login/Login";
-import { Auto, B, Col, TextInput, MyText } from '../../components/Components';
+import { Auto, B, Col, TextInput, MyText, NewButton, Row } from '../../components/Components';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useRef } from 'react';
 import { useWindowDimensions } from 'react-native'
@@ -12,14 +12,30 @@ import AmiKell from './AmiKell';
 
 export const Pages = ({newData,setNewData,pageData, setPageData}) => {
     const { width } = useWindowDimensions();
+    const small = useWindowDimensions().width<900;
     const [more, setMore] = useState(false);
     const textInput = useRef(null);
+    const [sent, setSent] = useState(false);
+    const [email, setEmail] = useState('');
+    const handleSend = async () => {
+        if (email) {
+            const newPostRef = push(ref(db,'about/emails'))
+            set(newPostRef ,{
+                email
+            })
+            .then(res=>{
+                console.log(res);
+                setEmail('')
+                setSent(true);
+            }).catch(err=>{
+                console.log(err);
+            })
+        }
+    }
     const [data, setData] = useState({
       textToType: '',
-      profession: [],
-      links: [],
+      username: '',
       name: '',
-      bio: ''
     });
     const pageStyle = {
       flex:1,
@@ -27,7 +43,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
       padding: width <= 900 ? 0 : 40,
     }
     const titleStyle = {
-      fontSize: width > 900 ? 50 : 40,
+      fontSize: width > 900 ? 50 : 30,
       width:'100%',
       fontWeight:'bold',
       paddingVertical:20,
@@ -36,7 +52,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
     }
     const titleStyleW = {
       color:'white',
-      fontSize: width > 900 ? 50 : 40,
+      fontSize: width > 900 ? 50 : 30,
       width:'100%',
       fontWeight:'bold',
       paddingVertical:20,
@@ -57,7 +73,6 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
 
     useEffect(() => {
       setPageData(data)
-      console.log(data);
     }, [data]);
 
     useEffect(() => {
@@ -69,8 +84,9 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
         <ScrollView style={[pageStyle,{backgroundColor:'none'}]} contentContainerStyle={{paddingBottom:160}} key="1">
               <MyText style={titleStyle}>Szia! Üdvözöllek a Fiatal Felnőttek alkalmazásában!</MyText>
               <Auto key="Auto">
-                <View style={{flex:2}}>
-                  <MyText style={[styles.text,{backgroundColor:'rgb(181, 139, 0)',color:'white',fontWeight:'bold',textAlign:'center'}]}>Az alkalmazás még nincs kész, tesztüzemmódban működik az oldal!</MyText>
+                <View style={{flex:small?'none':2}}>
+                  <MyText style={[styles.text,{backgroundColor:'rgb(181, 139, 0)',color:'white',fontWeight:'bold',textAlign:'center'}]}>
+                  Az alkalmazás még nincs kész, tesztüzemmódban működik az oldal!</MyText>
                   <MyText style={styles.text}>Ez egy eszköz,
                   ami segít, hogy <B>barátkozz</B>, <B>tájékozódj</B>, <B>bizniszelj</B> és ne érezd magad elszigetelve a nagyvárosban.
                   {'\n\n'}Az alkalmazás célja a FiFe szellemiség megvalósítása az online térben,
@@ -80,8 +96,8 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                   {'\n\n'}Nem facebook vagyunk, nem az a célunk, hogy minél több reklámot és tartalmat láss.
                   </MyText>
                 </View>
-                <View style={{flex:1,margin:20,height:'100%',flexDirection:'row'}}>
-                  <Image source={require('../../assets/img-main.jpg')} resizeMode="contain" style={{flex:1,width:'100%'}}/>
+                <View style={{flex:small?'none':1,margin:20,flexDirection:'row'}}>
+                  <Image source={require('../../assets/img-main.jpg')} resizeMode="contain" style={{flex:1,minHeight:300}}/>
                 </View>
               </Auto>
         </ScrollView>,
@@ -101,7 +117,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 </MyText>
               </View>
               <View style={{flex:width<=900?'none':1}}>
-              <Image resizeMode='center' source={require('../../assets/img-prof.jpg')} style={{flex:1}}/>
+              <Image resizeMode='center' source={require('../../assets/img-prof.jpg')} style={{flex:1,minHeight:300}}/>
               </View>
             </Auto>
         </ScrollView>,
@@ -121,7 +137,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 <MyText style={styles.text}>Csak az jelölhet pajtásává valakit, akit már annak jelölt valaki más.</MyText>
               </View>
               <View style={{flex:width<=900?'none':1}}>
-              <Image resizeMode='center' source={require('../../assets/img-main.jpg')} style={{flex:1}}/>
+              <Image resizeMode='center' source={require('../../assets/img-main.jpg')} style={{flex:1,minHeight:300}}/>
               </View>
             </Auto>
         </ScrollView>,
@@ -162,12 +178,33 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
             </View>
         </ScrollView>,
         <ScrollView style={[pageStyle,{backgroundColor:'#ffb28f'}]} contentContainerStyle={{paddingBottom:160,alignItems:'center'}} key="6.2">
-            <MyText style={titleStyle}>Mindjárt kész is vagy!</MyText>
+            {false && <><MyText style={titleStyle}>Mindjárt kész is vagy!</MyText>
             <MyText style={styles.subTitle}>Add meg kérlek még az néhány adatod, az email-címed, és a jelszavad a befejezéshez.</MyText>
             <Auto style={{justifyContent:'center'}}>
-              <MoreInfoForm data={data.moreInfo} setData={(newData)=>setData({...data,name:newData.name,bio:newData.bio})} />
+              <MoreInfoForm data={data.moreInfo} setData={(newData)=>setData({...data,name:newData.name,username:newData.username})} />
               <RegisterForm dataToAdd={data}/>
+            </Auto></>}
+            <MyText style={titleStyle}>Még nem tudsz regisztrálni, gyere vissza később:)</MyText>
+            <Auto style={{flex:'none'}}>
+                <Image source={require('../../assets/en.jpeg')} resizeMode="cover" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
+                <MyText contained>
+                <MyText title>Rólam</MyText>{'\n'}
+                Kristóf Ákos vagyok, én találtam ki és fejlesztem egyedül a FiFe Appot. Ez egy olyan projekt, 
+                amibe szívemet-lelkemet bele tudom rakni, értetek, és egy jobb világért dolgozom rajta. 
+                Az oldal fenntartásához, fejlesztéséhez sok idő és pénz is kell, éppen ezért kérem a támogatásotokat. 
+                Ha neked is fontos a projekt célja, és szívesen használnád az appot, kérlek 
+                egy pár száz forinttal segítsd az elindulásunkat:)</MyText>
             </Auto>
+            <NewButton onPress={()=>{ Linking.openURL('https://patreon.com/fifeapp') }} color="#4d9bff"
+            title="Itt tudsz adományozni!" style={{alignSelf:small?'center':'flex-end',paddingHorizontal:10}} textStyle={{fontSize:30}}/> 
+            <View style={{}}>
+                <MyText title>Küldjek emailt, ha elkészült az app?</MyText>
+                <Row>
+                    <TextInput style={{margin:5,padding:10,backgroundColor:'white',flexGrow:1}} 
+                    value={!sent ? email : 'Köszi, megkaptam az email-címed!'} onChangeText={setEmail} disabled={sent} placeholder="Email-címed"/>
+                    <NewButton title="Küldés" onPress={handleSend} disabled={!email || sent} style={{margin:5,minWidth:100}}/>
+                </Row>
+            </View>
         </ScrollView>
 ]}
 

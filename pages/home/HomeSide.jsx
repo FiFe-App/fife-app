@@ -16,19 +16,19 @@ export const HomeSide = ({tabProp})  => {
     const [tab, setTab] = useState('navigation');
 
     useEffect(() => {
-      if (tabProp && width < 900) setTab(tabProp)
+      if (tabProp && width <= 900) setTab(tabProp)
     }, [tabProp]);
 
     useEffect(() => {
-      if (width >= 900 && tab == 'navigation')
+      if (width > 900 && tab == 'navigation')
         setTab('messenger')
-      else if (width < 900 && tab != 'none') setTab('navigation')
+      else if (width <= 900 && tab != 'none') setTab('navigation')
     }, [width]);
 
     return (
         <View style={{flex:tab == 'none' ? 'none' : 1}}>
             <Row style={{width:'100%'}}>
-                {width < 900 && <NewButton style={{flex:1,margin:0}} color={tab=='navigation'?'white':'#fdeea2'} title="Gombok" onPress={()=>setTab('navigation')}/>}
+                {width <= 900 && <NewButton style={{flex:1,margin:0}} color={tab=='navigation'?'white':'#fdeea2'} title="Gombok" onPress={()=>setTab('navigation')}/>}
                 <NewButton style={{flex:1,margin:0}} color={tab=='messenger'?'white':'#fdeea2'} title="Üzenőfal" onPress={()=>setTab('messenger')}/>
                 <NewButton style={{flex:1,margin:0}} color={tab=='notifications'?'white':'#fdeea2'} title="Értesítések" onPress={()=>setTab('notifications')}/>
             </Row>
@@ -101,7 +101,7 @@ const Notifications = ({style}) => {
             (n,i)=>
               <Pressable 
                 key={'msg'+i} 
-                onPress={()=>navigator.navigate(n.link,n.params)}
+                onPress={()=>navigator.push(n.link,n.params)}
                 style={{backgroundColor:'white',flexDirection:'row',padding:5}}>
                   <Auto style={{flexGrow:1}}>
                     <MyText style={{fontWeight:'bold'}}>{n.title}{n?.text && <MyText>{': '}</MyText>}</MyText>
@@ -140,15 +140,15 @@ const Navigation = () => {
 
   return (
     <Col>
-      <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]}  onPress={()=>navigation.navigate('cserebere')}>
+      <Pressable style={[styles.bigButton,{flex:width<=900?'none':1}]}  onPress={()=>navigation.push('cserebere')}>
         <MyText style={styles.bigButtonText}>Cserebere</MyText>
         <Icon name="shirt" color="#71bbff" size={60}/>
       </Pressable>
-      <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]}  onPress={()=>navigation.navigate('terkep')}>
+      <Pressable style={[styles.bigButton,{flex:width<=900?'none':1}]}  onPress={()=>navigation.push('terkep')}>
         <MyText style={styles.bigButtonText}>Térkép</MyText>
         <Icon name="map" color="#8de264" size={60}/>
       </Pressable>
-      <Pressable style={[styles.bigButton,{flex:width<900?'none':1}]} onPress={()=>navigation.navigate('esemenyek')}>
+      <Pressable style={[styles.bigButton,{flex:width<=900?'none':1}]} onPress={()=>navigation.push('esemenyek')}>
         <MyText style={styles.bigButtonText}>Programok</MyText>
         <Icon name="calendar" color="#ff3e6f" size={60}/>
       </Pressable>

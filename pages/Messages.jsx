@@ -1,14 +1,14 @@
-import { useState, useContext, useEffect, useCallback } from "react";
-import {View, TouchableOpacity, ScrollView, Platform, Dimensions} from 'react-native'
-import { useSelector } from 'react-redux'
-import { FirebaseContext } from '../firebase/firebase';
-import { ref, child, get, set, onValue, onChildAdded, off, onChildChanged, query, orderByChild } from "firebase/database";
-import { ProfileImage, MyText } from '../components/Components'
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { off, onChildAdded, onValue, orderByChild, query, ref } from "firebase/database";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { MyText, ProfileImage, getNameOf } from '../components/Components';
+import { FirebaseContext } from '../firebase/firebase';
+import { useWindowDimensions } from "../lib/hooks/window";
+import { elapsedTime } from "../lib/textService/textService";
 import { styles } from "../styles/styles";
 import Chat from "./Chat";
-import { elapsedTime } from "../lib/textService/textService";
-import { useWindowDimensions } from "../lib/hooks/window";
 
 const Messages = ({route,navigation}) => {
     const { width } = useWindowDimensions();
@@ -38,7 +38,7 @@ const Messages = ({route,navigation}) => {
                             getRandom()
                             return;
                         } else 
-                        navigation.navigate('uzenetek',{selected:childSnapshot.key});
+                        navigation.push('uzenetek',{selected:childSnapshot.key});
                     }
                 })
             }
@@ -46,30 +46,41 @@ const Messages = ({route,navigation}) => {
     }
 
     useEffect(() => {
-        console.log('[list modified]');
+        setList(list.sort((a, b) => {
+            const nameA = a.last.date // ignore upper and lowercase
+            const nameB = b.last.date; // ignore upper and lowercase
+            if (nameA < nameB) {
+              return 1;
+            }
+            if (nameA > nameB) {
+              return -1;
+            }
+          
+            // names must be equal
+            return 0;
+          }));
     }, [list]);
 
-    useEffect(() => {
-        console.log('unread',unreadMessages);
-    }, [unreadMessages]);
 
     useFocusEffect(
         useCallback(() => {
             if (database) {    
 
                 if (route?.params?.random) getRandom()
-                
-                const userRef = ref(database,`users`);
-
                 setList([])
-                onChildAdded(msgQuery,(childSnapshot) => {
+                onChildAdded(msgQuery,async (childSnapshot) => {
                     const last = childSnapshot.child('last').val() || null
                     const childKey = childSnapshot.key;
                     const read = !unreadMessages?.includes(childKey)
+                    const name = await getNameOf(childKey);
+                    //console.log(name);
                     if (last)
-                    get(child(userRef,childKey+'/data/name')).then((snapshot) => {
-                        setList(old=>[{uid:childKey,name:snapshot.val(),read:read,last:last},...old])
-                    });
+                        setList(old=>[{
+                            uid:childKey,
+                            name,
+                            read:read,
+                            last
+                        },...old])
                 });
             }
     
@@ -90,8 +101,8 @@ const Messages = ({route,navigation}) => {
         });
       }, [selected,width]);
     return (
-    <View style={{flex:1, flexDirection:'row',backgroundColor:'#fff'}}>
-        <ScrollView style={{flex:1}}>
+    <View style={{flex:1, flexDirection:'row',backgroundColor:'#FDEEA2'}}>
+        <ScrollView style={{flex:1}} contentContainerStyle={{paddingTop:5}}>
             {!!list.length && list.map((e,i)=>{
                 return (
                     <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected}/>
@@ -125,13 +136,9 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
             navigation.push("beszelgetes", {uid:uid});
     }
 
-    useEffect(() => {
-        console.log(title,uid);
-    }, [uid]);
-
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fdfbf0' : '#fff'},
-            selected && {shadowOffset: {width: 2, height: 4},shadowOpacity: 0.2,shadowRadius: 1,}]}>
+        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fdf8d9' : '#fff'},
+            {shadowOffset: {width: 2, height: 4},shadowOpacity: 0.2,shadowRadius: 1,}]}>
             <ProfileImage style={styles.listIcon} uid={uid}/>
             <View style={{marginLeft: 5,flexGrow:1}}>
               <MyText style={{ fontWeight: 'bold',flex: 1, }}>{title}</MyText>

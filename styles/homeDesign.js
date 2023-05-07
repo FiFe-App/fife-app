@@ -15,12 +15,15 @@ const styles = StyleSheet.create({
         width: 200,
         margin:2,
         borderTopLeftRadius:8,
-        borderTopRightRadius:8
+        borderTopRightRadius:8,
+        shadowOffset: {width: 4, height: 4},
+        shadowOpacity: 0.2,
+        shadowRadius: 1,
     },
     moduleText: {
         backgroundColor:'white',
         padding:2,
-        shadowOffset: {width: 2, height: 4},
+        shadowOffset: {width: 4, height: 4},
         shadowOpacity: 0.2,
         shadowRadius: 1,
     },

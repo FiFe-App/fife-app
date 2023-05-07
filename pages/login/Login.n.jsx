@@ -108,7 +108,7 @@ const LoginScreen = ({ navigation, route }) => {
           <MyText style={{margin:20,fontSize:20}}>Először vagy itt?</MyText>
           <Button style={styles.headline} title="Regisztráció" color="black"
           onPress={() =>
-            navigation.navigate('az-approl')
+            navigation.push('az-approl')
           } />
         </LinearGradient>
   

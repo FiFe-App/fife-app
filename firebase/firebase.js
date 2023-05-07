@@ -150,7 +150,7 @@ export default ({ children }) => {
             const retApp = await init()
             const a = getAuth(retApp)
             await signInWithEmailAndPassword(a, newEmail, newPass)
-            .then((userCredential) => {
+            .then(async (userCredential) => {
                 const user = userCredential.user
                 userCredential.user.getIdToken().then(token=>{
                     console.log(token);
@@ -166,8 +166,19 @@ export default ({ children }) => {
 
                 })
                 if (firstLogin) {
-                    response = {success:true}
-                    return
+                    const db = getDatabase(retApp);
+                    const user = getAuth(retApp).currentUser;
+                    console.log(user);
+                    if (user == null) {
+                        console.log('USER NULL');
+                        return
+                    }
+                    console.log('set',`users/${user.uid}/data`,firstLogin);
+                    try{await set(ref(db,`users/${user.uid}/data`),{...firstLogin,username:null}).then(()=>{
+                        response = {success:true,user}
+                    })} catch (err) {
+                        console.log('ERROR',err);
+                    }
                 } 
                 console.log(userCredential);
 
@@ -210,7 +221,7 @@ export default ({ children }) => {
                 console.log('signed in as ',userCredential.user.email);
                 dispatch(sliceLogin(userCredential.user.uid))
 
-                response = {success:true}
+                response = {success:true,user:userCredential.user}
                 
             })
             .catch((error) => {
@@ -238,17 +249,11 @@ export default ({ children }) => {
         let response = null
         const auth = getAuth();
         const db = getDatabase();
-        await createUserWithEmailAndPassword(auth, email, password)
+        console.log('register',data);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
             .then(async (userCredential) => {
                 // Signed in 
                 console.log('signed in as ',userCredential.user.email);
-                const LoginRes = await login(email,password,true);
-                if (LoginRes?.success) {
-                    dispatch(sliceLogin(userCredential.user.uid))
-                    await set(ref(db,`users/${userCredential.user.uid}/data`),data).then(()=>{
-                        response = {success:true}
-                    })
-                }
             })
             .catch((error) => {
                 const errorCode = error.code;
@@ -263,6 +268,12 @@ export default ({ children }) => {
                     response = {error:"error: " + errorCode + " - " + errorMessage};
                 console.log(response);
             });
+            try {
+                const LoginRes = await login(email,password,data);
+                console.log('loginRes',LoginRes);
+            } catch (err) {
+                console.log('set error',err);
+            }
         return response
     }
 

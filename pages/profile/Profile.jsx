@@ -1,9 +1,9 @@
 import { Auto, Col, getNameOf, Loading, MyText, NewButton, Popup, ProfileImage, Row } from '../../components/Components';
 
-import { child, get, onValue, ref, set } from "firebase/database";
+import { child, get, getDatabase, onValue, push, ref, set } from "firebase/database";
 
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useContext, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
 import styles from '../../styles/profileDesign';
 
@@ -15,6 +15,8 @@ import { useWindowDimensions } from 'react-native';
 import { config } from '../../firebase/authConfig';
 import { SaleListItem } from '../sale/SaleListItem';
 import { Map } from './Edit';
+import GoBack from '../../components/Goback';
+import { useHover } from 'react-native-web-hooks';
 
 const bgColor = '#FDEEA2'//'#ffd581dd'
 
@@ -88,8 +90,9 @@ const Profile = ({ navigation, route }) => {
   
   if (profile)
   return(
-    <View style={{paddingRight:25,paddingBottom:25,backgroundColor:bgColor,flex:1}}>
-      <Auto style={{height:'none',flex:'none'}}>
+    <ScrollView style={{paddingRight:25,paddingBottom:25,backgroundColor:bgColor,flex:1}}>
+      <Auto style={{flex:'none'}}>
+        <GoBack style={{marginLeft:20}}/>
         <View style={[localStyles.container,{width:150,paddingLeft:0}]}>
           <ProfileImage uid={uid} size={150} style={[{paddingHorizontal:0,background:'none',borderRadius:8}]}/>
         </View>
@@ -98,35 +101,37 @@ const Profile = ({ navigation, route }) => {
           <Row style={{flex:width <= 900 ? 'none' : 1}}>
             <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.username}</MyText></View>
             <Popup style={localStyles.fcontainer}
-            popup={<ScrollView style={styles.popup} contentContainerStyle={[{backgroundColor:'white'}]}>
-              {followers.map((f,i)=><Row key={i} style={{margin:5,alignItems:'center'}}>
-                  <ProfileImage uid={f.uid} size={40} style={[{marginRight:5,borderRadius:8}]}/>
-                  <MyText style={{fontSize:18}}>{f.name}</MyText>
-              </Row>
-              )}
-            </ScrollView>}
-            ><MyText style={localStyles.text}>Pajtásaim: {followers?.length}</MyText></Popup>
+                popup={<ScrollView style={styles.popup} contentContainerStyle={[{backgroundColor:'white'}]}>
+                  {followers.map((f,i)=><Row key={i} style={{margin:5,alignItems:'center'}}>
+                      <ProfileImage uid={f.uid} size={40} style={[{marginRight:5,borderRadius:8}]}/>
+                      <MyText style={{fontSize:18}}>{f.name}</MyText>
+                  </Row>
+                  )}
+                </ScrollView>}
+            >
+              <MyText style={localStyles.text}>Pajtásaim: {followers?.length}</MyText>
+            </Popup>
           </Row>
         </View>
         { !myProfile && <Col>
-            <Pressable onPress={() => navigation.navigate('uzenetek',{selected:uid})}
-             style={[localStyles.container, {flex:width <= 900 ? 'none' : 1,alignItems:'center',backgroundColor:'#ffde7e',shadowOpacity:0.5}]}>
-                <MyText style={{fontSize:28}}>Üzenetküldés</MyText>
-            </Pressable>  
-            <Pressable onPress={follow}
-             style={[localStyles.container, {flex:width <= 900 ? 'none' : 1,alignItems:'center',backgroundColor:'#ffde7e',shadowOpacity:0.5}]}>
-                <MyText style={{fontSize:28}}>{profile.name + (followButtonState ? ' már a pajtásom!' : ' még nem a pajtásom')} </MyText>
-            </Pressable> 
+            <NewButton onPress={() => navigation.push('uzenetek',{selected:uid})} 
+              title="Üzenetküldés" color='#ffde7e'
+               style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center' ,shadowOpacity:0.5}]}
+            />
+            <NewButton onPress={follow} 
+              title={profile.name + (followButtonState ? ' már a pajtásom!' : ' még nem a pajtásom')} color='#ffde7e'
+              style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5}]}
+            />
         </Col>}
             
 
-          {myProfile && 
-            <Pressable onPress={() => navigation.navigate('profil-szerkesztese')}
-             style={[localStyles.container, {flex:width <= 900 ? 'none' : 1,alignItems:'center',backgroundColor:'#ffd048',shadowOffset:{width:-2,height:4}}]}>
-                <MyText style={{fontSize:28,color:'black'}}>Módosítás</MyText>
-            </Pressable>  
-            
-            }
+        {myProfile && 
+          <NewButton onPress={() => navigation.push('profil-szerkesztese')}
+          title="Módosítás" textStyle={{fontSize:30}}
+          style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none'}]}
+              />
+          
+          }
 
       </Auto>
       <Auto style={{flex:1,zIndex:-1,elevation: -1}}>
@@ -147,28 +152,16 @@ const Profile = ({ navigation, route }) => {
         </View>
         <View style={{flex:(width <= 900 ? 'none' : 2)}}>
 
-          <Section title="Bizniszeim" >
+          <Section title="Bizniszeim" flex={1}>
               <View style={{marginLeft:20}}>
-                {profile.profession && profile.profession.map((prof,index) =>
-                  <ListItem title={prof.name} key={"prof"+index}>
-                    <MyText>{prof.description}</MyText>
-                  </ListItem>
+                {profile.profession && profile.profession.map((prof,i) =>
+                  <Buziness prof={prof} uid={uid} index={i} />
                 )}
               </View>
           </Section>
-          <Section title="Elérhetőségeim" flex={1}>
-            <View style={[styles.label]}>
-              {profile.links && profile.links.map((prof,index) =>
-                <ListItem title={prof.name} key={"prof"+index}>
-                  <Pressable onPress={()=>Linking.openURL(prof.description)}>
-                    <MyText style={{color:'blue'}}>{prof.description}</MyText>
-                  </Pressable>
-                </ListItem>
-              )}
-            </View>
-          </Section>
         </View>
-          {!!saleList.length && <Section title="Cserebere" style={{flex:width <= 900 ? 'none' : 1}} flex={width <= 900 ? 'none' : 2}>
+          {!!saleList.length && 
+          <Section title="Cserebere" flex={width <= 900 ? 'none' : 2}>
             <ScrollView style={[styles.label,{marginLeft:5}]}>
                 {saleList.map(el=>{
                   return <SaleListItem key={el.id} data={el}/>
@@ -176,7 +169,7 @@ const Profile = ({ navigation, route }) => {
             </ScrollView>
           </Section>}
       </Auto>
-    </View>
+    </ScrollView>
   )
   else return (<View style={{backgroundColor:bgColor,flex:1}}><Loading color={"#f5d142"}/></View>)
 }
@@ -194,14 +187,43 @@ const Profile = ({ navigation, route }) => {
     );
   }
 
-  function ListItem(props){
+  const Buziness = ({prof,uid,index}) => {
+    const Href = useRef(null);
+    const db = getDatabase()
+    const myuid = useSelector((state) => state.user.uid)
+    const rate = prof?.rate ? Object.keys(prof?.rate) : []
+    const [iRated, setIRated] = useState(rate.includes(myuid));
+    const allRates = (rate.filter(r=>r!=myuid)?.length+iRated ? 1 : 0);
 
-    return(
-      <View style={{marginTop:10}}>
-          <MyText style={localStyles.subText}><MyText style={{fontWeight:'bold'}}>{props.title+' '}</MyText>{props.children}</MyText>
-          
-      </View>
-    );
+    const isHovered = useHover(ref);
+    
+    const handlePress=()=>{
+      console.log("users/"+uid+"/data/profession/"+index+"/rate");
+      set(ref(db,"users/"+uid+"/data/profession/"+index+"/rate/"+myuid),iRated ? null : true).then(res=>{
+        console.log(res);
+        setIRated(!iRated);
+      })
+    }
+    return (
+      <View 
+      style={[
+        styles.buziness,
+        {backgroundColor:`hsl(52, 100%, ${100-(allRates*10)}%)`},
+        isHovered && {backgroundColor:'#faffcc'}
+      ]} ref={Href}>
+
+        <Popup style={{alignItems:'center',justifyContent:"center",margin:10}} 
+          popup={<View style={[styles.popup,{marginTop:0,marginRight:50}]}><MyText>{allRates} ember ajánlja</MyText></View>}>
+          <MyText title>{allRates}</MyText>
+        </Popup>
+        <View style={{flex:1}}>
+          <MyText title>{prof.name}</MyText>
+          <MyText>{prof.description}</MyText>
+        </View>
+        {uid != myuid && 
+        <NewButton title={iRated ? "Ajánlottam" :"Ajánlom"} style={{padding:10,borderRadius:8}} onPress={handlePress}/>}
+    </View>
+    )
   }
 
   const localStyles = {
@@ -224,6 +246,18 @@ const Profile = ({ navigation, route }) => {
       marginTop: 25,
       marginLeft: 25,
       backgroundColor:'white',
+      paddingHorizontal:20,
+      justifyContent:'center',
+      zIndex:'auto' ,
+      shadowColor: '#171717',
+      shadowOffset: {width: 2, height: 4},
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      borderRadius:8
+    },
+    containerNoBg: {
+      marginTop: 25,
+      marginLeft: 25,
       paddingHorizontal:20,
       justifyContent:'center',
       zIndex:'auto' ,

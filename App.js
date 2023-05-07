@@ -27,9 +27,9 @@ const About = React.lazy(()=>import("./pages/About"))
 const Forgot = React.lazy(()=>import("./pages/login/Forgot"))
 const PrivacyPolicy = React.lazy(()=>import("./pages/PrivacyPolicy"))
 const TermsAndServices = React.lazy(()=>import("./pages/TermsAndServices"))
+const Document = React.lazy(()=>import("./pages/docs/Document"))
 
 import Snowfall from 'react-snowfall';
-
 // fonts
 import { AmaticSC_700Bold, useFonts } from '@expo-google-fonts/amatic-sc';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
@@ -97,6 +97,20 @@ const MetaHeader = () => {
     return (<Helmet>
       <meta name="theme-color" content="#FDEEA2"/>
       <title>FiFe App</title>
+      <meta name="title" content="FiFe Alkalmazás" />
+      <meta name="description" content="Sokrétű online felületet a nagyvárosban élőknek." />
+
+      <meta property="og:type" content="website"/>
+      <meta property="og:url" content="https://metatags.io/"/>
+      <meta property="og:title" content="FiFe Alkalmazás"/>
+      <meta property="og:description" content="Sokrétű online felületet a nagyvárosban élőknek."/>
+      <meta property="og:image" content="https://fifeapp.hu/static/media/logo.d2acffec.png"/>
+
+      <meta property="twitter:card" content="summary_large_image"/>
+      <meta property="twitter:url" content="https://metatags.io/"/>
+      <meta property="twitter:title" content="FiFe Alkalmazás"/>
+      <meta property="twitter:description" content="Sokrétű online felületet a nagyvárosban élőknek."/>
+      <meta property="twitter:image" content="https://fifeapp.hu/static/media/logo.d2acffec.png"/>
     </Helmet>)
   }
     
@@ -150,6 +164,7 @@ const Navigator = () => {
           <Stack.Screen name="cserebere" component={Sale} options={{ title: "Cserebere" }} />
           <Stack.Screen name="uj-cserebere" component={Item} options={{ title: "Cserebere" }} />
 
+          <Stack.Screen name="cikk" component={Document} options={{ title: "Cikk" }} />
           <Stack.Screen name="test-es-lelek" component={BodyAndSoul} options={{ title: "Test és lélek" }} />
           <Stack.Screen name="server" component={Server} options={{ title: "Teszt" }} />
           

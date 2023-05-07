@@ -138,7 +138,7 @@ export const Sale = ({route,navigation}) => {
             </View>
         }
         {(width <= 900) &&
-        <FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.navigate('uj-cserebere')}/>
+        <FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.push('uj-cserebere')}/>
         }
     </View>
     )
@@ -216,7 +216,7 @@ function Item({title,text,uid,name,date,imageNames,index,setSelected,deleteItem}
                     </ScrollView>}
                     { uid != myUid ?
                     <Row style={{width:'100%'}}>
-                        <NewButton title={"Írj "+name+"nak"} onPress={()=>navigation.navigate('beszelgetesek',{selected:uid})}/>
+                        <NewButton title={"Írj "+name+"nak"} onPress={()=>navigation.push('beszelgetesek',{selected:uid})}/>
                         <NewButton title="Jelentés"/>
                     </Row>:
                     <NewButton title="Töröld ki" onPress={handleDelete}/>

@@ -1,7 +1,7 @@
 
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { useSelector } from "react-redux";
 import { getNameOf, getUri, Loading, MyText, NewButton, Row } from "../../components/Components";
 import { config } from "../../firebase/authConfig";
@@ -10,6 +10,7 @@ import ImageView from "react-native-image-viewing";
 import ExpoFastImage from "expo-fast-image";
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from "@react-navigation/native";
+import { saleCategories } from "../../lib/categories";
 
 
 export const Item = ({data,toLoadId,deleteItem,setSelected}) => {
@@ -18,7 +19,7 @@ export const Item = ({data,toLoadId,deleteItem,setSelected}) => {
     const width = useWindowDimensions().width
     const [loadData, setLoadData] = useState(data);
     const [images, setImages] = useState([]);
-    const { title, description, author, created_at, booked, bookedBy, id, imagesDesc, imagesBookable, authorName } = loadData || {};
+    const { title, description, author, category, created_at, booked, bookedBy, id, imagesDesc, imagesBookable, authorName, bookedByName } = loadData || {};
     const [loading, setLoading] = useState(true);
     const [elapsed, setElapsed] = useState();
     const [openedImage, setOpenedImage] = useState(null);
@@ -30,8 +31,10 @@ export const Item = ({data,toLoadId,deleteItem,setSelected}) => {
       axios.get('/sale/'+toLoadId,config()).then(async res=>{
         console.log('res',res);
         res.data.authorName = await getNameOf(res.data.author)
-        if (bookedBy)
-        res.data.bookedBy = await getNameOf(res.data.bookedBy)
+        if (res.data.bookedBy) {
+        res.data.bookedByName = await getNameOf(res.data.bookedBy)
+        console.log('!!!!!!LOG',res.data);
+        }
         setLoadData(res.data)
         setElapsed(elapsedTime(res.data.created_at))
         console.log(res.data);
@@ -57,7 +60,7 @@ export const Item = ({data,toLoadId,deleteItem,setSelected}) => {
     }, [toLoadId]);
 
     const goBack = () => {
-      if (width < 900)
+      if (width <= 900)
       navigation.push('cserebere')
       else
       setSelected(null)
@@ -74,15 +77,24 @@ export const Item = ({data,toLoadId,deleteItem,setSelected}) => {
         {!loading ?
       <ScrollView style={{flex:1,padding:0,backgroundColor:'#FDEEA2'}}>
         { loadData ? <>
-          {false && <MyText style={styles.author}>{'Ezt '+authorName+' töltötte fel, '+elapsed}</MyText>}
-          {booked && <MyText style={[styles.author,{background:'#669d51'}]}>{'Ezt '+bookedBy+' lefoglalta!'}</MyText>}
+          {booked && <TouchableOpacity onPress={()=>navigation.push('profil',{uid:bookedBy})}>
+            <MyText style={[styles.booked,{backgroundColor:'#669d51aa'}]}>
+              {bookedBy==uid ? 'Lefoglaltad!' : 'Ezt '+bookedByName+' lefoglalta!'}
+            </MyText>
+          </TouchableOpacity>}
+            <View style={{alignSelf: 'flex-start'}}>
+              <MyText size={24} style={{marginRight:10,backgroundColor:saleCategories[category].color,padding:5}}>{saleCategories[category].name}</MyText>
+            </View>
           <Row style={{padding:10}}>
-            <MyText style={{marginBottom:20,fontSize:25,flexGrow:1}}>{title}</MyText>
             {author == uid && <Row>
-              <NewButton style={{marginBottom:20,fontSize:25,padding:10}} title='szerkesztés' />
+              <NewButton style={{marginBottom:20,fontSize:25,padding:10,flex:1}} title='szerkesztés' />
               <NewButton style={{marginBottom:20,fontSize:25,padding:10}} title='törlés' color='#aa2786' onPress={deleteItem}/>
             </Row>}
           </Row>
+          {uid!=author && <TouchableOpacity onPress={()=>navigation.push('profil',{uid:author})}>
+            <MyText style={styles.author}>{'Ezt '+authorName+' töltötte fel, '+elapsed}</MyText>
+          </TouchableOpacity>}
+            <MyText style={{margin:20,fontSize:25}}>{title}</MyText>
           <MyText style={{marginBottom:20,fontSize:20,padding:10,margin:10,backgroundColor:'#fff',borderRadius:8}}>{description}</MyText>
           <ScrollView horizontal style={{backgroundColor:'#FDEEA2',flex:1}}>
             {images.map((img,ind)=>
@@ -108,13 +120,21 @@ export const Item = ({data,toLoadId,deleteItem,setSelected}) => {
 
 
 const styles = StyleSheet.create({
-  author: {
-    marginBottom:20,
+  booked: {
+    marginBottom:0,
+    marginHorizontal:10,
     fontSize:20,
     padding:10,
-    backgroundColor:'#1279d5',
+    backgroundColor:'#1279d5aa',
     color:'white',
-    textAlign:'center'
+    textAlign:'center',
+    borderRadius:8
+  },  
+  author: {
+    marginBottom:0,
+    marginHorizontal:10,
+    fontSize:20,
+    padding:10,
   },
   square: {
     width:150,

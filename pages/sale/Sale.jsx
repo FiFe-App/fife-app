@@ -25,7 +25,7 @@ import { deepEqual } from "../../lib/functions";
 const categories = [
     'Minden',
     'Eladó tárgyak',
-    'Tárgyakat keresek',
+    'Lapule?',
     'Kiadó lakás',
     'Munka',
     'Bármi egyéb'
@@ -84,7 +84,7 @@ const Sale = ({ navigation, route }) => {
     }, [settings]);
 
     useEffect(() => {
-        if (selected && width < 900) navigation.navigate('cserebere',{id:selected})
+        if (selected && width <= 900) navigation.push('cserebere',{id:selected})
     }, [selected]);
 
     useFocusEffect(
@@ -159,7 +159,7 @@ const Sale = ({ navigation, route }) => {
         setLoading(false)
     }
 
-    if (id && width < 900)
+    if (id && width <= 900)
     return <Item data={list.find(e=>e._id == selected)} toLoadId={selected} />
     return (
     <View style={{flex:1, flexDirection:'row',backgroundColor:'#FDEEA2'}}>
@@ -263,10 +263,10 @@ const Sale = ({ navigation, route }) => {
             </View>
         }
         {(width <= 900) &&
-        <FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.navigate('uj-cserebere')}/>
+        <FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.push('uj-cserebere')}/>
         }
         <CloseModal modalVisible={closeModal} setModalVisible={setCloseModal} handleOK={deleteItem}/>
-        <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.navigate('uzenetek',{selected:selected?.uid})}/>
+        <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.push('uzenetek',{selected:selected?.uid})}/>
     </View>
     )
 }

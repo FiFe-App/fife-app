@@ -16,6 +16,7 @@ import { TextFor } from '../lib/textService/textService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { OpenNav, SearchBar } from './Components';
 import { Helmet } from 'react-helmet';
+import { HomeButton } from './LogoComponents';
 
 export function LogoTitle() {
     const {api} = useContext(FirebaseContext);
@@ -37,7 +38,7 @@ export function LogoTitle() {
           <meta name="theme-color" content="#FDEEA2"/>
         </Helmet>
         <SafeAreaView>
-          <OpenNav open={open} style={{width:'100%',zIndex: -10,elevation: -10}}>
+          <OpenNav open={open && width < 900} style={{width:'100%',zIndex: -10,elevation: -10}}>
             <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
             <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
             <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
@@ -45,32 +46,22 @@ export function LogoTitle() {
             <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
             <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
           </OpenNav>
-          <View style={{flexDirection:'row',justifyContent:'space-evenly'}}>
-          {navigation.canGoBack()}
-            { width < 900 &&
-              <Pressable onPress={()=>navigation.navigate('fooldal')} style={{justifyContent:'center',alignItems:'center',flex:1}}>
-                {route.name != 'home' && <Icon name='home-outline' size={30} color="#000"/>}
-              </Pressable>
-            }
-            <Pressable onPress={()=>navigation.navigate('fooldal')}>
-              { width >  1230 && <MyText style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>
-                FiFe. <TextFor style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]} text="web_title"/>
-                </MyText>}
-              { width <=  1230 && width > 470 && <MyText style={[styles.title,{fontFamily:'AmaticSC_700Bold'}]}>FiFe App</MyText>}
-            </Pressable>
-            { width >  1120 ?
-            <View style={{flexDirection:'row',marginRight:20,marginBottom:5,flex:8}}>
-              <SearchBar/>
-              <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
-              <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
-              <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
-              <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
-              <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
-              <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
+          <View style={{flexDirection:'row',justifyContent:width <= 900 ? 'center' :'space-between'}}>
+            <HomeButton />
+            {width > 1340 && <SearchBar/>}
+            { width >  900 ?
+            <View style={{flexDirection:'row',justifyContent:'center',marginRight:20,marginBottom:5}}>
+              <Row>
+                <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
+                <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
+                <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
+                <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
+                <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
+                <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
+              </Row>
             </View>
             :
-            <Row style={{flex:8}}>
-              <SearchBar/>
+            <Row style={{}}>
               <TouchableOpacity onPress={()=>setOpen(!open)} style={{justifyContent:'center',width:70}}>
                 {open ? <MyText style={{justifyContent:'center',textAlign:'center'}}><Icon name='caret-up-outline' size={30}/></MyText>
                       : <MyText style={{justifyContent:'center',textAlign:'center'}}><Icon name='menu-outline' size={30}/></MyText>}
@@ -98,7 +89,7 @@ export function LogoTitle() {
           if (onPress)
             onPress()
           else
-            navigation.navigate(link)
+            navigation.push(link)
 
           if (setOpen)
             setOpen(false)
@@ -111,7 +102,7 @@ export function LogoTitle() {
   }
 
   const menuLink =  function(width) {
-    if (width >  1120)
+    if (width >  900)
     return {
       default:{
         justifyContent:'center',
@@ -138,14 +129,12 @@ export function LogoTitle() {
         padding:15,
         paddingRight:15,
         margin:0,
-        marginTop:-2,
       },
       hover: {
         backgroundColor:'white',
         borderRadius: 0,
         borderLeftWidth: 0,
         borderRightWidth: 0,
-        marginTop:-2,
       }
     }
   }

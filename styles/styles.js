@@ -85,6 +85,10 @@ export const styles = StyleSheet.create({
         width:'100%',
         margin: 5
     },
+    listIcon: {
+        borderRadius: 8,
+        marginRight: 8
+    },
     menuLink: {
         justifyContent:'center',
         padding:10,

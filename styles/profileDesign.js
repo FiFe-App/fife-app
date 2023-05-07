@@ -8,12 +8,20 @@ const styles = StyleSheet.create({
         backgroundColor:'white',
         fontSize:30,
         padding:10,
-        zIndex:'auto', 
+        zIndex:100, 
         shadowColor: '#171717',
         shadowOffset: {width: 0, height: 10},
         shadowOpacity: 0.6,
         shadowRadius: 6,
         borderRadius:8
+    },
+    buziness: {
+        borderRadius:8,
+        backgroundColor:'#fff8a2',
+        margin:4,
+        padding: 4,
+        flexDirection:'row'
+
     }
 })
 

@@ -18,6 +18,7 @@ import { child, get, getDatabase, ref } from 'firebase/database';
 import { isBright } from '../pages/home/HomeScreen';
 import ExpoFastImage from 'expo-fast-image';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { pSBC, shadeColor } from '../lib/functions';
 
 
 //Dimensions.get('window');
@@ -68,8 +69,8 @@ const getUri = async (path) => {
 
 const getNameOf = async (uid) => {
   const name = await AsyncStorage.getItem('name-'+uid)
-  if (name) {
-    console.log('name');
+  if (name !== null) {
+    console.log('name',name);
     return name;}
   else {
   
@@ -79,8 +80,9 @@ const getNameOf = async (uid) => {
     console.log('snapshot');
   
     if (snapshot.exists()) {
-      AsyncStorage.setItem('name-'+uid,snapshot.val())
-      return snapshot.val()
+      const name = snapshot.val();
+      await AsyncStorage.setItem('name-'+uid,name)
+      return name;
     }
     await AsyncStorage.setItem('name-'+uid,'NINCS NÉV')
     return 'NINCS NÉV'
@@ -120,11 +122,23 @@ const ProfileImage = ({uid,size=40,style}) => {
     
 }
 
-function NewButton({color = "#ffde7e",title,onPress,disabled,style}) {
+function NewButton({color = "#ffde7e",title,onPress,disabled,style,textStyle}) {
+  const ref = useRef(null);
+  const isHovered = useHover(ref);
+
+  const [bgColor, setBgColor] = useState(color);
+
+  useEffect(() => {
+    setBgColor(shadeColor(color,isHovered*10))
+  }, [isHovered]);
+
+  const handleFocus = () => {
+    setBgColor(shadeColor(color,-10))
+  }
   return (
-    <TouchableOpacity style={[styles.newButton, { backgroundColor: color, opacity: disabled ? 0.2 : 1, height:50 },style]} onPress={onPress} disabled={disabled}>
-          <MyText style={{ fontWeight: 'bold', color: isBright(color) , fontSize:18, whiteSpace:'pre' }}>{title}</MyText>
-    </TouchableOpacity>
+    <Pressable ref={ref} onPressOut={()=>setBgColor(color)} onPressIn={handleFocus} style={[styles.newButton, { backgroundColor: bgColor, opacity: disabled ? 0.2 : 1, height:50 },style]} onPress={onPress} disabled={disabled}>
+          <MyText style={[{ fontWeight: 'bold', color: isBright(color) , fontSize:18, whiteSpace:'pre' },textStyle]}>{title}</MyText>
+    </Pressable>
   );
 }
 
@@ -209,7 +223,7 @@ class Slideshow extends React.Component {
 
 function Row(props) {
   return (
-    <View style={[props.style, { flexDirection: "row" }]}>
+    <View {...props} style={[props.style, { flexDirection: "row" }]}>
       {props.children}
     </View>
   );
@@ -348,12 +362,12 @@ const SearchBar = (props) => {
     </Pressable>
   );
   return (
-    <View style={{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:10}}>
+    <View style={{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:10,marginVertical:17,}}>
       <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, value } }) => (
             <TextInput
-              style={[newStyles.searchInput,{flex:1,fontSize:16,padding:10}]}
+              style={[newStyles.searchInput,{flex:1,fontSize:16,padding:10,marginLeft:20}]}
               onBlur={onBlur}
               autoCapitalize='none'
               onChangeText={onChange}
@@ -416,7 +430,15 @@ const OpenNav = ({open,children,style}) => {
 }
 
 export const MyText = (props) => {
-  return <Text style={[{fontFamily:'SpaceMono_400Regular',letterSpacing:-1},props?.style]}>{props?.children}</Text>
+  const {title, size, contained} = props;
+  return <Text style={[{
+    fontFamily:'SpaceMono_400Regular',
+    letterSpacing:-1
+    },title && {fontSize:32,marginTop:14},
+    contained && {padding:8,borderRadius:8,backgroundColor:'white',fontSize:20,marginTop:14},
+    size && {fontSize:size}
+    ,props?.style]}>
+    {props?.children}</Text>
 }
 
 const TextInput = React.forwardRef((props,ref) => {

@@ -20,7 +20,7 @@ const AmiKell = () => {
     const { width } = useWindowDimensions()
     const titleStyleW = {
         color:'white',
-        fontSize: width > 900 ? 50 : 40,
+        fontSize: width > 900 ? 50 : 30,
         width:'100%',
         fontWeight:'bold',
         paddingVertical:20,

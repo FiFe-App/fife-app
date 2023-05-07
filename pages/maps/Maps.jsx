@@ -181,7 +181,7 @@ const Maps = ({navigation, route}) => {
           markers.forEach((m) =>map.removeLayer(m))
          
           console.log('add markers');
-          /*categoryList.find((e,mapId)=>
+          categoryList.find((e,mapId)=>
           (e.name==selectedMap.name))
           .locations.forEach((location,index) => {
             if (!settings.secure || location?.likes != null) {
@@ -194,7 +194,7 @@ const Maps = ({navigation, route}) => {
               })
               setMarkers(old=>[...old,marker])
             }
-          });*/
+          });
         }
       }
     },[selectedMap,selected,settings,newPlace])
@@ -279,7 +279,7 @@ const Maps = ({navigation, route}) => {
             <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected}  mapId={selectedMap.id}/>
             )}            
         </View>}
-          {width < 900 &&
+          {width <= 900 &&
           <Pressable style={{borderBottomWidth:2,backgroundColor:'#FFC372',padding:5,alignItems:'center',justifyContent:'center'}}
             onPress={()=>setOpen(!open)}>
             <AntDesign name={!open ? 'caretdown' : 'caretup'} size={20}/>

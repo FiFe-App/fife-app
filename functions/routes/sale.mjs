@@ -2,6 +2,7 @@ import express from "express";
 import adb from "../db/conn.mjs";
 import { ObjectId } from "mongodb";
 import { PrismaClient } from "@prisma/client";
+import { database } from "firebase-admin";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -81,6 +82,21 @@ router.patch("/:id/images", async (req, res) => {
 
 router.patch("/:id/book", async (req, res) => {
   const { booked, bookedBy } = req.body;
+  /*const db = await adb
+  let collection = await db.collection("sale");
+  const result = await collection.updateOne({
+
+    $or: [ 
+      {    id: req.params.id, booked: false},
+      {    
+        id: req.params.id, 
+        booked: true,
+        bookedBy: req.uid
+      }
+    ]}, {$set: {
+      booked,
+      bookedBy: booked ? req.uid : null
+    }})*/
   const result = await prisma.sale.updateMany({
     where: {
       OR: [
@@ -102,7 +118,32 @@ router.patch("/:id/book", async (req, res) => {
   })
 
   if (!result) res.send("Not found").status(404);
-  else res.send(!!result.count).status(200);
+  else {
+    const updated = await prisma.sale.findFirst({
+      where: {
+        id: req.params.id,
+      },
+      select: {
+        author: true
+      },
+    })
+    console.log(result);
+    if (booked) {
+      await database().ref('users/'+updated.author+'/messages/'+req.uid).push({
+        text: req.params.id,
+        time: Date.now(),
+        uid: req.uid,
+        automated: true
+      })
+      await database().ref('users/'+req.uid+'/messages/'+updated.author).push({
+        text: req.params.id,
+        time: Date.now(),
+        uid: req.uid,
+        automated: true
+      })
+    }
+    res.send(!!result.count).status(200)
+  };
 });
 
 // Add a new document to the collection

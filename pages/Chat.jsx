@@ -1,14 +1,18 @@
 import { useState, useContext, useEffect, useRef } from "react";
-import {View, Pressable, ScrollView, StyleSheet, TouchableOpacity} from 'react-native'
+import {View, Pressable, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import { FirebaseContext } from '../firebase/firebase';
-import { ref, child, get, set, onValue, onChildAdded, push, off } from "firebase/database";
+import { ref, child, get, set, onValue, onChildAdded, push, off, query, limitToLast } from "firebase/database";
 import Icon from 'react-native-vector-icons/Ionicons'
-import { Loading, ProfileImage, TextInput, MyText } from "../components/Components";
+import { Loading, ProfileImage, TextInput, MyText, getNameOf } from "../components/Components";
 import { removeUnreadMessage } from '../lib/userReducer';
 import { useNavigation } from "@react-navigation/native";
 
 import chatStyles from '../styles/chatDesign'
+import { config } from "../firebase/authConfig";
+import { SaleListItem } from "./sale/SaleListItem";
+import axios from "axios";
+import GoBack from "../components/Goback";
 
 const color = '#ffde9e'
 
@@ -114,7 +118,7 @@ const Chat = ({route, navigation, propUid, global}) => {
                 
                 const messageListRef = 
                 global ? ref(database, `globalChat`)
-                : ref(database, `users/${uid}/messages/${uid2}`);
+                : query(ref(database, `users/${uid}/messages/${uid2}`),limitToLast(10));
                 off(messageListRef,'child_added')
                 setMessages([])
                 set(child(messageListRef,'read'),true)
@@ -137,6 +141,7 @@ const Chat = ({route, navigation, propUid, global}) => {
 
     return (
     <View style={{flex:1}}>
+        <GoBack />
         <View style={{flex:1}}>
             {!global && header}
             <ScrollView 
@@ -154,7 +159,8 @@ const Chat = ({route, navigation, propUid, global}) => {
                                 {!!global && (!arr[i-1]?.uid || arr[i-1]?.uid != e?.uid) 
                                 && <MyText style={{width:'100%',paddingHorizontal:10,textAlign:e?.uid != uid ? 'left' : 'right'}}>{e?.name || null}</MyText>}
                                 
-                                <Message text={e.text} isMine={e.uid == uid}/>
+                                {e?.automated ? <AutoMessage text={e.text} uid={e.uid} isMine={e.uid == uid}/> :
+                                <Message text={e.text} isMine={e.uid == uid}/>}
                             </View>
                         )})
                     :   <View style={{flex:1, backgroundColor:'white'}}>
@@ -180,6 +186,33 @@ const Chat = ({route, navigation, propUid, global}) => {
     </View>)
 
 }
+const AutoMessage = (props) => {
+    const {text,time,uid,isMine,saleId} = props
+    const [saleData, setsaleData] = useState(null);
+    const [name, setName] = useState('');
+    useEffect(() => {
+        load();
+    }, []);
+    const load = async () => {
+        setName(await getNameOf(uid))
+        axios.get('sale/'+text,config()).then(res=>{
+            console.log(res);
+            setsaleData(res.data)
+        })
+    }
+    if (saleData)
+    return (
+        <View style={styles.autoMessageContainer}>
+            <MyText style={[styles.center]}>
+            {isMine ? 'Lefoglaltad a '+saleData.title+'et!' :
+            name+' lefoglalta a '+saleData.title+'et!' }
+            </MyText>
+            
+            {saleData && <SaleListItem data={saleData} readOnly/>}
+            
+        </View>
+    )
+}
 
 const Message = (props) => {
     const {text,time,isMine} = props
@@ -199,6 +232,18 @@ const styles = StyleSheet.create({
     messageContainer: {
         margin:1
     },
+    autoMessageContainer: {
+        alignSelf:'center',
+        margin:1,
+        padding: 4,
+        paddingHorizontal:10,
+        color: 'white',
+        maxWidth: '80%',
+        fontSize:20,
+        borderRadius:8,
+        borderWidth:1,
+        borderColor: '#dcdcc4'
+    },
     messageText: {
         padding: 4,
         paddingHorizontal:10,
@@ -215,6 +260,10 @@ const styles = StyleSheet.create({
         backgroundColor: color,
         color: 'black',
         alignSelf:'flex-start'
+    },
+    center: {
+        color: 'black',
+        alignSelf:'center'
     },
     input: {
         flexDirection: 'row',

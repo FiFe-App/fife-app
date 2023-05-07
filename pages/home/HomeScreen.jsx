@@ -12,7 +12,7 @@ import { Auto, B, Col, getUri, MyText, Row, TextInput } from '../../components/C
 import { FirebaseContext } from '../../firebase/firebase';
 
   import axios from 'axios';
-import { child, get, onChildAdded, ref } from 'firebase/database';
+import { child, get, getDatabase, limitToFirst, onChildAdded, query, ref } from 'firebase/database';
 import { useWindowDimensions } from 'react-native';
 import { useDispatch } from 'react-redux';
 import Module from '../../components/homeComponents/Module';
@@ -27,7 +27,7 @@ import HomeBackground from './HomeBackground';
     { 
       id:'w4ifm8m948emm',
       title: 'MORNING YOGA a Manyiban!',
-      place: 'MANYI - Kulturális Műhely',
+      text: 'MANYI - Kulturális Műhely',
       category: 'Test és lélek',
       date: Date.now(),
       image: 'https://scontent.fbud7-3.fna.fbcdn.net/v/t39.30808-6/321673215_5848982685198666_209761172298717480_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=340051&_nc_ohc=eEGnkSafpcoAX-46eqz&_nc_ht=scontent.fbud7-3.fna&oh=00_AfAOkREX-VOBpkLgoz7gAD051IbrQoOqd5_5rT49pFyXDg&oe=63EF2A6F'
@@ -35,7 +35,7 @@ import HomeBackground from './HomeBackground';
     { 
       id:'49k9fk43iofmwe',
       title: 'Farsang // Bánkitó x Auróra',
-      place: 'Auróra',
+      text: 'Auróra',
       category: 'Buli',
       date: Date.now(),
       image: 'https://scontent.fbud7-3.fna.fbcdn.net/v/t39.30808-6/328133400_938505357142186_7978671228144834840_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=340051&_nc_ohc=7TibZcvx8bkAX8zg-4u&_nc_ht=scontent.fbud7-3.fna&oh=00_AfA6VcrXp6zOc6Xe6sfsOzqEtUEHyR4JrReG81xU-FXLMg&oe=63EF2172'
@@ -43,7 +43,7 @@ import HomeBackground from './HomeBackground';
     { 
       id:'59ge9jefimefromk',
       title: 'HIPERKARMA VALENTIN-NAPI KONCERT',
-      place: 'A38 HAJÓ',
+      text: 'A38 HAJÓ',
       category: 'Koncert',
       date: Date.now(),
       image: 'https://scontent.fbud7-3.fna.fbcdn.net/v/t39.30808-6/325778181_890244938767674_5098273371750338140_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=340051&_nc_ohc=WcDJrHAuREEAX-LNcK6&_nc_ht=scontent.fbud7-3.fna&oh=00_AfCwXx8EjOJ7hjj5fEe6d3JVKqdxiKJ3AdaehJEajb8dAw&oe=63F02D32'
@@ -54,21 +54,21 @@ import HomeBackground from './HomeBackground';
     { 
       id:'w4ifm8m948emm',
       title: 'Oszd meg a pisikódod!',
-      place: 'Pislini kell? Van megoldás!',
+      text: 'Pislini kell? Van megoldás!',
       category: 'Térkép',
       image: 'https://media.wired.co.uk/photos/606d9cdadbc4c121710a3ebe/master/w_1600%2Cc_limit/wired-pee.jpg'
     },
     { 
       id:'59ge9jefimefromk',
       title: 'Van ötleted a apphoz?',
-      place: 'Írd le nekünk és szívesen elkészítjük!',
+      text: 'Írd le nekünk és szívesen elkészítjük!',
       category: 'Visszajelzés',
       image: 'https://www.upvoty.com/wp-content/uploads/2020/01/how-to-saas-idea.png'
     },
     { 
       id:'49k9fk43iofmwe',
       title: 'Szeretnéd kiönteni a lelked?',
-      place: 'Lépj be a safespacebe!',
+      text: 'Lépj be a safespacebe!',
       category: 'Segítségnyújtás',
       image: 'https://hips.hearstapps.com/hmg-prod/images/gettyimages-1660669048.jpg?resize=1200:*'
     },
@@ -78,22 +78,22 @@ import HomeBackground from './HomeBackground';
     { 
       id:'w4ifm8m948emm',
       title: 'Pesti túrázók',
-      place: 'Hetente kirándulni megyünk!',
+      text: 'Hetente kirándulni megyünk!',
       category: 'Kiszakadás',
       image: 'https://www.mozgasvilag.hu/media_mv/10219/2021/other/85641-turatippek_during_SLIDER.jpg'
     },
     { 
       id:'59ge9jefimefromk',
       title: 'Csoportos lelkizés',
-      place: 'Vezetett csoport bárkinek',
+      text: 'Vezetett csoport bárkinek',
       category: 'Test és lélek',
       image: 'https://www.benceganti.com/wp-content/uploads/2021/04/korvezetes_tabor1-1024x683.jpg'
     },
     { 
       id:'49k9fk43iofmwe',
       title: 'Kezdő webfejlesztés',
-      place: 'Tanulj meg csudi dolgokat készíteni a foteledből!',
-      category: '',
+      text: 'Tanulj meg csudi dolgokat készíteni a foteledből!',
+      category: 'Tanulás',
       image: 'https://www.educative.io/api/page/6096075812241408/image/download/6443342641496064'
     },
   ]
@@ -106,7 +106,8 @@ import HomeBackground from './HomeBackground';
     const [searchText, setSearchText] = useState('');
     const { width } = useWindowDimensions();
     const [greeting, setGreeting] = useState(getGreeting);
-    const [list, setList] = useState([]);
+    const [saleList, setSaleList] = useState([]);
+    const [docsList, setDocsList] = useState([]);
     useFocusEffect(
       useCallback(() => {
         const fn = async () => {
@@ -135,18 +136,36 @@ import HomeBackground from './HomeBackground';
               }
             }))
             console.log(res);
-            setList(res)
+            setSaleList(res)
           } catch (error) {
+            setDocsList([null,null,null])
 
             console.log('error',error);
-          setList([])
-            
+            setSaleList([]) 
+          }
+        }
+        const fn2 = async () => {
+          
+          try {
+            console.log('fn2');
+            const db = getDatabase();
+            const docsQuery = query(ref(db,'docs'),limitToFirst(3))
+            onChildAdded(docsQuery,async (childSnapshot) => {
+              console.log('child',childSnapshot.val());
+              setDocsList(old=>[...old,{id:childSnapshot.key, ...childSnapshot.val()}])
+            })
+              
+          } catch (error) {
+            setDocsList([])
+            console.error(error);
           }
 
         }
         fn();
+        fn2();
         return () => {
-          setList([])
+          setSaleList([])
+          setDocsList([])
         };
       }, [])
     );
@@ -180,7 +199,7 @@ import HomeBackground from './HomeBackground';
       <ScrollView style={{flex:1,backgroundColor:'#c4df98'}} >
         <HomeBackground >
           <Auto style={{flex:3,zIndex:10,elevation: 10,justifyContent:'center'}}>
-            <Col style={{flex:width<900?1:2,alignItems:'center',shadowOpacity:2,}}>
+            <Col style={{flex:width<=900?1:2,alignItems:'center',shadowOpacity:2,}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
                 <Stickers style={{flex:1}}/>
                 <Row style={{alignItems:'flex-end',paddingLeft:50,paddingVertical:20}}>
@@ -191,41 +210,40 @@ import HomeBackground from './HomeBackground';
             </Col>
           </Auto>
         </HomeBackground>
-            {width < 900 && 
+            {width <= 900 && 
             <Auto style={{flex:1}}>
               <Module title="Új cserebere cikkek" link="cserebere" 
-              data={list.map(el=>{
+              data={saleList.map(el=>{
                 return{
                   id:el._id,
                   title:el.title,
                   date:el.date,
                   image:el.image,
-                  place:el.description,
+                  text:el.description,
                   category: saleCategories[el.category].name,
                   color: saleCategories[el.category].color
                 }})}/>
-              <Module title="Funkciók" data={FunctionsData} />
-              <Module title="events" link="esemenyek" data={EventData}/>
+              <Module title="Cikkek" data={docsList} link="cikk"/>
               
             </Auto>}
           {width > 900 && <>
             <Auto >
               <Module title="Új cserebere cikkek" link="cserebere" 
-              data={list.map(el=>{
+              data={saleList.map(el=>{
                 return{
                   id:el._id,
                   title:el.title,
                   date:el.date,
                   image:el.image,
-                  place:el.description,
+                  text:el.description,
                   category: saleCategories[el.category].name,
                   color: saleCategories[el.category].color
-                }})}/>
-              <Module title="Közösségek" data={GroupsData} />
+                }})}/>{false &&
+              <Module title="Közösségek" data={GroupsData}/>}
             </Auto>
             <Auto >
-              <Module title="Funkciók" data={FunctionsData} />
-              <Module title="events" link="esemenyek" data={EventData}/>
+              <Module title="Cikkek" data={docsList}  link="cikk"/>{false&&
+              <Module title="events" link="esemenyek" data={EventData}/>}
             </Auto>
           </>}
       </ScrollView>
@@ -244,7 +262,7 @@ import HomeBackground from './HomeBackground';
 
     const handleClose = (n) => {
       if (n.link)
-        navigator.navigate(n.link,n.params)
+        navigator.push(n.link,n.params)
       if (n?.press) {
         console.log('press');
         n.press()
@@ -351,7 +369,7 @@ import HomeBackground from './HomeBackground';
     )
   } 
 
-  const Smiley = () => {
+  export const Smiley = ({style}) => {
     const size = useRef(new Animated.Value(1)).current 
 
     const handleGrow = () => {
@@ -374,10 +392,9 @@ import HomeBackground from './HomeBackground';
     }
     return (
       <Animated.View                 // Special animatable View
-      style={{
-        marginLeft:30,
-        transform: [{ scale: size }]
-      }}
+      style={[{
+        transform: [{ scale: size }],
+      },style]}
       >
       <Pressable onPress={handleGrow}>
         <Image source={require('../../assets/logo.png')} style={{width:50,height:50,zIndex:10,elevation: 10}}/>

@@ -166,15 +166,15 @@ const Edit = ({ navigation, route }) => {
         console.log("data to upload:", data);
         set(databaseRef(database, 'users/' + uid + '/data'), newData)
         .then((e) => {
-          console.log(e);
+          console.log('success',e);
           setNewData(data)
           navigation.push('profil')
         }).catch(error => {
-          console.error(error);
+          console.log(error);
           console.log(newData);
         });
     } else
-    navigation.navigate('bejelentkezes')
+    navigation.push('bejelentkezes')
   }
 
   if (loading)
@@ -246,19 +246,8 @@ const Edit = ({ navigation, route }) => {
           <Map data={newData} setData={setNewData} editable/>
         </View>
         <View style={{marginHorizontal: width > 900 ? 20 : 0,flex:1}}>
-          <Header title="Rólad" icon="ellipsis-horizontal" helpText="Bármilyen infó, amit fontosnak tartasz, hogy tudjanak rólad"/>
-          <TextInput
-            style={localStyle.input}
-            onChangeText={(e)=>setNewData({...newData, bio: e})}
-            editable
-            numberOfLines={5}
-            multiline
-            placeholder="Rólam"
-            defaultValue={data.bio}
-          />
           <MyText>{newData?.location?.name}</MyText>
           <Professions data={newData} setData={setNewData}/>
-          <Links data={newData} setData={setNewData}/>
         </View>
       </Auto>
 
@@ -312,7 +301,7 @@ export const Professions = (props) => {
               </View>
               <View style={{width:100,justifyContent:'flex-end'}}>
                 <Pressable style={{width:100,height:100,margin:5,backgroundColor:'lightblue',alignItems:'center',justifyContent:'center'}}>
-                  <MyText>Új kép</MyText>
+                  <MyText>+ Új kép</MyText>
                 </Pressable>
               </View>
             </View>

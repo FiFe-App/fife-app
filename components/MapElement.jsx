@@ -6,21 +6,20 @@ import { MyText } from './Components';
 import { useEffect } from 'react';
 import axios from 'axios';
 import { config } from '../firebase/authConfig';
+import { get, getDatabase, ref } from 'firebase/database';
 
 export const MapElement = ({selectedMap,map,setSelectedMap,setIds,index,searchL,selected}) => {
     //const placeList = [];
+    const db = getDatabase()
     const [placeList, setPlaceList] = useState([]);
     useEffect(() => {
-      getData()
-    }, []);
+      if (selectedMap?.name == map)
+        getData()
+    }, [selectedMap]);
 
     const getData = async () => {
-      const locations = [{
-        description:'leiras',
-        name:'cim',
-        likes: [],
-
-      }]//axios.get('places/'+index,config())
+      console.log(index);
+      const locations = Object.values((await get(ref(db,'maps/'+(index+1)),config())).val().locations);
       setPlaceList(locations.map((place,index2)=>{
 
         if (false || place?.likes != null)
