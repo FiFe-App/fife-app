@@ -1,119 +1,135 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { ref as dRef, onValue, query, orderByChild } from "firebase/database";
-import { Loading, ProfileImage, MyText } from '../components/Components'
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import axios from 'axios';
+import React, { useCallback, useContext, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Auto, Loading, MyText, NewButton, ProfileImage, Row, SearchBar } from '../components/Components';
+import { config } from '../firebase/authConfig';
 import { FirebaseContext } from '../firebase/firebase';
-import { ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { TextFor, AutoPrefix } from '../lib/textService/textService';
+import { TextFor, toldalek } from '../lib/textService/textService';
+import BasePage from '../components/BasePage';
+import PostForm from '../components/tools/Post';
+
 
 const Search = ({ route, style }) => {
-    const { database } = useContext(FirebaseContext);
+    const { api } = useContext(FirebaseContext);
+    const { width } = useWindowDimensions();
+    const small = width <= 900;
     //const { key } = route.params;
+    const [categories, setCategories] = useState({
+        sale: {
+            name:'Cserebere',
+            active:true
+        },
+        users: {
+            name:'Felhasználók',
+            active:true
+        },
+        maps: {
+            name:'Helyek',
+            active:true
+        },
+        buziness: {
+            name:'Bizinsz',
+            active:true
+        }
+    });
     
-    const [array, setArray] = React.useState([]);
+    const [array, setArray] = React.useState({
+        sale: [],
+        users: [],
+        maps: [],
+        buziness: []
+    });
+    const [error, setError] = useState(null);
     const [progress, setProgress] = useState(0);
     const ready = 1;
 
-    useEffect(() => {
-        handleSearch()
-    }, [route.params]);
 
     useFocusEffect(
         useCallback(() => {
+            handleSearch2()
             //if (array.length == 0)
             //handleSearch()
           return () => {
-            setArray([])
+            setArray({
+                sale: [],
+                users: [],
+                maps: [],
+                buziness: []
+            })
           };
         }, [route.params])
       );
+    const handleSearch2 = () => {
+        const key = route.params?.key || null;
+        if (key) {
+            axios.post('/search',{
+                key
+            },config()).then(res=>{
+                setArray(res.data);
 
-    const handleSearch = () => {
-        const key = route.params.key;
-        if (database && key) {
-            console.log('searching...');
-            setArray([])
-            const dbRef = query(dRef(database,'/users'), orderByChild('name'));
-            onValue(dbRef, (snapshot) => {
-                if (snapshot.exists())
-                snapshot.forEach((childSnapshot) => {
-                    const childKey = childSnapshot.key;
-                    const childData = childSnapshot.child('data').val();
-                    
-                    let found = null
-                    let index = null
-
-                    if (key=='all') {
-                        found = childData.username
-                        console.log(found);
-                    }
-                    if (childData.name && childData.name.toLowerCase().includes(key.toLowerCase())) found = "profil"
-                    if (childData.username && childData.username.toLowerCase().includes(key.toLowerCase())) found = childData.username
-                    if (childData.profession && childData.profession.filter((e,i)=>{
-                        if (e.name.toLowerCase().includes(key.toLowerCase()) ||
-                        e.description.toLowerCase().includes(key.toLowerCase()))
-                        {
-                            index = i
-                            return true
-                        }
-                        return false
-                    }).length) found = childData.profession[index].name
-
-                    if (found)    
-                    setArray(oldarray=>[...oldarray,<Item key={childKey} title={childData.name} text={found} uid={childKey} />]);
-                });
-                console.log('progress+');
+                console.log('search',res.data);
                 setProgress(progress+1)
-            });
-
-            const placesRef = query(dRef(database,'/maps'), orderByChild('name'));
-            onValue(placesRef, (snapshot) => {
-                if (snapshot.exists())
-                snapshot.forEach((childSnapshot) => {
-                    const childKey = childSnapshot.key;
-                    const childData = childSnapshot.val();
-
-                    if (childData.name.toLowerCase().includes(key.toLowerCase()))
-                    setArray(oldarray=>[...oldarray,<Item key={childData.name+childKey} title={childData.name} text={'térkép kategória'} link={'terkep'} params={{selectedMap:childKey}}/>]);
-
-                    console.log(childKey);
-                    if (childData.locations) {
-                        const keys = Object.keys(childData?.locations);
-                        Object.values(childData?.locations)
-                        ?.forEach((place,index) => {
-                            if (
-                                place.name.toLowerCase().includes(key.toLowerCase())
-                            )
-                            setArray(oldarray=>[...oldarray,<Item key={place.name+index} title={place.name} text={childData.name} link={'terkep'} params={{selected:keys[index],selectedMap:childKey}}/>]);
-                        });
-                    }
-                });
-                console.log('progress+');
-                setProgress(progress+1)
-
-            });
+            }).catch(err=>{
+                console.log(err);
+                if (err?.response?.data == 'Token expired') {
+                    console.log('Token expired');
+                    api.logout();
+                    return
+                  }
+            })
         }
     }
 
-    if (!route.params.key) return null
+    console.log(array);
+    const text = toldalek(route.params?.key||null,'ra')
 
     return(
-        <View style={{flex:1,backgroundColor:'#FDEEA2'}}>
+        <BasePage style={{flex:1,backgroundColor:'#FDEEA2'}}>
+            <MyText title>Keresés a fife appon</MyText>
+            {width < 1340 && <SearchBar style={{flexGrow:0,flex:'none',width:'100%',marginRight:40}}/>}
             <View style={{backgroundColor:'#FDEEA2'}}>
+                <View style={{justifyContent:'center',width:'100%',flexWrap:small?'wrap':'none',flexDirection:'row',}}>
+                    {Object.keys(categories).map((cat,ind) =>
+                        {return <NewButton title={categories[cat].name} key={ind+"cat"} 
+                        color={categories[cat].active?'#ffdaad':'#fdf6d1'}
+                         style={{userSelect:'none',padding:20,width:small?'40%':'20%'}}
+                         onPress={()=>setCategories({...categories,[cat]:{...categories[cat],active:!categories[cat].active}})}/>}
+                        
+                    )}
+                </View>
+                {route.params?.key ? <MyText title style={{marginLeft:50}}>Keresés {text}</MyText> :
+                <MyText>Keress profilokra, bizniszre, helyekre, cserebere cikkekre</MyText>}
                 {progress < ready ?
                     <>
-                    <Loading color="#f5d761" />
+                    {route.params?.key && <Loading color="#f5d761" />}
                     </>:
-                    (array.length == 0
+                    (error
                         ?   <View>
                                 <TextFor style={styles.noResultText} text="no_result"/>
-                                <MyText style={styles.noResultSubText}>{AutoPrefix(route.params.key)} kifejezés nem hozott eredményt.</MyText>
+                                <MyText style={styles.noResultSubText}>{error}</MyText>
                             </View>
-                        :   <ScrollView contentContainerStyle={{alignItems:'center',padding:50}}>{array}</ScrollView>)
+                        :   <ScrollView contentContainerStyle={{alignItems:'center'}}>
+                                    {Object.keys(categories).map((cat,ind) =>{
+                                        if (categories[cat].active && array[cat]?.length)
+                                        return <View style={{}}>
+                                            <MyText title>{categories[cat].name}</MyText>
+                                            <View style={{alignItems:'center'}}>
+                                                {array[cat].map((item,ind)=>{
+                                                    if (item)
+                                                return <Item key={'sale'+ind} title={item?.title || item.name} text={item.description} uid={item?.author||item.uid} />
+                                                })}
+                                            </View>
+                                        </View>
+                                    })}
+                            </ScrollView>)
                 }
+                <View>
+                    <MyText>Nem találod amit keresel? Írj posztot!</MyText>
+                    <PostForm />
+                </View>
             </View>
-        </View>
+        </BasePage>
     )
 }
 
@@ -130,7 +146,7 @@ function Item({title,text,uid,link,params}) {
             {uid && <ProfileImage style={styles.listIcon} uid={uid}/>}
             <View style={{marginLeft: 5}}>
               <MyText style={{ fontWeight: 'bold',flex: 1, }}>{title}</MyText>
-              <MyText style={{ flex:1, }}>{text}</MyText>
+              <MyText style={{ flex:1,maxHeight:20,overflow:'hidden' }}>{text}</MyText>
             </View>
         </TouchableOpacity>
     );
@@ -148,7 +164,8 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         padding: 12,
         marginTop: -1,
-        maxWidth:500
+        maxWidth:500,
+        borderRadius:8
     },
     noResultText: {
         fontSize: 30,

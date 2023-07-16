@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import { StyleSheet, View, Pressable, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, View, Pressable, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
 import { Pages } from "./pages";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ScrollView } from 'react-native-web';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useWindowDimensions } from 'react-native'
 import { MyText } from '../../components/Components';
@@ -23,7 +22,7 @@ const First = ({scrollView}) => {
     });
     const [scrollView2, setScrollView2] = useState(null);
     const [pageData, setPageData] = useState(null);
-    const [backDisabled, setBackDisabled] = useState(true);
+    const backDisabled = page == 0;
     const [nextDisabled, setNextDisabled] = useState(false);
     const [pages, setPages] = useState([]);
     const allPages = Pages({newData, setNewData,pageData, setPageData});
@@ -36,14 +35,8 @@ const First = ({scrollView}) => {
     }
 
     const handleToHome = () => {
-      if (width <= 900)
         navigation.push('bejelentkezes')
-      else
-      scrollView.scrollTo({ x: 0, y: 0, animated: true })
     }
-    useEffect(() => {
-      setBackDisabled(page == 0)
-    }, [pageData,page]);
 
     useEffect(() => {
       if (scrollView2)
@@ -72,15 +65,17 @@ const First = ({scrollView}) => {
         showsVerticalScrollIndicator={false}
         scrollEnabled={false}
         onScroll={(e)=>{
-          if (e.nativeEvent.contentOffset.x > percent*width)
-            setPage(Math.floor(e.nativeEvent.contentOffset.x/width))
-          else
-            setPage(Math.ceil(e.nativeEvent.contentOffset.x/width))
+          
+          if (e.nativeEvent.contentOffset.x >= percent*width){
+            setPage(Math.floor(e.nativeEvent.contentOffset.x/(width-5)))
+          }else{
+            setPage(Math.ceil((e.nativeEvent.contentOffset.x-5)/(width)))
+            }
           setPercent(e.nativeEvent.contentOffset.x/width)
         }}>
           {
         allPages.map((p,i)=>{
-          if (i >= page-1 && i <= page+1) return p 
+          if (i >= page-1 && i <= page+1) return p;
           return <View style={{width:width,flex:1}} key={'page'+i}/>
         })}
       </ScrollView>
@@ -91,21 +86,13 @@ const First = ({scrollView}) => {
       {page < allPages.length-1 &&<TouchableOpacity 
         style={[styles.button,{right:10}]} 
         onPress={()=>scrollView2.scrollTo({x:(page+1)*width,y:0,animated:true})}>
-        <MyText style={styles.buttonText}>{page > pages.lenght-1 ? 'Befejezés' : 'Tovább'}</MyText>
+        <MyText style={[styles.buttonText,width<450&&{fontSize:20}]}>{page > pages.lenght-1 ? 'Befejezés' : 'Tovább'}</MyText>
       </TouchableOpacity>}
-      {page > 0 && <TouchableOpacity 
-      style={[styles.button,{left:10}]} onPress={()=>scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})}>
-        <MyText style={styles.buttonText}>Vissza</MyText>
+      {<TouchableOpacity
+      style={[styles.button,{left:10},]} onPress={()=>backDisabled ? handleToHome() : scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})}>
+        <MyText style={[styles.buttonText,width<450&&{fontSize:20}]}>{backDisabled ? "Bejelentkezés" : "Vissza"}</MyText>
       </TouchableOpacity>}
 
-      {false && <View style={{ flex: 1, flexDirection:'row' }}>
-        <TouchableOpacity style={[styles.button]} onPress={()=>backDisabled ? handleToHome() : goTo(page-1)}>
-          <MyText style={styles.buttonText}>{backDisabled ? "Bejelentkezés" : "Vissza"}</MyText>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.button,nextDisabled && {backgroundColor:'#ffe385'}]} onPress={()=>goTo(page+1)} disabled={nextDisabled}>
-          <MyText style={styles.buttonText}>{page == pages.length-1 ? 'Befejezés' : 'Tovább'}</MyText>
-        </TouchableOpacity>
-      </View>}
     </View>
   );
 };

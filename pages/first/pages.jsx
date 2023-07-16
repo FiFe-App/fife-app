@@ -1,5 +1,5 @@
 
-import { Professions, Links } from '../profile/Edit';
+import { Professions, Links } from '../profile/EditOld';
 import { StyleSheet, View, Button, Platform,ScrollView, Pressable, Image, FlatList, Dimensions,  } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { MoreInfoForm, RegisterForm } from "../login/Login";
@@ -8,13 +8,14 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { useRef } from 'react';
 import { useWindowDimensions } from 'react-native'
 import AmiKell from './AmiKell';
+import styles from '../../styles/pagesDesign';
 
 
 export const Pages = ({newData,setNewData,pageData, setPageData}) => {
     const { width } = useWindowDimensions();
     const small = useWindowDimensions().width<900;
     const [more, setMore] = useState(false);
-    const textInput = useRef(null);
+    const textInput = useRef();
     const [sent, setSent] = useState(false);
     const [email, setEmail] = useState('');
     const handleSend = async () => {
@@ -36,11 +37,13 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
       textToType: '',
       username: '',
       name: '',
+      interest: [],
+      buziness: [{name: '', description: ''}]
     });
     const pageStyle = {
       flex:1,
       width:width,
-      padding: width <= 900 ? 0 : 40,
+      padding: width <= 900 ? 4 : 40,
     }
     const titleStyle = {
       fontSize: width > 900 ? 50 : 30,
@@ -66,13 +69,18 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
     const [text, setText] = useState('');
     const textToType = "Nem leszek rosszindulatú. Tiszteletben tartom mások véleményét."
     const handleTextInput = (input)=>{
-      if (textToType.slice(0,input.length).toLowerCase() == input.toLowerCase()
-      //||textToType.slice(0,input.length-1) == input.slice(0,input.length-1) &&
-      ) setText(textToType.slice(0,input.length))
+      if (textToType.slice(0,input.length).toLowerCase().replaceAll(' ','')
+       == (input.toLowerCase()).replaceAll(' ',''))
+       setText(textToType.slice(0,input.length))
+       else
+       if (textToType.slice(0,input.length+1).toLowerCase().replaceAll(' ','')
+       == (input.toLowerCase()).replaceAll(' ','')
+      ) setText(textToType.slice(0,input.length+1))
     }
 
     useEffect(() => {
       setPageData(data)
+      console.log(data);
     }, [data]);
 
     useEffect(() => {
@@ -81,7 +89,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
 
     
     return [
-        <ScrollView style={[pageStyle,{backgroundColor:'none'}]} contentContainerStyle={{paddingBottom:160}} key="1">
+        <ScrollView key="Udvozlet" style={[pageStyle,{backgroundColor:'none'}]} contentContainerStyle={{paddingBottom:160}} >
               <MyText style={titleStyle}>Szia! Üdvözöllek a Fiatal Felnőttek alkalmazásában!</MyText>
               <Auto key="Auto">
                 <View style={{flex:small?'none':2}}>
@@ -94,6 +102,8 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                   Egy netes oázis, ahol a könnyen nyújthatsz segítséget másoknak és találhatsz saját magadnak.
                   Ahol az ember közelebb érezheti magát másokhoz, részese lehet a nagy egésznek.
                   {'\n\n'}Nem facebook vagyunk, nem az a célunk, hogy minél több reklámot és tartalmat láss.
+                  {'\n\n'}
+                  A <B>Tovább</B> gombra nyomva végigvezetünk a regisztrációhoz szükséges lépéseken!
                   </MyText>
                 </View>
                 <View style={{flex:small?'none':1,margin:20,flexDirection:'row'}}>
@@ -101,7 +111,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 </View>
               </Auto>
         </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#B1ECEA'}]} contentContainerStyle={{paddingBottom:160}} key="1.2">
+        <ScrollView key="Hozzaallas" style={[pageStyle,{backgroundColor:'#B1ECEA'}]} contentContainerStyle={{paddingBottom:160}}>
             <MyText style={titleStyle} adjustsFontSizeToFit>Hozzáállás</MyText>
             <Auto>
               <View style={{flex:width<=900?'none':3}}>
@@ -110,10 +120,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 Segítjük egymást, hogy mindenki könyebben tudjon boldogulni ebben a bonyolult világban.
                 Csak úgy tudjuk az országunkat jobb hellyé tenni, ha félrerakjuk az ösztönszerű ellentéteinket,
                 és barátként tekintünk egymásra, hogy együtt fejlődjünk.
-                </MyText>
-                <MyText style={styles.text}>
                 Itt olyan lehetőségeket igyekszem elétek tárni, amik segitségével könyebben indulunk el ezen az úton.
-                Mindenkinek megoszhatja a magában rejlő értékeket
                 </MyText>
               </View>
               <View style={{flex:width<=900?'none':1}}>
@@ -121,8 +128,8 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
               </View>
             </Auto>
         </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#06b075'}]} contentContainerStyle={{paddingBottom:160}} key="2">
-            <MyText style={titleStyleW} adjustsFontSizeToFit>Biztonság</MyText>
+        <ScrollView key="Pajtasok" style={[pageStyle,{backgroundColor:'#06b075'}]} contentContainerStyle={{paddingBottom:160}}>
+            <MyText style={titleStyleW} adjustsFontSizeToFit>Pajtások</MyText>
             <Auto>
               <View style={{flex:width<=900?'none':3}}>
                 <MyText style={styles.text}>
@@ -141,10 +148,18 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
               </View>
             </Auto>
         </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#9084d0'}]} contentContainerStyle={{paddingBottom:160}} key="2.2">
-          <AmiKell/>
+        <ScrollView key="Mierdekel" style={[pageStyle,{backgroundColor:'#9084d0'}]} contentContainerStyle={{paddingBottom:160}}>
+          <AmiKell data={data.interest} setData={(d)=>setData({...data,interest:d})}/>
         </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#39c0db'}]} contentContainerStyle={{paddingBottom:160}} key="2.4">
+        <ScrollView key="Biznisz" style={[pageStyle,{backgroundColor:'#ffd2c2'}]} contentContainerStyle={{paddingBottom:160}}>
+            <MyText style={titleStyle}>Bizniszek</MyText>
+            <MyText style={styles.subTitle}>A te Bizniszeid azon hobbijaid, képességeid, vagy szakmáid listája, amelyeket meg szeretnél osztani másokkal is.
+            Ha te mondjuk úgy gyártod a sütiket, mint egy gép, és ezt felveszed a bizniszeid közé, az appban megtalálható leszel, a süti kulcsszóval.</MyText>
+            <MyText style={styles.subTitle}>Fontos, hogy kizárólag a megadott <B>kulcsszavak</B> alapján tudnak majd megtalálni </MyText>
+            <Professions data={data} setData={setData}/>
+            
+        </ScrollView>,
+        <ScrollView key="Iranyelvek" style={[pageStyle,{backgroundColor:'#39c0db'}]} contentContainerStyle={{paddingBottom:160}}>
             <MyText style={titleStyle}>Irányelveink</MyText>
             <MyText style={styles.subTitle}>Ha ennek az online közösségnek tagja szeretnél lenni, komolyan kell venned az irányelveinket: </MyText>
             <Col style={{alignSelf:'flex-start',marginHorizontal:30}}>
@@ -164,27 +179,25 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
             </Col>
             <View style={{margin:20}}>
               <MyText style={styles.text}>Ha be fogod tartani ezeket, gépeld be a következő szöveget:</MyText>
-              <View style={styles.inputView}>
-                <Pressable onPress={()=>textInput.current.focus()}>
-                  <MyText style={styles.absolute} onLayout={(e)=> {console.log('number of lines',setNumberOfLines((e.nativeEvent.layout.height-20)/26))}} >{textToType}</MyText>
-                </Pressable>
+              <Pressable style={styles.inputView} onPress={()=>textInput.current.focus()}>
+                <MyText style={styles.absolute} onLayout={(e)=> {console.log('number of lines',setNumberOfLines((e.nativeEvent.layout.height-20)/26))}} >{textToType}</MyText>
                 <TextInput ref={textInput} style={styles.input}
-                  value={text}  
+                  value={text}
                   multiline
                   numberOfLines={numberOfLines}
                   onChangeText={handleTextInput}/>
                 <MyText style={[styles.absolute,{color:'black'}]} >{text}</MyText>
-              </View>
+              </Pressable>
             </View>
         </ScrollView>,
-        <ScrollView style={[pageStyle,{backgroundColor:'#ffb28f'}]} contentContainerStyle={{paddingBottom:160,alignItems:'center'}} key="6.2">
-            {false && <><MyText style={titleStyle}>Mindjárt kész is vagy!</MyText>
+        <ScrollView key="Adatok" style={[pageStyle,{backgroundColor:'#ff668b'}]} contentContainerStyle={{paddingBottom:160,alignItems:'center'}}>
+            <MyText style={titleStyle}>Mindjárt kész is vagy!</MyText>
             <MyText style={styles.subTitle}>Add meg kérlek még az néhány adatod, az email-címed, és a jelszavad a befejezéshez.</MyText>
-            <Auto style={{justifyContent:'center'}}>
+            <Auto style={{justifyContent:'center',alignItems:small?'center':null}}>
               <MoreInfoForm data={data.moreInfo} setData={(newData)=>setData({...data,name:newData.name,username:newData.username})} />
               <RegisterForm dataToAdd={data}/>
-            </Auto></>}
-            <MyText style={titleStyle}>Még nem tudsz regisztrálni, gyere vissza később:)</MyText>
+            </Auto>
+            {false && <><MyText style={titleStyle}>Még nem tudsz regisztrálni, gyere vissza később:)</MyText>
             <Auto style={{flex:'none'}}>
                 <Image source={require('../../assets/en.jpeg')} resizeMode="cover" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
                 <MyText contained>
@@ -204,86 +217,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                     value={!sent ? email : 'Köszi, megkaptam az email-címed!'} onChangeText={setEmail} disabled={sent} placeholder="Email-címed"/>
                     <NewButton title="Küldés" onPress={handleSend} disabled={!email || sent} style={{margin:5,minWidth:100}}/>
                 </Row>
-            </View>
+            </View></>}
         </ScrollView>
 ]}
 
-
-const styles = StyleSheet.create({
-    viewPager: {
-      flex: 1,
-    },
-    text: {
-      fontSize:22,
-      textAlign:'left',
-      padding:20,
-      marginBottom: 10,
-      backgroundColor:'white',
-      opacity: 0.8
-    },
-    list: {
-      fontSize:20,
-      flexDirection:'column'
-    },
-    listItem: {
-      fontSize:20,
-      margin:5
-    },
-    link: {
-      fontSize:25,
-      textAlign:'left',
-      marginBottom: 30,
-      color:'rgb(181, 139, 0)'
-    },
-    title: {
-      //fontSize: width > 900 ? 50 : 40,
-      width:'100%',
-      fontWeight:'bold',
-      paddingVertical:20,
-      //paddingHorizontal: width <= 900 ? 5 : 50,
-      marginBottom: 20
-    },
-    titleW: {
-      color:'white',
-      //fontSize: width > 900 ? 50 : 40,
-      width:'100%',
-      fontWeight:'bold',
-      paddingVertical:20,
-      paddingHorizontal:50,
-      marginBottom: 20
-    },
-    subTitle: {
-      fontSize: 22,
-      paddingBottom:20,
-      paddingHorizontal:10,
-      marginBottom: 20
-    },
-    button: {
-      margin:10
-    },
-    progressBar: {
-      height: 12,
-      borderRadius: 5
-    },
-    inputView:{
-      backgroundColor:'white',
-      padding:10,
-      borderWidth:2,
-    },
-    input:{
-      backgroundColor:'white',
-      padding:10,
-      fontSize:22,
-      letterSpacing:-1,
-      color:'black'
-    },
-    absolute:{
-      padding:10,
-      fontSize:22,
-      position:'absolute',
-      userSelect: "none",
-      backgroundColor:'transparent',
-      color:'gray',
-      cursor:'text'
-    }
-  });

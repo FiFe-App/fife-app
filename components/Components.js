@@ -1,30 +1,30 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Animated, Text, StyleSheet, View, Easing, Pressable, ScrollView, TextInput as RNTextInput, TouchableOpacity, ActivityIndicator, Platform, Modal } from 'react-native';
-import { ref as sRef, getStorage, getDownloadURL } from "firebase/storage";
-import Icon from 'react-native-vector-icons/Ionicons'
-import { useForm, Controller } from "react-hook-form";
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Image from 'expo-fast-image';
+import { getDownloadURL, getStorage, ref as sRef } from "firebase/storage";
+import React, { useEffect, useRef, useState } from 'react';
+import { Controller, useForm } from "react-hook-form";
+import { ActivityIndicator, Animated, Dimensions, Easing, Modal, Platform, Pressable, TextInput as RNTextInput, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { global } from '../lib/global';
 import { styles as newStyles } from '../styles/styles';
-import {useWindowDimensions} from 'react-native';
-import Image from 'expo-fast-image'
-import CachedImage from 'expo-cached-image'
 
 
-import ImageModal from 'react-native-image-modal';
-import { TextFor } from '../lib/textService/textService';
-import { useHover } from 'react-native-web-hooks';
-import { child, get, getDatabase, ref } from 'firebase/database';
-import { isBright } from '../pages/home/HomeScreen';
-import ExpoFastImage from 'expo-fast-image';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { pSBC, shadeColor } from '../lib/functions';
+import ExpoFastImage from 'expo-fast-image';
+import { child, get, getDatabase, ref } from 'firebase/database';
+import { useHover } from 'react-native-web-hooks';
+import { shadeColor } from '../lib/functions';
+import { TextFor } from '../lib/textService/textService';
+import { isBright } from '../pages/home/HomeScreen';
+import { config } from '../firebase/authConfig';
+import axios from 'axios';
+import { Button, TouchableRipple } from 'react-native-paper';
 
 
 //Dimensions.get('window');
 
 const Loading = (props) => {
-  const sweepAnim = useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
+  /*const sweepAnim = useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
   const fadeAnim = useRef(new Animated.Value(1)).current  // Initial value for opacity: 0
 
   useEffect(() => {
@@ -54,7 +54,12 @@ const Loading = (props) => {
       <Animated.View style={[{ flex: sweepAnim, opacity: (fadeAnim), backgroundColor: props.color, height: props?.height || 5 }]} />
       <Animated.View style={[{ flex: (1) }]} />
     </View>
-  );
+  );*/
+  return (
+    <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+      <ActivityIndicator color={props.color} size={'large'} />
+    </View>
+  )
 }
 
 const getUri = async (path) => {
@@ -69,18 +74,18 @@ const getUri = async (path) => {
 
 const getNameOf = async (uid) => {
   const name = await AsyncStorage.getItem('name-'+uid)
-  if (name !== null) {
+  console.log('getNameOf',uid,name);
+  if (name != null && name != 'NINCS NÉV') {
+    
     console.log('name',name);
     return name;}
   else {
+    const res = (await get(ref(getDatabase(),`users/${uid}/data/name`))).val()
+    //await axios.get(`users/name/${uid}`,config())
+    console.log('snapshot',res);
   
-    const db = getDatabase();
-    const dbRef = ref(db);
-    const snapshot = await get(child(dbRef, `users/${uid}/data/name`))
-    console.log('snapshot');
-  
-    if (snapshot.exists()) {
-      const name = snapshot.val();
+    if (res) {
+      const name = res;
       await AsyncStorage.setItem('name-'+uid,name)
       return name;
     }
@@ -122,29 +127,40 @@ const ProfileImage = ({uid,size=40,style}) => {
     
 }
 
-function NewButton({color = "#ffde7e",title,onPress,disabled,style,textStyle}) {
-  const ref = useRef(null);
-  const isHovered = useHover(ref);
+function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color = "#ffde7e",}) {
+  const ref = useRef();
+  const isHovered = false//useHover(ref);
 
-  const [bgColor, setBgColor] = useState(color);
+  const [bgColor, setBgColor] = useState(icon ? 'transparent' : color);
 
   useEffect(() => {
     setBgColor(shadeColor(color,isHovered*10))
-  }, [isHovered]);
+  }, [isHovered,color]);
+
+  useEffect(() => {
+    
+  }, [icon]);
 
   const handleFocus = () => {
     setBgColor(shadeColor(color,-10))
   }
+  
   return (
-    <Pressable ref={ref} onPressOut={()=>setBgColor(color)} onPressIn={handleFocus} style={[styles.newButton, { backgroundColor: bgColor, opacity: disabled ? 0.2 : 1, height:50 },style]} onPress={onPress} disabled={disabled}>
-          <MyText style={[{ fontWeight: 'bold', color: isBright(color) , fontSize:18, whiteSpace:'pre' },textStyle]}>{title}</MyText>
-    </Pressable>
+    <TouchableRipple  onPressOut={()=>setBgColor(color)} onPressIn={()=>{setBgColor(color);handleFocus()}} 
+          style={[styles.newButton,
+          floating && {shadowColor: "#000",shadowOffset: {width: 4, height: 4 },shadowOpacity: 0.5,shadowRadius: 3,},
+          { backgroundColor: bgColor, opacity: disabled ? 0.2 : 1, height:50 },
+          icon && { width:50, borderRadius: 100 },
+          ,style]} 
+          onPress={onPress} disabled={disabled}>
+          <MyText style={[{ fontWeight: 'bold', color: isBright(bgColor) , fontSize:18, whiteSpace:'pre' },textStyle]}>{title}</MyText>
+    </TouchableRipple>
   );
 }
 
 
 class Slideshow extends React.Component {
-  width = 500
+  width = Dimensions.get('window').width > 900 ? Dimensions.get('window').width/2 : Dimensions.get('window').width 
 
   constructor(props) {
     super(props);
@@ -157,16 +173,8 @@ class Slideshow extends React.Component {
     // position will be a value between 0 and photos.length - 1 assuming you don't scroll pass the ends of the ScrollView
     let position = Animated.divide(this.scrollX, this.width);
     return (
-      <View style={{ justifyContent: 'center', alignItems: 'center'}}>
-        <View style={{ width: this.width, height: this.width/2, flexDirection:'row' }}>
-          <View style={{justifyContent:'center',padding:20}}>
-            <Pressable onPress={()=>{
-              this.scrollX.setValue(this.scrollX._value-this.width)
-              this.scrollView.current.scrollTo({ x: -this.scrollX._value, y: 0, animated: true })
-            }}>
-              <Icon name="arrow-back" size={30}/>
-            </Pressable>
-          </View>
+      <View style={[{ justifyContent: 'center', alignItems: 'center'},this.props.style]}>
+        <View style={{ width:this.width, height: this.width/2, flexDirection:'row' }}>
           <ScrollView
             ref={this.scrollView}
             horizontal={true}
@@ -187,18 +195,32 @@ class Slideshow extends React.Component {
                 />
               );
             })}
-          </ScrollView>
-          <View style={{justifyContent:'center',padding:20}}>
-            <Pressable onPress={()=>{
+          </ScrollView>          
+          <View style={{justifyContent:'center',padding:20,position:'absolute',left:10,top:this.width/4-30}}>
+            <TouchableRipple 
+            style={{borderRadius:30}}
+            onPress={()=>{
+              if (this.scrollX._value < this.width) return 
+              this.scrollX.setValue(this.scrollX._value-this.width)
+              this.scrollView.current.scrollTo({ x: -this.scrollX._value, y: 0, animated: true })
+            }}>
+              <Icon name="arrow-back" size={30} color='white'/>
+            </TouchableRipple>
+          </View>
+          <View style={{justifyContent:'center',padding:20,position:'absolute',right:10,top:this.width/4-30}}>
+            <TouchableRipple 
+            style={{borderRadius:30}}
+            onPress={()=>{
+              if (this.scrollX._value > this.props.photos.length*this.width) return 
               this.scrollX.setValue(this.scrollX._value+this.width)
               this.scrollView.current.scrollTo({ x: this.scrollX._value, y: 0, animated: true })
             }}>
-              <Icon name="arrow-forward" size={30}/>
-            </Pressable>
+              <Icon name="arrow-forward" size={30} color='white'/>
+            </TouchableRipple>
           </View>
         </View>
         <View
-          style={{ flexDirection: 'row' }} // this will layout our dots horizontally (row) instead of vertically (column)
+          style={{ flexDirection: 'row',position:'absolute', bottom:10 }} // this will layout our dots horizontally (row) instead of vertically (column)
           >
           {this.props.photos.map((_, i) => { // the _ just means we won't use that parameter
             let opacity = position.interpolate({
@@ -211,7 +233,7 @@ class Slideshow extends React.Component {
             return (
               <Animated.View // we will animate the opacity of the dots so use Animated.View instead of View here
                 key={i} // we will use i for the key because no two (or more) elements in an array will have the same index
-                style={{ opacity, height: 10, width: 10, backgroundColor: '#595959', margin: 8, borderRadius: 5 }}
+                style={{ opacity, height: 10, width: 10, backgroundColor: '#fff', margin: 8, borderRadius: 5 }}
               />
             );
           })}
@@ -237,7 +259,7 @@ function Col(props) {
   );
 }
 
-function Auto({children,style,breakPoint=900}) {
+function Auto({children,style,breakPoint=900,reverse}) {
   
   const width = useWindowDimensions().width;
   return (
@@ -332,6 +354,7 @@ function NewEventModal(params) {
 }
 
 const SearchBar = (props) => {
+  const {style} = props
   const allMethods = useForm();
   const { setFocus } = allMethods;
   const navigation = useNavigation();
@@ -347,7 +370,7 @@ const SearchBar = (props) => {
     global.searchList.push(data.text);
     global.search = data.text;
     setShowHistory(false);
-    navigation.push("kereses", { key: data.text });
+    navigation.push("kereses", { key: data.text||'' });
   };
   const onBlur = () => {
     setShowHistory(false)
@@ -355,14 +378,14 @@ const SearchBar = (props) => {
   const [showHistory,setShowHistory] = React.useState(false);
   const listItems = global.searchList.reverse().map((element) =>
     <Pressable key={element.toString()} onPress={() => onSubmit()} >
-      <Row style={[newStyles.searchList,{backgroundColor:'white'}]}>
+      <Row style={[newStyles.searchList,{}]}>
         <Icon name="time-outline" size={25} color="black" style={{ marginHorizontal: 5 }} />
         <MyText>{element}</MyText>
       </Row>
     </Pressable>
   );
   return (
-    <View style={{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:10,marginVertical:17,}}>
+    <View style={[{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:20,marginVertical:17,backgroundColor:'#FDEEA2'},style]}>
       <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, value } }) => (
@@ -381,29 +404,31 @@ const SearchBar = (props) => {
           name="text"
         />
 
-        <Pressable onPress={handleSubmit(onSubmit)}style={{width:30,marginLeft:-40}} >
+        <Pressable onPress={handleSubmit(onSubmit)} style={{width:30,marginLeft:-40}} >
           <Icon name="search-outline" size={25} color="black" />
         </Pressable>
       </View>
-      <ScrollView style={{position:"absolute",top:45,width:200}}>
-        {(showHistory && global.searchList.length > 0) && listItems}
-      </ScrollView>
+        <ScrollView contentContainerStyle={{justifyContent:'flex-start'}} 
+        style={{position:"absolute",width:'100%',marginTop:45,backgroundColor:'#fbf7f0',borderBottomLeftRadius:8,borderBottomRightRadius:8}}>
+          {(showHistory && global.searchList.length > 0) && listItems}
+        </ScrollView>
     </View>
   );
 
 }
 
-const OpenNav = ({open,children,style}) => {
+const OpenNav = ({open,children,style,height}) => {
 
   const width = useWindowDimensions().width;
   const size = useRef(new Animated.Value(-390)).current 
+  const [myHeight, setMyHeight] = useState(0);
 
   useEffect(() => {
     if (open)
     Animated.timing(
       size,
       {
-        toValue: width<470 ? 62 : 86,
+        toValue: height,
         duration: 500,
         useNativeDriver: false
       }
@@ -412,42 +437,51 @@ const OpenNav = ({open,children,style}) => {
     Animated.timing(
       size,
       {
-        toValue: -390,
+        toValue: -myHeight+60,
         duration: 500,
+        useNativeDriver: false
       }
     ).start();
 
-  }, [open]);
+  }, [open,height]);
 
   return (
-    <>
-      <View style={{height:width<470 ? 60 : 80,width:'100%',backgroundColor:'#FDEEA2',position:'absolute'}}></View>
-      <Animated.View style={style && {position:'absolute',top:size,width:'100%',zIndex:-30,elevation: -30}}>
+    <View style={{zIndex:0,elevation: 0}}>
+      <View style={{height:height,top:-520,width:'100%',backgroundColor:'#FDEEA2',position:'absolute',zIndex:10,elevation: 10}}></View>
+      <Animated.View
+      onLayout={e=>setMyHeight(e.nativeEvent.layout.height)}
+       style={[{position:'absolute',top:size,width:'100%',zIndex:5,elevation:5,shadowOffset: {width: 0, height: 6 },shadowOpacity: 0.2,shadowRadius: 2},
+      ]}>
         {children}
       </Animated.View>
-    </>
+    </View>
   )
 }
 
 export const MyText = (props) => {
-  const {title, size, contained} = props;
-  return <Text style={[{
+  const {title, size, contained, bold, light, selectable} = props;
+  return <Text  {...props} style={[{
     fontFamily:'SpaceMono_400Regular',
     letterSpacing:-1
     },title && {fontSize:32,marginTop:14},
     contained && {padding:8,borderRadius:8,backgroundColor:'white',fontSize:20,marginTop:14},
-    size && {fontSize:size}
+    bold && {fontWeight:'bold'},
+    light && {fontWeight:'200',color:'gray'},
+    size && {fontSize:size},
+    !selectable && {userSelect: 'none'}
     ,props?.style]}>
     {props?.children}</Text>
 }
 
 const TextInput = React.forwardRef((props,ref) => {
   const [isFocused, setIsFocused] = useState(false);
+
   return (
     <RNTextInput
       {...props}
+      onLayout={props.onLayout}
       ref={ref}
-      placeholderTextColor="grey"
+      placeholderTextColor="#555"
       style={[props.style,{fontFamily:'SpaceMono_400Regular'}, isFocused && 
         {backgroundColor:'#fbf7f0'},Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => {
@@ -486,22 +520,45 @@ export const Popup = ({children,style,popup,popupStyle}) => {
 }
 
 
-export {
-  ProfileImage,
-  getUri,
-  getNameOf,
-  Slideshow,
-  Loading,
-  Row,
-  Col,
-  Auto,
-  FAB,
-  SearchBar,
-  OpenNav,
-  NewButton,
-  TextInput,
-  B
+export const Openable = ({open,children,style}) => {
+
+  const width = useWindowDimensions().width;
+  const size = useRef(new Animated.Value(-390)).current 
+
+  useEffect(() => {
+    if (open)
+    Animated.timing(
+      size,
+      {
+        toValue: 250,
+        duration: 100,
+        useNativeDriver: false
+      }
+    ).start();
+    else
+    Animated.timing(
+      size,
+      {
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: false
+      }
+    ).start();
+
+  }, [open]);
+
+  return (
+    <>
+      <Animated.View style={style && {height:size,width:'100%',zIndex:30,elevation: 30}}>
+        {children}
+      </Animated.View>
+    </>
+  )
 }
+
+export {
+  Auto, B, Col, FAB, Loading, NewButton, OpenNav, ProfileImage, Row, SearchBar, Slideshow, TextInput, getNameOf, getUri
+};
 
 const styles = StyleSheet.create({
   titleStyle: {
@@ -543,7 +600,7 @@ const styles = StyleSheet.create({
   newButton:{
     alignItems: 'center',
     justifyContent: "center",
-
+    borderRadius: 8,
     margin:5,
   },
 });

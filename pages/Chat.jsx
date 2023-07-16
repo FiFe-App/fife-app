@@ -1,18 +1,18 @@
-import { useState, useContext, useEffect, useRef } from "react";
-import {View, Pressable, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions} from 'react-native'
-import { useDispatch, useSelector } from 'react-redux'
-import { FirebaseContext } from '../firebase/firebase';
-import { ref, child, get, set, onValue, onChildAdded, push, off, query, limitToLast } from "firebase/database";
-import Icon from 'react-native-vector-icons/Ionicons'
-import { Loading, ProfileImage, TextInput, MyText, getNameOf } from "../components/Components";
-import { removeUnreadMessage } from '../lib/userReducer';
 import { useNavigation } from "@react-navigation/native";
+import { child, limitToLast, off, onChildAdded, onValue, orderByValue, push, query, ref, set } from "firebase/database";
+import { useContext, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { useDispatch, useSelector } from 'react-redux';
+import { Loading, MyText, NewButton, ProfileImage, TextInput, getNameOf } from "../components/Components";
+import { FirebaseContext } from '../firebase/firebase';
+import { removeUnreadMessage } from '../lib/userReducer';
 
-import chatStyles from '../styles/chatDesign'
-import { config } from "../firebase/authConfig";
-import { SaleListItem } from "./sale/SaleListItem";
 import axios from "axios";
 import GoBack from "../components/Goback";
+import { config } from "../firebase/authConfig";
+import chatStyles from '../styles/chatDesign';
+import { SaleListItem } from "./sale/SaleListItem";
 
 const color = '#ffde9e'
 
@@ -29,7 +29,6 @@ const Chat = ({route, navigation, propUid, global}) => {
     const [scrollView, setScrollView] = useState(null);
     const input = useRef();
     const dispatch = useDispatch()
-
 
     useEffect(() => {
         if (propUid) {
@@ -57,7 +56,8 @@ const Chat = ({route, navigation, propUid, global}) => {
             set(newMessageRef2, {
                 text: message,
                 uid: uid,
-                time: Date.now()
+                time: Date.now(),
+                name: 
             })
             set(child(messageListRef2,'read'),null).then(e=>{
                 console.log('set!!!!');
@@ -118,7 +118,7 @@ const Chat = ({route, navigation, propUid, global}) => {
                 
                 const messageListRef = 
                 global ? ref(database, `globalChat`)
-                : query(ref(database, `users/${uid}/messages/${uid2}`),limitToLast(10));
+                : query(ref(database, `users/${uid}/messages/${uid2}`),limitToLast(40),orderByValue('time'));
                 off(messageListRef,'child_added')
                 setMessages([])
                 set(child(messageListRef,'read'),true)
@@ -134,20 +134,23 @@ const Chat = ({route, navigation, propUid, global}) => {
     }, [database,uid2,navigation]);
     
     if (!uid2) return (
-        <View style={{flex:1,backgroundColor:'white',justifyContent:'center',alignItems:'center'}}>
-            <MyText>Válassz ki valakit, akivel beszélnél.</MyText>
+        <View style={{flex:1,backgroundColor:'#FDEEA2'}}>
+            <View style={{flex:1,backgroundColor:'#fce48f',margin:10,borderRadius:30,justifyContent:'center',alignItems:'center'}}>
+                <Image source={require('../assets/img-prof.jpg')} style={{height:200,width:200,borderRadius:20,marginBottom:20}}/>
+                <MyText size={20}>Válassz ki valakit, akivel beszélnél.</MyText>
+            </View>
         </View>
     )
 
     return (
     <View style={{flex:1}}>
-        <GoBack />
+        <GoBack style={{backgroundColor:'#FDEEA2'}}/>
         <View style={{flex:1}}>
             {!global && header}
             <ScrollView 
             snapToEnd
             ref={(scroll) => {setScrollView(scroll)}}
-            style={{flex:1,backgroundColor:'#fff'}} contentContainerStyle={styles.messages}>
+            style={{flex:1,backgroundColor:global?'transparent':'#fff'}} contentContainerStyle={styles.messages}>
                 <View style={{flex:1}}>
                     {!loading ?
                     messages.map((e,i,arr)=> {
@@ -190,27 +193,44 @@ const AutoMessage = (props) => {
     const {text,time,uid,isMine,saleId} = props
     const [saleData, setsaleData] = useState(null);
     const [name, setName] = useState('');
+    const [toLoad, setToLoad] = useState(false);
     useEffect(() => {
-        load();
+        if (toLoad)
+            load();
+    },[toLoad]);
+    useEffect(() => {
+        return (() => {
+            
+        })
     }, []);
     const load = async () => {
         setName(await getNameOf(uid))
         axios.get('sale/'+text,config()).then(res=>{
             console.log(res);
             setsaleData(res.data)
+        }).catch(err=>{
+            console.log(err);
+            
         })
     }
-    if (saleData)
     return (
         <View style={styles.autoMessageContainer}>
+        {!toLoad && <>
+            <MyText>Foglalás!</MyText>
+            <NewButton onPress={()=>setToLoad(true)}
+            title="Adatok betöltése" />
+        </>}
+        { toLoad && <>{saleData ? <>
             <MyText style={[styles.center]}>
             {isMine ? 'Lefoglaltad a '+saleData.title+'et!' :
             name+' lefoglalta a '+saleData.title+'et!' }
             </MyText>
             
             {saleData && <SaleListItem data={saleData} readOnly/>}
-            
-        </View>
+            </>
+            : <ActivityIndicator size='large' color='rgba(255,175,0,0.7)' />}
+            </>
+        }</View>
     )
 }
 
@@ -239,6 +259,7 @@ const styles = StyleSheet.create({
         paddingHorizontal:10,
         color: 'white',
         maxWidth: '80%',
+        minWidth: '50%',
         fontSize:20,
         borderRadius:8,
         borderWidth:1,

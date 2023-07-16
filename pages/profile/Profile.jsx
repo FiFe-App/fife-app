@@ -6,31 +6,39 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
 import styles from '../../styles/profileDesign';
+import Icon from 'react-native-vector-icons/Ionicons'
 
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { FirebaseContext } from '../../firebase/firebase';
 
 import axios from 'axios';
 import { useWindowDimensions } from 'react-native';
 import { config } from '../../firebase/authConfig';
 import { SaleListItem } from '../sale/SaleListItem';
-import { Map } from './Edit';
+import { Map } from './EditOld';
 import GoBack from '../../components/Goback';
 import { useHover } from 'react-native-web-hooks';
+import HelpModal from '../../components/help/Modal';
+import BasePage from "../../components/BasePage"
+import { getAuth } from 'firebase/auth';
+import { setTempData } from '../../lib/userReducer';
 
 const bgColor = '#FDEEA2'//'#ffd581dd'
 
 const Profile = ({ navigation, route }) => {
-  const {database, app, auth} = useContext(FirebaseContext);
+  const {database, api} = useContext(FirebaseContext);
+  const dispatch = useDispatch()
   const { width } = useWindowDimensions();
+  const small = width <= 900;
   const myuid = useSelector((state) => state.user.uid)
+  const tempData = useSelector((state) => state.user.tempData)
   const uid = route?.params?.uid || myuid 
+  const myProfile = uid === myuid;
   
-  const [profile, setProfile] = React.useState(null);
+  const [profile, setProfile] = React.useState(myProfile ? tempData : null);
   const [saleList, setSaleList] = React.useState([]);
   const [followButtonState, setFollowButtonState] = React.useState(true);
   const [followers, setFollowers] = React.useState([]);
-  const [myProfile, setMyProfile] = React.useState(true);
   const [mapOptions,setMapOptions] = React.useState({
     center: {
       lat: 10,
@@ -38,6 +46,25 @@ const Profile = ({ navigation, route }) => {
     },
     zoom: 4
   })
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportData, setReportData] = useState({
+    uid:uid,
+    message:null
+  });
+
+  console.log('temp',tempData);
+
+  const report = (data) => {
+    console.log(reportData);
+    console.log(getAuth())
+    push(ref(database,`report/${myuid}`),reportData).then(()=>{
+      setReportOpen(false);
+      setReportData({
+        uid:uid,
+        message:''
+      })
+    })
+  }
 
   const follow = async () => {
     const dbRef = ref(database, 'users/' + uid + "/likes/" + myuid);
@@ -45,32 +72,32 @@ const Profile = ({ navigation, route }) => {
     setFollowButtonState(!followButtonState);
   }
 
-  useEffect(() => {
-    console.log('FFFF',followers);
-  }, [followers]);
-  
   useFocusEffect(
     useCallback(() => {
-      console.log('loaded');
       if (database) {
-        setMyProfile(myuid == uid);
         //hulyr vagy 
-        const dbRef = ref(database);
-        get(child(dbRef, `users/${uid}/data`)).then((snapshot) => {
-          if (snapshot.exists()) {
-            var data = snapshot.val();
+        if (!profile)
+        axios.get(`users/all/${uid}`,config()).then((res) => {
+          console.log('getDAta',res);
+          if (res.data) {
+            if (myuid == uid)
+              dispatch(setTempData(res.data))
+            
+            var data = res.data;
             setProfile(data);
-            console.log(data);
           } else {
-            navigation.push('profil-szerkesztese')
+            if (myuid == uid)
+              navigation.push('profil-szerkesztese')
           }
         }).catch((error) => {
-          console.error(error);
+          console.error('getDataError',error);
+          if (myuid == uid)
+              navigation.push('profil-szerkesztese')
+          setProfile({})
         });
         const likeRef = ref(database,'users/' + uid + "/likes");
         onValue(likeRef, (snapshot) => {
           const all = snapshot.val() || [];
-          console.log('all',Object.keys(all));
           setFollowers([])
           Object.keys(all).map(async f=>{
             const name = await getNameOf(f);
@@ -84,23 +111,32 @@ const Profile = ({ navigation, route }) => {
         category: -1
       }}).then(res=>{
         setSaleList(res.data)
-      }).catch(err=>{console.log('sale',err)})
+      }).catch(err=>{
+        if (err?.response?.data == 'Token expired') {
+          console.log('Token expired');
+          api.logout();
+          return
+        }
+      })
     }, [uid])
   );
   
+console.log(profile);
+
   if (profile)
   return(
-    <ScrollView style={{paddingRight:25,paddingBottom:25,backgroundColor:bgColor,flex:1}}>
+    <>
+    <BasePage >
       <Auto style={{flex:'none'}}>
         <GoBack style={{marginLeft:20}}/>
-        <View style={[localStyles.container,{width:150,paddingLeft:0}]}>
+        <View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:small?5:25,alignSelf:'center'}]}>
           <ProfileImage uid={uid} size={150} style={[{paddingHorizontal:0,background:'none',borderRadius:8}]}/>
         </View>
-        <View style={{flex:width <= 900 ? 'none' : 2,zIndex:10,elevation: 10}}>
-          <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.name}</MyText></View>
+        <View style={{flex:width <= 900 ? 'none' : 1,zIndex:10,elevation: 10}}>
+          <View style={[localStyles.fcontainer,{marginLeft:small?5:25}]}><MyText style={localStyles.text}>{profile.name} <MyText light>{profile?.title}</MyText></MyText></View>
           <Row style={{flex:width <= 900 ? 'none' : 1}}>
-            <View style={localStyles.fcontainer}><MyText style={localStyles.text}>{profile.username}</MyText></View>
-            <Popup style={localStyles.fcontainer}
+            {profile.username && <View style={[localStyles.fcontainer,{marginLeft:small?5:25}]}><MyText style={localStyles.text}>{profile.username}</MyText></View>}
+            <Popup style={[localStyles.fcontainer,{marginLeft:small?5:25}]}
                 popup={<ScrollView style={styles.popup} contentContainerStyle={[{backgroundColor:'white'}]}>
                   {followers.map((f,i)=><Row key={i} style={{margin:5,alignItems:'center'}}>
                       <ProfileImage uid={f.uid} size={40} style={[{marginRight:5,borderRadius:8}]}/>
@@ -113,22 +149,29 @@ const Profile = ({ navigation, route }) => {
             </Popup>
           </Row>
         </View>
-        { !myProfile && <Col>
-            <NewButton onPress={() => navigation.push('uzenetek',{selected:uid})} 
+        { !myProfile && <Auto breakPoint={500}>
+        <Col style={{flex:small?3:1}}>
+            <NewButton onPress={() => navigation.push('uzenetek',{uid})} 
               title="Üzenetküldés" color='#ffde7e'
-               style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center' ,shadowOpacity:0.5}]}
+               style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center' ,shadowOpacity:0.5,marginLeft:small?5:25}]}
             />
             <NewButton onPress={follow} 
-              title={profile.name + (followButtonState ? ' már a pajtásom!' : ' még nem a pajtásom')} color='#ffde7e'
-              style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5}]}
+              title={(followButtonState ? 'Már a pajtásom ' : 'Legyen a pajtásom ')+profile.name} color={!followButtonState ? '#ffde7e' : '#fff6dc'}
+              style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,marginLeft:small?5:25}]}
             />
-        </Col>}
+        </Col>
+        
+        <NewButton onPress={()=>setReportOpen(true)} 
+              title={<Icon name='alert-circle-outline' size={50} />} color={'#ffde7e'}
+              style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'80%',maxWidth:small?'none':100,marginLeft:small?5:25}]}
+            />
+        </Auto>}
             
 
         {myProfile && 
           <NewButton onPress={() => navigation.push('profil-szerkesztese')}
           title="Módosítás" textStyle={{fontSize:30}}
-          style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none'}]}
+          style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginLeft:small?5:25}]}
               />
           
           }
@@ -136,9 +179,6 @@ const Profile = ({ navigation, route }) => {
       </Auto>
       <Auto style={{flex:1,zIndex:-1,elevation: -1}}>
         <View style={{flex:width <= 900 ? 'none' : 1}}>
-          <Section title="Rólam">
-            <MyText style={localStyles.subText}>{profile.bio}</MyText>
-          </Section>
           
           <Section title="Helyzetem" flex={width <= 900 ? 'none' : 1}>
             {profile.location ? (
@@ -153,9 +193,9 @@ const Profile = ({ navigation, route }) => {
         <View style={{flex:(width <= 900 ? 'none' : 2)}}>
 
           <Section title="Bizniszeim" flex={1}>
-              <View style={{marginLeft:20}}>
-                {profile.profession && profile.profession.map((prof,i) =>
-                  <Buziness prof={prof} uid={uid} index={i} />
+              <View style={{marginLeft:small?5:20}}>
+                {profile.page?.buziness && profile.page.buziness.map((prof,i) =>
+                  <Buziness prof={prof} uid={uid} index={i} key={i+'prof'} />
                 )}
               </View>
           </Section>
@@ -164,19 +204,34 @@ const Profile = ({ navigation, route }) => {
           <Section title="Cserebere" flex={width <= 900 ? 'none' : 2}>
             <ScrollView style={[styles.label,{marginLeft:5}]}>
                 {saleList.map(el=>{
-                  return <SaleListItem key={el.id} data={el}/>
+                  return <SaleListItem key={el._id} data={el}/>
                 })}
             </ScrollView>
           </Section>}
       </Auto>
-    </ScrollView>
+    </BasePage>
+      <HelpModal 
+        title="Valami nem okés?"
+        text={`Ha ${profile.name} nem az irányelveinknek megfelelően viselkedett veled, vagy a profilja kifogásolható, fejtsd ki, hogy mi történt vagy mi nem felel meg a profiljában. Majd a JELENTÉS gombra kattintva elküldheted nekünk a panaszod.`}
+        actions={[
+          {title:'mégse',onPress:()=>setReportOpen(false)},
+          {title:'jelent',onPress:report,color:'#ff462b'}]}
+        open={reportOpen}
+        setOpen={setReportOpen}
+        inputs={[
+          {type:'text',attribute:'message',label:null,data:reportData,setData:setReportData,style:{backgroundColor:'#fbf1e0'}}
+        ]}
+      /></>
   )
-  else return (<View style={{backgroundColor:bgColor,flex:1}}><Loading color={"#f5d142"}/></View>)
+  else return (<View style={{backgroundColor:bgColor,flex:1}}><Loading color={"#fff"}/></View>)
 }
 
   function Section(props){
+    const { width } = useWindowDimensions();
+    const small = width <= 900;
+    if (props?.children)
     return(
-      <View style={[props.style,localStyles.container,{flex:props?.flex,padding:20}]}>
+      <View style={[props.style,localStyles.container,{flex:props?.flex,padding:small?5:20,marginLeft:small?5:25}]}>
         <View style={[{height:50}]}>
           <MyText style={localStyles.sectionText}>{props.title}</MyText>
         </View>
@@ -188,6 +243,8 @@ const Profile = ({ navigation, route }) => {
   }
 
   const Buziness = ({prof,uid,index}) => {
+    const { width } = useWindowDimensions();
+    const small = width < 500;
     const Href = useRef(null);
     const db = getDatabase()
     const myuid = useSelector((state) => state.user.uid)
@@ -198,31 +255,34 @@ const Profile = ({ navigation, route }) => {
     const isHovered = useHover(ref);
     
     const handlePress=()=>{
-      console.log("users/"+uid+"/data/profession/"+index+"/rate");
       set(ref(db,"users/"+uid+"/data/profession/"+index+"/rate/"+myuid),iRated ? null : true).then(res=>{
-        console.log(res);
         setIRated(!iRated);
       })
     }
     return (
-      <View 
+      <><Auto 
+      breakPoint={500}
       style={[
         styles.buziness,
-        {backgroundColor:`hsl(52, 100%, ${100-(allRates*10)}%)`},
+        {backgroundColor:`hsl(52, 100%, ${100-(allRates*10)}%)`,
+        },
         isHovered && {backgroundColor:'#faffcc'}
       ]} ref={Href}>
-
-        <Popup style={{alignItems:'center',justifyContent:"center",margin:10}} 
-          popup={<View style={[styles.popup,{marginTop:0,marginRight:50}]}><MyText>{allRates} ember ajánlja</MyText></View>}>
-          <MyText title>{allRates}</MyText>
-        </Popup>
-        <View style={{flex:1}}>
+        <View style={{flex:small?'none':3,order:small?1:0}} key={index+'prof_title'}>
           <MyText title>{prof.name}</MyText>
           <MyText>{prof.description}</MyText>
         </View>
-        {uid != myuid && 
-        <NewButton title={iRated ? "Ajánlottam" :"Ajánlom"} style={{padding:10,borderRadius:8}} onPress={handlePress}/>}
-    </View>
+        <Row style={{justifyContent:'center'}} key={index+'prof_number'}
+        breakPoint={500}>
+          <Popup style={{alignItems:'center',justifyContent:"center",margin:10}} 
+            popup={<View style={[styles.popup,{marginTop:0,marginRight:small?5:50}]}><MyText>{allRates} ember ajánlja</MyText></View>}>
+            <MyText title>{allRates}</MyText>
+          </Popup>
+          {uid != myuid && 
+          <NewButton title={iRated ? "Ajánlottam" :"Ajánlom"} style={{padding:10,borderRadius:8,alignSelf:'center'}} onPress={handlePress}/>}
+        </Row>
+    </Auto>
+        <View style={{width:'100%',height:2,backgroundColor:'#dddddd'}} /></>
     )
   }
 

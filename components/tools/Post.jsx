@@ -6,13 +6,14 @@ import { randomColor, shadeColor } from "../../lib/functions";
 import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 
-const Comments = ({style,path,placeholder}) => {
+const PostForm = ({style,path,placeholder}) => {
     const [list, setList] = useState([]);
     const navigation = useNavigation();
     
     const uid = useSelector((state) => state.user.uid)
     const name = useSelector((state) => state.user.name);
     const [author, setAuthor] = useState(name);
+    const [category, setCategory] = useState('');
     const [text, setText] = useState('');
     const [loading, setLoading] = useState(false);
     const db = getDatabase()
@@ -51,31 +52,17 @@ const Comments = ({style,path,placeholder}) => {
             <Row style={{flex:1}}>
                 {loading && <Loading />}
                 <View style={{flexGrow:1}}>
+                    <MyText>{(placeholder && name) ? placeholder : "Poszt írása mint "+name}</MyText>
                     {!name && <TextInput style={{margin:5,padding:10,backgroundColor:'white'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
-                    <TextInput style={{flex:1,margin:5,marginBottom:0,padding:10,backgroundColor:'white'}} multiline numberOfLines={5} value={text} onChangeText={setText} 
-                    placeholder={(placeholder && name) ? placeholder : "Komment írása mint "+name}/>
+                    <TextInput style={{flex:1,margin:5,marginBottom:0,padding:10,backgroundColor:'white'}} multiline numberOfLines={1} value={category} onChangeText={setCategory} 
+                    placeholder={"Kategória: Cipő"}/>
+                    <TextInput style={{flex:4,margin:5,marginBottom:0,padding:10,backgroundColor:'white'}} multiline numberOfLines={5} value={text} onChangeText={setText} 
+                    placeholder={'Keresek valakit aki megjavítja a cipőmet!'}/>
                 </View>
-                <NewButton title="Küldés" onPress={handleSend} disabled={!author || !text} style={{height:'100%',margin:5,minWidth:100}}/>
+                <NewButton title="Posztolás" onPress={handleSend} disabled={!author || !text} style={{height:'100%',margin:5,minWidth:100}}/>
             </Row>
-            <MyText size={20} style={{marginLeft:10,marginTop:10}}>Kommentek:</MyText>
-            <View style={{flexWrap:'wrap',flexDirection:'row',margin:10,marginRight:15}}>
-                {list.map((comment,ind)=>{
 
-                    return (
-                        <View key={"comment"+ind} style={{background:'white',padding:5,margin:5,maxWidth:'100%'}}>
-                            <Pressable onPress={()=>{
-                                if (comment?.uid)
-                                    navigation.push('profil',{uid:comment.uid})
-                                }}>
-                                <MyText><B>{comment.author}</B></MyText>
-                            </Pressable>
-                            <MyText style={{}}>{comment.text}</MyText>
-                        </View>
-                    )
-                })}
-            </View>
-            {!list?.length && <MyText>Még nem érkezett komment</MyText>}
         </View>)
 }
 
-export default Comments;
+export default PostForm;

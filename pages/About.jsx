@@ -11,7 +11,7 @@ import { getDatabase, push, ref, set } from 'firebase/database';
 import AuthoredImage from '../components/tools/AuthoredImage';
 
 const About = ({navigation}) => {
-    const small = useWindowDimensions().width < 900;
+    const small = useWindowDimensions().width <= 900;
     const db = getDatabase()
     const [email, setEmail] = useState('');
     const [sent, setSent] = useState(false);
@@ -105,7 +105,7 @@ const About = ({navigation}) => {
             </View>
             <View style={{}}>
                 <MyText title>Kérlek mondd el a véleményed! <Image source={require('../assets/logo.png')} resizeMode="contain" style={{height:30,width:30}}/></MyText>    
-                <Comments style={{marginLeft:small?0:50}}/>
+                <Comments style={{marginLeft:small?0:50}} path="aboutComments"/>
             </View>
         </View>
     </BasePage>)

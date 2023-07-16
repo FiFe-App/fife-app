@@ -1,22 +1,25 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { off, onChildAdded, onValue, orderByChild, query, ref } from "firebase/database";
+import { getDatabase, off, onChildAdded, onValue, orderByChild, query, ref } from "firebase/database";
 import { useCallback, useContext, useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, TouchableOpacity, View,useWindowDimensions } from 'react-native';
 import { useSelector } from 'react-redux';
-import { MyText, ProfileImage, getNameOf } from '../components/Components';
+import { MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from '../components/Components';
 import { FirebaseContext } from '../firebase/firebase';
-import { useWindowDimensions } from "../lib/hooks/window";
 import { elapsedTime } from "../lib/textService/textService";
 import { styles } from "../styles/styles";
 import Chat from "./Chat";
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Messages = ({route,navigation}) => {
     const { width } = useWindowDimensions();
     
     const [list, setList] = useState([]);
-    const {database, app, auth} = useContext(FirebaseContext);
+    const [filteredList, setFilteredList] = useState([]);
+    const [search, setSearch] = useState('');
+    const { app, auth} = useContext(FirebaseContext);
+    const database = getDatabase()
     const uid = useSelector((state) => state.user.uid)
-    const [selected, setSelected] = useState(route?.params?.selected);
+    const [selected, setSelected] = useState(route?.params?.uid);
     const msgQuery = query(ref(database,`users/${uid}/messages`),orderByChild('last/date'))
     const unreadMessages = useSelector((state) => state.user.unreadMessage)
 
@@ -38,7 +41,7 @@ const Messages = ({route,navigation}) => {
                             getRandom()
                             return;
                         } else 
-                        navigation.push('uzenetek',{selected:childSnapshot.key});
+                        navigation.push('uzenetek',{uid:childSnapshot.key});
                     }
                 })
             }
@@ -46,7 +49,13 @@ const Messages = ({route,navigation}) => {
     }
 
     useEffect(() => {
-        setList(list.sort((a, b) => {
+        if (list.length)
+        setFilteredList(list
+            .filter(el=>{
+                console.log(el);
+                return search=='' || el.name?.toLowerCase().includes(search.toLowerCase())
+            })
+            .sort((a, b) => {
             const nameA = a.last.date // ignore upper and lowercase
             const nameB = b.last.date; // ignore upper and lowercase
             if (nameA < nameB) {
@@ -59,7 +68,11 @@ const Messages = ({route,navigation}) => {
             // names must be equal
             return 0;
           }));
-    }, [list]);
+    }, [list,search]);
+
+    useEffect(() => {
+        console.log(filteredList);
+    }, [filteredList]);
 
 
     useFocusEffect(
@@ -73,7 +86,6 @@ const Messages = ({route,navigation}) => {
                     const childKey = childSnapshot.key;
                     const read = !unreadMessages?.includes(childKey)
                     const name = await getNameOf(childKey);
-                    //console.log(name);
                     if (last)
                         setList(old=>[{
                             uid:childKey,
@@ -91,24 +103,36 @@ const Messages = ({route,navigation}) => {
       );
 
       useEffect(() => {
-        if (route?.params?.selected)
+        if (selected)
         if (width <= 900) {
-            navigation.push("beszelgetes", {uid:route.params.selected});
+            navigation.push("beszelgetes", {uid:selected});
         }
         else
         navigation.setParams({
-                selected: route.params.selected,
+            uid: selected,
         });
-      }, [selected,width]);
+      }, [selected]);
     return (
     <View style={{flex:1, flexDirection:'row',backgroundColor:'#FDEEA2'}}>
-        <ScrollView style={{flex:1}} contentContainerStyle={{paddingTop:5}}>
-            {!!list.length && list.map((e,i)=>{
-                return (
-                    <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected}/>
-                )
-            })}
-        </ScrollView>
+        <View style={{flex:1}}>
+            <Row style={{padding:10}}>
+                <TextInput 
+                placeholder="Keresés a beszélgetések közt"
+                style={{flexGrow:1,height:50,padding:10,margin:5,backgroundColor:'#fdf7d8'}} 
+                onChangeText={setSearch} value={search} />
+                <NewButton title={<Icon name="search" size={30} style={{padding:10}} />} />
+            </Row>
+            <ScrollView style={{flex:1}} contentContainerStyle={{paddingTop:5}}>
+                {!!filteredList.length && filteredList.map((e,i)=>{
+                    console.log(i)
+                    return (
+                        <>
+                            <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected}/>
+                        </>
+                    )
+                })}
+            </ScrollView>
+        </View>
         {(width > 900) &&
             <View style={{flex:2}}>
                 <Chat propUid={selected}/>

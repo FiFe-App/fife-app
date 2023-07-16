@@ -2,17 +2,19 @@
 import { AntDesign } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Switch, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Auto, MyText, NewButton, Row, TextInput } from '../../components/Components';
+import { Auto, MyText, NewButton, Openable, Row, TextInput } from '../../components/Components';
 
 
 import * as Location from 'expo-location';
 import { push, ref, set } from 'firebase/database';
 import { useWindowDimensions } from 'react-native';
 import { FirebaseContext } from '../../firebase/firebase';
-import { getMaps, LocationData } from "./mapService";
+import { getMaps, getPlaces, LocationData } from "./mapService";
 import { MapElement } from '../../components/MapElement';
+import axios from 'axios';
+import { config } from '../../firebase/authConfig';
 
 
 const defaultFilterList = [
@@ -31,17 +33,19 @@ const Maps = ({navigation, route}) => {
 
     const [map,setMap] = useState(null)
     const [categoryList, setCategoryList] = useState(null);
+    const [filteredCategoryList,setFilteredCategoryList] = useState([])
+
+    const [placeList, setPlaceList] = useState([]);
     const [markers, setMarkers] = useState([]);
-    const [maplist,setMapList] = useState([])
+
     const [search, setSearch] = React.useState('');
-    const [filterList,setFilterList] = useState(null);
     const [settings, setSettings] = useState({secure:true});
+    const [filter, setFilter] = React.useState(defaultFilterList[0]);
+
     const [greenIcon, setGreenIcon] = useState(null);
     const [locationIcon, setLocationIcon] = useState(null);
-    const [filter, setFilter] = React.useState(defaultFilterList[0]);
     const [selected, setSelected] = React.useState(null);
     const [ids, setIds] = useState({mapId:null,locationId:null});
-    const [location, setLocation] = useState(null);
 
     const [newPlace, setNewPlace] = useState(null);
     const [newMarker, setNewMarker] = useState(null);
@@ -64,6 +68,7 @@ const Maps = ({navigation, route}) => {
     //MAP LOAD
     useFocusEffect(
       React.useCallback(() => {
+        if (Platform.OS != 'web') return
         console.log('maps loading');
         let link = document.getElementById("link")
         let script = document.getElementById("script")
@@ -171,6 +176,7 @@ const Maps = ({navigation, route}) => {
 
         if (!newMarker) {
           const newM = L.marker(map.getCenter())
+          console.log('on move');
           map.on('move',()=>{
             newM.setLatLng(map.getCenter())
           })
@@ -180,13 +186,12 @@ const Maps = ({navigation, route}) => {
         if (categoryList && selectedMap.name) {
           markers.forEach((m) =>map.removeLayer(m))
          
-          console.log('add markers');
-          categoryList.find((e,mapId)=>
-          (e.name==selectedMap.name))
-          .locations.forEach((location,index) => {
-            if (!settings.secure || location?.likes != null) {
+          console.log('add markers',selectedMap);
+          if (placeList?.length)
+          placeList.forEach((location,index) => {
+            if (true) {
               const marker = L.marker([location.lat, location.lng],selected==location ? {icon: greenIcon } : {}).addTo(map)
-              marker.bindPopup("<b>"+location.name+"</b><br>"+location.description)
+              marker.bindPopup("<b>"+location.title+"</b><br>"+location.description)
               marker.on('click',() => {
                 setSelected(location)
                 setIds({...ids,locationId:location.key})
@@ -197,7 +202,10 @@ const Maps = ({navigation, route}) => {
           });
         }
       }
-    },[selectedMap,selected,settings,newPlace])
+      return ()=> {
+        map?.off('move')
+      }
+    },[placeList])
 
     // GENERATE MAPLIST
     useEffect(()=>{
@@ -213,7 +221,7 @@ const Maps = ({navigation, route}) => {
             return true;
           }
         })
-        setMapList(
+        setFilteredCategoryList(
           cl
         )
 
@@ -229,13 +237,6 @@ const Maps = ({navigation, route}) => {
     },[selected])
 
     useEffect(() => {
-      if (selected) {
-        //setSelected(null)
-        //setIds({...ids,locationId:null})
-      }
-    }, [selectedMap]);
-
-    useEffect(() => {
       console.log('mapdata',categoryList);
       if (categoryList) {
         const {selected = null, selectedMap} = route?.params || {};
@@ -248,45 +249,65 @@ const Maps = ({navigation, route}) => {
     }, [categoryList]);
     //#endregion
 
+    const menu = <>
+    <ScrollView>
+      <TextInput
+        style={localStyles.searchInput}
+        onChangeText={setSearch}
+        editable
+        placeholder="Keress helyekre, kategóriákra"
+      />
+
+      <View style={{flexDirection:'row',marginHorizontal:30,marginVertical:5}}>
+        <MyText style={{flex:1}}>Csak ellenőrzött helyek mutatása</MyText>
+        <Switch
+            trackColor={{ false: '#767577', true: '#3e3e3e' }}
+            thumbColor={settings?.secure ? '#f5dd4b' : '#f4f3f4'}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={(e)=>{setSettings({...settings, secure: e})}}
+            value={settings?.secure}
+            style={{alignSelf:'flex-end'}}
+        />
+      </View>
+      <ScrollView style={{}}>
+        {filteredCategoryList.map((map,index)=>{
+          return <MapElement 
+          key={index+'map'}
+          placeList={placeList} setPlaceList={setPlaceList}
+          map={map} selectedMap={selectedMap} 
+          setSelectedMap={setSelectedMap}
+          ids={ids} setIds={setIds} 
+          categoryList={categoryList}
+          index={index} searchL={search} selected={selected}
+            setSelected={setSelected}
+          />}
+
+        ) || <ActivityIndicator size="large" />}
+      </ScrollView>  
+    </ScrollView>
+    {width > 900 && (selected &&        
+      <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected}  mapId={selectedMap.id} setOpen={setOpen}/>
+    )}      
+    </>
+
     return (
       <Auto style={{flex:1,backgroundColor:'#FDEEA2'}}>
-        {open && <View style={[localStyles.side,{flex: width <= 900 ? 2 : 1,backgroundColor:'#FDEEA2'}]}>
-          <ScrollView>
-            <TextInput
-              style={localStyles.searchInput}
-              onChangeText={setSearch}
-              editable
-              placeholder="Keress helyekre, kategóriákra"
-            />
-
-            <View style={{flexDirection:'row',marginHorizontal:30,marginVertical:5}}>
-              <MyText style={{flex:1}}>Csak ellenőrzött helyek mutatása</MyText>
-              <Switch
-                  trackColor={{ false: '#767577', true: '#3e3e3e' }}
-                  thumbColor={settings?.secure ? '#f5dd4b' : '#f4f3f4'}
-                  ios_backgroundColor="#3e3e3e"
-                  onValueChange={(e)=>{setSettings({...settings, secure: e})}}
-                  value={settings?.secure}
-                  style={{alignSelf:'flex-end'}}
-              />
-            </View>
-            <ScrollView style={{}}>
-              {maplist.map((map,index)=>{return <MapElement map={map} selectedMap={selectedMap} setSelectedMap={setSelectedMap} setIds={setIds} index={index} searchL={search} selected={selected}/>}
-              ) || <ActivityIndicator size="large" />}
-            </ScrollView>  
-            </ScrollView>
-        {width > 900 && (selected &&        
-            <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected}  mapId={selectedMap.id}/>
-            )}            
-        </View>}
+        {width <= 900 ?
+        <Openable open={open} style={[localStyles.side,{flex: width <= 900 ? 2 : 1,minWidth:300,backgroundColor:'#FDEEA2'}]}>
+          {menu}
+        </Openable>: <View
+        style={[localStyles.side,{flex: width <= 900 ? 2 : 1,minWidth:300,backgroundColor:'#FDEEA2'}]}
+        >{menu}</View>
+        }
           {width <= 900 &&
           <Pressable style={{borderBottomWidth:2,backgroundColor:'#FFC372',padding:5,alignItems:'center',justifyContent:'center'}}
             onPress={()=>setOpen(!open)}>
             <AntDesign name={!open ? 'caretdown' : 'caretup'} size={20}/>
           </Pressable>}
-        <div id="map" style={localStyles.map}>
-        </div>
-        <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>
+        <View style={{flex:3,backgroundColor:'#FDEEA2'}}>
+          <div id="map" style={localStyles.map} />
+        </View>
+        {!selected && <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>}
         {width <= 900 && (selected &&
             <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected} mapId={selectedMap.id}/>
             )}
@@ -296,12 +317,11 @@ const Maps = ({navigation, route}) => {
 
 const NewPlace = ({setNewPlace,newPlace,selectedMap}) => {
   const [open, setOpen] = useState(false);
+  const { api } = useContext(FirebaseContext);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [statusText, setStatusText] = useState('Feltöltöm!');
-
-  const {database} = useContext(FirebaseContext);
 
   useEffect(() => {
       setNewPlace(open)
@@ -316,14 +336,12 @@ const NewPlace = ({setNewPlace,newPlace,selectedMap}) => {
     if (title && description && selectedMap.name && newPlace) {
       setLoading(true);
       setStatusText('Kérlek várj...')
-      const mapListRef = ref(database, 'maps/'+selectedMap.id+'/locations');
-      const newLocationRef = push(mapListRef);
-      set(newLocationRef, {
+      axios.post('places/'+selectedMap.id,{
         description,
-        name: title,
+        title,
         lat: newPlace._latlng.lat,
         lng: newPlace._latlng.lng
-      }).then(e=> {
+      },config()).then(e=> {
         setTitle('');
         setDescription('')
         setLoading(false);
@@ -332,7 +350,7 @@ const NewPlace = ({setNewPlace,newPlace,selectedMap}) => {
     }
   }
 
-  if (!open) return <NewButton title="Tudok egy új helyet!" onPress={()=>setOpen(true)} style={{borderWidth:0,position:'absolute',right:5,bottom:5,padding:10}}/>
+  if (!open) return <NewButton title="Tudok egy új helyet!" floating onPress={()=>setOpen(true)} style={{borderWidth:0,position:'absolute',right:5,bottom:5,padding:10,zIndex:5}}/>
   else return (
     <View style={{margin:10}}>
       <Row style={{flex:1,padding:10}}>
@@ -341,7 +359,7 @@ const NewPlace = ({setNewPlace,newPlace,selectedMap}) => {
       </Row>
       <TextInput style={localStyles.input} placeholder='Hely neve' onChangeText={setTitle} value={title} disabled={loading}/>
       <TextInput style={localStyles.input} placeholder='A helyről' onChangeText={setDescription} value={description} disabled={loading}/>
-      <MyText style={localStyles.input}>{selectedMap ? "Kategória: "+selectedMap?.name : "Válassz ki egy kategóriát fent"}</MyText>
+      <MyText style={localStyles.input}>{selectedMap ? "Kategória: "+(selectedMap.name||'Válassz egyet') : "Válassz ki egy kategóriát fent"}</MyText>
       <NewButton title={statusText} onPress={send} disabled={!(title && description && selectedMap) || loading}/>
     </View>
   )
@@ -392,7 +410,8 @@ const localStyles = {
 
     },
     map: {
-      flex:3,
+      flex:1,
+      borderRadius:16,
       zIndex:-10
     },
     side: {

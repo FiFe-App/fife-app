@@ -9,37 +9,18 @@ import { Pressable, StyleSheet, TouchableOpacity, ScrollView } from 'react-nativ
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import { TextFor } from "../../lib/textService/textService";
-import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { useWindowDimensions } from 'react-native'
 import { AloneModal } from '../../components/Modal';
 import axios from 'axios';
 import { config } from '../../firebase/authConfig';
+import UrlText from '../../components/tools/UrlText';
+import openMap from 'react-native-open-maps';
+
 
 
 export const getMaps = async (db) => {
     try {
       
-      //const data = await axios.get('/places',config())
-      console.log('getMaps',{data:[
-        "Adományboltok",
-        "Turik",
-        "Nyilvános vécék",
-        "Ivóvíz lelőhelyek",
-        "FiFe kocsmák",
-        "Csomagolásmentes boltok",
-        "Piacok",
-        "Bulihelyek",
-        "Ruhaleadó helyek",
-        "Szelektív gyűjtők",
-        "Komposztok",
-        "Közösségi helyek, kertek",
-        "Fotóboltok",
-        "Biszbasz boltok, régiség boltok",
-        "Galériák",
-        "Művészmozik",
-        "Kifőzdék",
-        "Biztonságos biciklitárolók"
-      ]});
       return [
         "Adományboltok",
         "Turik",
@@ -58,7 +39,8 @@ export const getMaps = async (db) => {
         "Galériák",
         "Művészmozik",
         "Kifőzdék",
-        "Biztonságos biciklitárolók"
+        "Biztonságos biciklitárolók",
+        "Jó szpotok"
       ]
     } catch (error) {
       console.log(error);
@@ -84,6 +66,7 @@ export const getMaps = async (db) => {
 }
 
 export const getPlaces = async (id) => {
+
   try {
     const data = await axios.get('/places/'+id,config())
     console.log('getPlaces',data);
@@ -94,29 +77,23 @@ export const getPlaces = async (id) => {
   }
 }
 
-export const getHearts = async (db,uid,mapId,locationId) => {
-    if (mapId && locationId ) {
-      const obj = await get(ref(db,'maps/' + mapId + "/locations/" + locationId + "/likes/"))
-      console.log('maps/' + mapId + "/locations/" + locationId + "/likes/",obj);
-      if (!obj.val()) return null
-      const list = Object.keys(obj.val())
-      console.log(list);
-      const me = list.includes(uid)
-      return ({all: list, me: me});
+export const getHearts = async (locationId) => {
+    if (locationId ) {
+      const heart = await axios.get('/places/' + locationId + '/like',config());
+      console.log('heart',heart.data);
+      return heart.data
     } else return null
     
 }
 
-export const heartLocation = async (db,uid,mapId,locationId,toHeart) => {
-  if (!(uid && mapId && locationId))
-  throw new Error('Something is null')
+export const heartLocation = async (locationId,toHeart) => {
+  if (!(locationId)){
+    console.log(locationId);
+    throw new Error('Something is null')
+  }
 
-  let success = false
-  const dbRef = ref(db, 'maps/' + mapId + "/locations/" + locationId + "/likes/" + uid);
-  if (toHeart)
-    await set(dbRef,{"owner":null}).then(success = true);
-  else
-    await set(dbRef, { "owner": uid }).then(success = true);;
+
+  const success = await axios.post('/places/' + locationId + '/like',toHeart,config());
   return success
 }
 
@@ -146,20 +123,22 @@ export const LocationData = (props) => {
     const [helpModal, setHelpModal] = useState(false);
 
     useEffect(() => {
+      console.log('locationLIke',location.id);
 
-      if (location) {
+      if (location.id) {
         (async ()=>{
-        const hearts = await getHearts(database,uid,mapId,locationId)
-        setHearted(hearts?.me)
+        const hearted = await getHearts(location.id)
+        console.log('hearted',hearted);
+        setHearted(hearted)
         })()
         
       }
-    }, [props.locationId,props.mapId]);
+    }, [location.id]);
 
     if (!location) return null
 
     const handleHeart = async () => {
-      const success = await heartLocation(database,uid,mapId,locationId,hearted)
+      const success = await heartLocation(location.id,hearted)
       if (success)
       setHearted(!hearted)
     }
@@ -172,18 +151,24 @@ export const LocationData = (props) => {
     return (
       <ScrollView style={[styles.selectedLocation,{flex: width <= 900 ? 1 : 'none'} ]}>
         <Row>
-          <MyText style={{fontSize:20,padding:10,flexGrow:1}}>{location?.name}</MyText>
-          <Pressable style={{padding:10}} onPress={()=>setLocation(null)}><MyText style={{fontSize:20}}>X</MyText></Pressable>
+          <MyText style={{fontSize:20,padding:10,flexGrow:1}}>{location?.title}</MyText>
+          <Pressable style={{paddingHorizontal:10}} onPress={()=>setLocation(null)}><MyText style={{fontSize:20}}>X</MyText></Pressable>
         </Row>
-        <MyText style={{padding:10}}>{location?.description}</MyText>
+        <UrlText style={{padding:10}} text={location?.description} />
         <TouchableOpacity onPress={handleHeart} style={{flexDirection:'row',alignItems:'center'}}>
             <Icon name={hearted ? "heart" : "heart-outline"} size={25} color="red" style={{paddingHorizontal:10}}/>
             <TextFor text="heart" />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={()=>help ? handleHelp() : setHelpModal(true)} style={{flexDirection:'row',alignItems:'center'}}>
-            <Icon name={help ? "person-add" : "person-add-outline"} size={25} color="green" style={{paddingHorizontal:10}}/>
-            <TextFor text="help_needed" />
+        <TouchableOpacity onPress={()=>openMap({ 
+          latitude: location.lat, 
+          longitude: location.lng,
+          query: location.title,
+          end: location.title,
+        }) } 
+        style={{flexDirection:'row',alignItems:'center'}}>
+            <Icon name={"compass-outline"} size={25} color="blue" style={{paddingHorizontal:10}}/>
+            <TextFor text="open_maps" />
         </TouchableOpacity>
         <AloneModal 
         modalVisible={helpModal} 
@@ -199,6 +184,9 @@ const styles = StyleSheet.create({
     padding:10,
     borderColor: '#f9f9f9',
     flex:1,
-    borderWidth:1
+    borderWidth:1,
+    zIndex:10,
+    width:'100%',
+    backgroundColor:'rgb(253, 238, 162)'
   }
 })

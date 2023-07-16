@@ -1,7 +1,6 @@
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import { Dimensions, ScrollView } from "react-native"
-import { useWindowDimensions } from "../../lib/hooks/window";
+import { Dimensions, ScrollView, useWindowDimensions } from "react-native"
 import { Pages } from "../first/pages"
 
 export default () => {

@@ -1,38 +1,58 @@
+import { Auto, Loading, MyText, NewButton, Popup, ProfileImage, Row, TextInput } from '../../components/Components';
 
-import React, { useContext, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Image from 'expo-fast-image';
-import { useSelector } from 'react-redux';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Animated, Image, Platform, Pressable, View } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import styles from '../../styles/profileDesign';
+
+import { useDispatch, useSelector } from 'react-redux';
 import { FirebaseContext } from '../../firebase/firebase';
 
-import Icon from 'react-native-vector-icons/Ionicons';
+import { useWindowDimensions } from 'react-native';
+import { useHover } from 'react-native-web-hooks';
+import GoBack from '../../components/Goback';
+import { Map } from './EditOld';
+import BasePage from "../../components/BasePage"
+
 
 import { useFocusEffect } from '@react-navigation/native';
+import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
-import { equalTo, get, getDatabase, query, ref as databaseRef, set } from 'firebase/database';
+import { ref as databaseRef, equalTo, get, getDatabase, query, set } from 'firebase/database';
 import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
-import { ActivityIndicator, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { Auto, MyText, NewButton, Row, TextInput } from '../../components/Components';
-import { deepEqual } from '../../lib/functions';
+import { config } from '../../firebase/authConfig';
+import Select from '../../components/Select';
+import { saleCategories } from '../../lib/categories';
+import Section from './Section';
+import Buziness from '../profileModules/Buziness';
+import SaleModule from '../profileModules/SaleModule';
+import { setTempData } from '../../lib/userReducer';
 
+const bgColor = '#FDEEA2'//'#ffd581dd'
 const themeColor = '#000';//#ba9007
-const color2 = '#aaa'//'#FFC372'
-//const themeColor = '#fcf3d4';FFC372
-const bgColor = '#FDEEA2'
+const categories = saleCategories.map(c=>{return c.name});
 
-const Edit = ({ navigation, route }) => {
+const Profile = ({ navigation, route }) => {
+  
   const uid = useSelector((state) => state.user.uid)
+  const tempData = useSelector((state) => state.user.tempData)
   const { width } = useWindowDimensions();
+  const small = width <= 900;
+  const dispatch = useDispatch()
+  const [profile, setProfile] = React.useState(null);
   const Dpath = 'users/'+uid+'/pro_file'
   const Spath = 'profiles/'+uid+"/profile.jpg"
   const [image, setImage] = useState(null);
   const [dbImage, setDbImage] = useState(null);
   const [changed, setChanged] = useState(false);
   const [loading, setLoading] = useState(true);
-  const {database, app, auth} = useContext(FirebaseContext);
-  const [data, setData] = React.useState({});
-  const [newData, setNewData] = React.useState(null);
+  const {database, api} = useContext(FirebaseContext);
+  const [data, setData] = React.useState(tempData?.data);
+  const [newData, setNewData] = React.useState(tempData?.data);
+  const [page, setPage] = useState(tempData?.page || null);
   const [usernameValid, setUsernameValid] = React.useState(true);
+
+  const [saleCategory, setSaleCategory] = useState(null);
 
   //#region imagePicker
   const init = async () => {
@@ -109,29 +129,6 @@ const Edit = ({ navigation, route }) => {
   //#endregion
 
   useEffect(() => {
-    if (database) {
-      get(databaseRef(database,'users/'+uid+'/data')).then(snapshot=>{
-        if (snapshot.exists()) {
-          let newData = snapshot.val()
-          setData(newData)
-          setNewData(newData)
-        } else {
-          const object = {
-            name: '',
-            username: '',
-            bio: '',
-            profession: [],
-            links: []
-          }
-          setData(object)
-          setNewData(object)
-        }
-      })
-      init()
-    }
-  }, [database]);
-
-  useEffect(() => {
     if (database && newData) {
       const username = newData.username
       if (username && username.length > 3 && username.length < 20 && username.match(/^([a-z0-9_])*$/)) {
@@ -147,433 +144,342 @@ const Edit = ({ navigation, route }) => {
 
   useEffect(() => {
     if (navigation && newData) {
-      if (deepEqual(newData,data))
+      //if (deepEqual(newData,data))
       //console.log('newData',newData);
-      setLoading(false)
+      //setLoading(false)
     } 
   }, [newData]);
 
   async function save() {
     if (changed)
       uploadImage().then(e=>console.log('uploadSuccess'))
+      .catch(err=>console.error('uploadError',err))
     if (database)
     if (uid) {
         if (newData.username != data.username) {
-          await set(databaseRef(database, 'usernames/' + newData.username), {owner:uid})
+          console.log(uid);
+          //await set(databaseRef(database, 'usernames/' + newData.username), {owner:uid})
         }
-        newData.unread = null
-        console.log("newdata to upload:", newData);
-        console.log("data to upload:", data);
-        set(databaseRef(database, 'users/' + uid + '/data'), newData)
+        console.log("data to upload:", {
+          data:newData,
+          buziness: page.buziness.map(bu=>{
+            return {
+              ...bu,
+              pageId: undefined
+            }
+          }),
+          page:page
+        });
+        axios.patch('users',{
+          data:newData,
+          page:{
+              ...page,
+              buziness: page.buziness.map(bu=>{
+                return {
+                  ...bu,
+                  pageId: undefined
+                }
+              })
+          }
+        },config())
         .then((e) => {
           console.log('success',e);
           setNewData(data)
+          dispatch(setTempData({
+            ...newData,
+            page:{
+                ...page,
+                buziness: page.buziness.map(bu=>{
+                return {
+                  ...bu,
+                  pageId: undefined
+                }
+              })
+            }
+          }))
           navigation.push('profil')
         }).catch(error => {
           console.log(error);
           console.log(newData);
-        });
-    } else
-    navigation.push('bejelentkezes')
+          if (error?.response?.data == 'Token expired') {
+            console.log('Token expired');
+            api.logout();
+            return
+          }
+        })
+    }
   }
 
-  if (loading)
-  return (
-  <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:bgColor}}>
-    <ActivityIndicator size='large' color='rgba(255,196,0,1)'/>
-  </View>)
-  else 
-  return (
-    <View style={[localStyle.container,{flex:1,paddingLeft: width > 900 ? 50 : 5}]}> 
-    <Pressable onPress={()=>{navigation.push('profil')}}>
-      <MyText style={{fontSize:35}}><Icon name="chevron-back-outline" size={35}/> Vissza a profilodhoz</MyText>
-    </Pressable>
-    <ScrollView style={[{padding: width > 900 ? 50 : 5,paddingTop:10}]}>  
-      <Auto >
-        <View style={{flex:1,marginHorizontal: width > 900 ? 20 : 0}}>        
-          <View style={localStyle.imageContainer}>
-            <View>
-              {!image ? <ActivityIndicator size='large' color='rgba(255,196,0,1)'/> :
+  useFocusEffect(
+    useCallback(() => {
+      console.log(data);
+      if (database) {
+        //hulyr vagy 
+        if (data == null)
+        axios.get(`users/all/${uid}`,config()).then((res) => {
+          console.log('getDAta',res);
+            setData(res.data)
+            setPage(res.data.page)
+            setNewData(res.data)
+        }).catch((error) => {
+          console.error('getDataError',error);
+          if (error?.response?.data == 'Token expired') {
+            api.logout();
+            return
+          }
+
+          const object = {
+            name: '',
+            username: ''
+          }
+          setData(object)
+          setNewData(object)
+        }).finally(()=>{
+          init()
+          setLoading(false)
+        });
+        else {
+          init()
+          setLoading(false)
+        }
+      }
+    }, [uid])
+  );
+
+  useEffect(() => {
+    console.log('page',page);
+  }, [page]);
+
+  if (!loading)
+  return(
+    <>
+    <BasePage style={{paddingRight:small?5:25,paddingBottom:25,backgroundColor:bgColor,flex:1}}>
+      <Auto style={{flex:'none'}}>
+        <GoBack style={{marginLeft:20}}/>
+        <Row style={{}}>
+            <View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:small?5:25,alignSelf:'center'}]}>
               <Pressable onPress={pickImage}>
-                <Image source={image} style={localStyle.image} resizeMode="cover"/>
-              </Pressable>}
+                <Image source={image} style={[{paddingHorizontal:0,background:'none',borderRadius:8,height:150,width:150}]}/>
+              </Pressable>
             </View>
             <View >
-              <TouchableOpacity onPress={pickImage} style={[localStyle.smallButton,{marginBottom:-2}]}>
-                <Icon name='cloud-upload-outline' size={25}></Icon>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={deleteImage} style={localStyle.smallButton}>
-                <Icon name='close-outline' size={40}></Icon>
-              </TouchableOpacity>
+              <NewButton onPress={pickImage}
+              title={<Icon name='cloud-upload-outline' size={25} />} 
+              style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginBottom:0}]}/>
+
+              <NewButton onPress={deleteImage}
+              title={<Icon name='close-outline' size={40} />} 
+              style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginBottom:0}]}/>
+
             </View>
-            <View style={{flex:1,paddingHorizontal: 5}}>
-              <NewButton title="Mentsd el a profilod" onPress={save} disabled={deepEqual(newData,data) && deepEqual(image,dbImage)}/>
-              <Row>
-                <Pressable onPress={()=>setImage(require('../../assets/profile.jpeg'))}>
-                  <Image source={require('../../assets/profile.jpeg')} style={{height:100,width:100}}/>
-                </Pressable>
-                <Pressable onPress={()=>setImage(require('../../assets/img-main.jpg'))}>
-                  <Image source={require('../../assets/img-main.jpg')} style={{height:100,width:100}}/>
-                </Pressable>
-                <Pressable onPress={()=>setImage(require('../../assets/img-prof.jpg'))}>
-                  <Image source={require('../../assets/img-prof.jpg')} style={{height:100,width:100}}/>
-                </Pressable>
-              </Row>
-            </View>
-          </View>
-          <Header title="Felhasználónév" icon="ios-finger-print" helpText="Ez az egyedi azonosítód a felhasználók közt"/>
-          <View style={[{flexDirection:'row',alignItems:'center'}]}>
-            <Icon style={{position:"absolute",alignSelf:'center',top:3,left:7}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={usernameValid ? "green" : "red"}/>
+        </Row>
+        <View style={{flex:width <= 900 ? 'none' : 1,zIndex:10,elevation: 10}}>
+          <TextInput style={[localStyles.fcontainer,{marginLeft:small?5:25,padding:5,fontSize:30}]} 
+            onChangeText={(e)=>setNewData({...newData, name: e})}
+            editable
+            placeholder="Név"
+            defaultValue={data.name}/>
+          <TextInput style={[localStyles.fcontainer,{marginLeft:small?5:25,padding:5,fontSize:30,flex:0}]} 
+            onChangeText={(e)=>setNewData({...newData, title: e})}
+            editable
+            placeholder="Titulus"
+            defaultValue={data.title}/>
+          <Row style={{flex:width <= 900 ? 'none' : 1}}>
+          <Icon style={{position:"absolute",alignSelf:'center',top:3,left:7}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={usernameValid ? "green" : "red"}/>
             <TextInput
-              style={[localStyle.input,{paddingLeft:50,flex:1,borderColor: data.username == newData.username ? 'green' : 'orange'}]}
+              style={[localStyles.fcontainer,{marginLeft:small?5:25,padding:5,fontSize:20,borderColor: data.username == newData.username ? 'green' : 'orange'}]}
               onChangeText={(e)=>{setNewData({...newData, username: e})}}
               editable
               placeholder="Add meg a felhasználóneved"
               defaultValue={data.username}
             />
-          </View>
-            {!usernameValid && !!newData.username && <MyText style={[localStyle.label,{color:'red'}]}>Nem lehet ez a felhasználóneved!</MyText>}
-
-          <Header title="Név" icon="person" helpText="A teljes neved, vagy ahogy szeretnéd hogy szólítsanak"/>
-          <TextInput
-            style={localStyle.input}
-            onChangeText={(e)=>setNewData({...newData, name: e})}
-            editable
-            placeholder="Név"
-            defaultValue={data.name}
-          />
-          <Header title="Helyzeted" icon="location-sharp" helpText="Olyan helyet vagy környéket adj meg, ahol általában elérhető vagy. A pontosságot te tudod megszabni, a nagyítás módosításával"/>
-          <Map data={newData} setData={setNewData} editable/>
+          </Row>
         </View>
-        <View style={{marginHorizontal: width > 900 ? 20 : 0,flex:1}}>
-          <MyText>{newData?.location?.name}</MyText>
-          <Professions data={newData} setData={setNewData}/>
+        
+
+        
+          <NewButton onPress={save}
+          title="Mentés" textStyle={{fontSize:30}}
+          style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginLeft:small?5:25}]}
+              />
+          
+
+      </Auto>
+      <Auto style={{flex:1,zIndex:-1,elevation: -1}}>
+        <View style={{flex:width <= 900 ? 'none' : 1}}>
+          
+          <Section title="Helyzetem" flex={width <= 900 ? 'none' : 1} style={{}}>
+            {
+            (Platform.OS !== 'web') ? 
+            <MapView style={localStyles.map} />
+            : <Map data={profile} editable setData={setData}/>
+            }
+          </Section>
+        </View>
+        <View style={{flex:(width <= 900 ? 'none' : 2)}}>
+            <Buziness data={page} setData={setPage}/>
+          
+        </View>
+        <View style={{flex:(width <= 900 ? 'none' : 2)}}>
+            <SaleModule />
+          
         </View>
       </Auto>
-
-    </ScrollView>
-    </View>
-  )
-
-}
-
-export const Professions = (props) => {
-  const {data,setData} = props
-  const { width } = useWindowDimensions();
-  const centered = props.centered || false
-  const [list, setList] = useState(data.profession || []);
-
-  useEffect(() => {
-    setList(props.data.profession || [])
-  }, [props]);
-
-  const addNew = () => {
-    setList([...list,{name: '', description: ''}])
-  }
-  const set = (val,index,key) => {
-    const newState = [...list]
-    newState[index] = {...newState[index], [key]:val}
-    setList(newState)
-    if (newState?.length)
-      setData({...data,profession:newState})
-  } 
-  const remove = (i) => {
-    setList(list.filter((item,ei) => ei !== i));
-    setData({...data,profession:list.filter((item,ei) => ei !== i)})
-  }
-  return (
-    <View style={{marginBottom:5,flex:'none'}}>
-      <Header title="Bizniszeim" icon="thumbs-up" centered={centered} helpText=""/>
-      {!list.length && <MyText style={localStyle.label}>Van valami amiben jó vagy? </MyText>}
-      <ScrollView style={{flex:width <= 900 ? 'none' : 1}}>
-        {!!list && !!list.length && list.map((e,i)=>
-          <View key={i}  style={localStyle.profession}>
-            <View style={{flexDirection:'row'}}>
-              <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
-                <MyText style={{fontSize:20}}>{i+1}</MyText>
-                <Pressable onPress={()=>remove(i)}>
-                  <Icon name="trash" color={themeColor} size={25}/>
-                </Pressable>
-              </View>
-              <View style={{flex:1,justifyContent:'center'}}>
-                <TextInput style={localStyle.input} placeholder="kategória" onChangeText={(val)=>set(val,i,'name')} value={list[i].name}/>
-                <TextInput style={localStyle.input} placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={list[i].description} multiline numberOfLines={2}/>
-              </View>
-              <View style={{width:100,justifyContent:'flex-end'}}>
-                <Pressable style={{width:100,height:100,margin:5,backgroundColor:'lightblue',alignItems:'center',justifyContent:'center'}}>
-                  <MyText>+ Új kép</MyText>
-                </Pressable>
-              </View>
-            </View>
-            {(list.length > i+1) && <View style={localStyle.divider}/>}
-          </View>
-        )}
-      </ScrollView>
-      <View>
-        <Pressable style={[localStyle.adder,centered ? {borderRadius:0} : {}]} onPress={addNew}>
-          <MyText style={localStyle.text}>
-            <Icon name="md-add" color={0} size={40}/>
-          </MyText>
-        </Pressable>
-      </View>
-    </View>)
-}
-
-export const Links = (props) => {
-  const { width } = useWindowDimensions();
-  const {data,setData} = props
-  const centered = props.centered || false
-  const [list, setList] = useState(data.links || []);
-  
-  useEffect(() => {
-    setList(props.data.links || [])
-  }, [props]);
-
-  const addNew = () => {
-    setList([...list,{name: '', description: ''}])
-  }
-  const set = (val,index,key) => {
-    const newState = [...list]
-    newState[index] = {...newState[index], [key]:val}
-    if (newState)
-      setData({...data,links:newState})
-  } 
-  const remove = (i) => {
-    setList(list.filter((item,ei) => ei !== i));
-    setData({...data,links:list.filter((item,ei) => ei !== i)})
-  }
-  return (
-    <View style={{width:'100%',flex:'none'}}>
-      <Header title="Elérhetőségeim" icon="at-sharp" centered={centered}/>
-      <ScrollView style={{flex: width <= 900 ? 'undefined' : 1}}>
-      {list && !!list.length && list.map((e,i)=>
-        <View key={i}  style={localStyle.profession}>
-          <View style={{flexDirection:'row'}}>
-            <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
-              <MyText style={{fontSize:20}}>{i+1}</MyText>
-              <Pressable onPress={()=>remove(i)}>
-                <MyText><Icon name="trash" color={themeColor} size={25}/></MyText>
-              </Pressable>
-            </View>
-            <View style={{flex:4}}>
-              <TextInput style={localStyle.input} placeholder="leírás" onChangeText={(val)=>set(val,i,'name')} value={list[i].name}/>
-              <TextInput style={localStyle.input} placeholder="link" onChangeText={(val)=>set(val,i,'description')} value={list[i].description}/>
-            </View>
-          </View>
-          {(list.length > i+1) && <View style={localStyle.divider}></View>}
-        </View>
-      )}
-      {!list?.length && <MyText style={localStyle.label}>Milyen elérhetőségeid vannak?</MyText>}
-      </ScrollView>
-      <View>
-        <Pressable style={[localStyle.adder,centered ? {borderRadius:0} : {}]} onPress={addNew}>
-          <MyText style={localStyle.text}>
-            <Icon name="md-add" color={0} size={40}/>
-          </MyText>
-        </Pressable>
-      </View>
-    </View>)
-}
-
-export const Map = ({data,setData,editable}) => {
-  const [location,setLocation] = useState(data?.location || {center:{lat:47.4983, lng:19.0408},zoom:10});
-  const [map, setMap] = useState(null);
-
-  useEffect(() => {
-    if (map) {
-      console.log(location);
-      map.setView(location?.center, location?.zoom)
-      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-          }).addTo(map);
-
-      if (editable) {
-        console.log(location);
-        const circle = L.circleMarker(map.getCenter(), {radius:60,fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
-        map.on('zoom',(ev)=> {
-          const zoom = map.getZoom()
-          setLocation({zoom,center:map.getCenter()})
-        })
-        map.on('move',(ev)=>{
-          const center = map.getCenter();
-          circle.setLatLng(center)
-          setLocation({zoom:map.getZoom(),center:center})
-        });
-      } else {
-        //const circle = L.circleMarker(map.getCenter(), {radius:60,fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
-
-        const circle2 = L.circle(map.getCenter(), {radius:28*map.getZoom(),fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
-      }
-      
-    }
-  }, [map]);
-
-  useEffect(() => {
-    console.log(location);
-    if (editable && location.center && location.zoom) {
-      setData({...data,location})
-    }
-  }, [location]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      let link = document.getElementById("link")
-      let script = document.getElementById("script")
-      if (!document.getElementById("link") && !document.getElementById("script")) {
-        link = document.createElement("link");
-        link.id = "link"
-        link.rel = "stylesheet";
-        link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
-        link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
-        link.crossOrigin=""
-
-        script = document.createElement("script");
-        script.id = "script"
-        script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
-        script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
-        script.crossOrigin=""
-
-        document.head.appendChild(link);
-        document.body.appendChild(script);
-        console.log('link, script newly loaded');
-      }
-      script.onload = () => {
-        console.log('mapLoad');
-        var container = L.DomUtil.get("map");
-    
-        if (container) {
-        container._leaflet_id = null;
-        }
-        setMap(L.map('map'));
-      }
-      return () => {
-        console.log('cleanup');
-
-        let link = document.getElementById("link")
-        let script = document.getElementById("script")
-        link?.remove()
-        script?.remove()
-        
-      }
-    }, [])
-  )
-
-  return (<div id="map" style={{height:200,marginTop:-2,marginBottom:5}}></div>)
-}
-
-const Header = (props) => {
-  const { width } = useWindowDimensions();
-  const {icon,title,centered,helpText} = props
-  const color = color2
-  const [help, setHelp] = useState(false);
-  return (
-    <>
-    <View style={[localStyle.adder,{flexDirection:'row',borderWidth:0},centered ? {borderRadius:30} : {}]}>
-      <View style={[localStyle.plusContainer,{color: color}]}>
-        <MyText style={localStyle.plusText}><Icon name={icon} size={25} color={0}/></MyText>
-      </View>
-      {(width > 900 || !help) && 
-      <View style={localStyle.textContainer}>
-        <View style={{flex:1}}>
-          <MyText style={[localStyle.text]}>{title}</MyText>
-        </View>
-        {!!helpText &&
-        <TouchableOpacity onPress={()=>setHelp(!help)}>
-          <Icon name={ help ? "help-circle" : "help-circle-outline"} size={25}/>
-        </TouchableOpacity>}
-      </View>}
-
-    </View>
-    {(help && helpText) && 
-    <View style={[localStyle.adder,{flexDirection:'row'},centered ? {borderRadius:30} : {}]}>
-      <View style={localStyle.textContainer}>
-        <MyText style={localStyle.text}>{helpText}</MyText>
-      </View>
-
-    </View>}
+    </BasePage>
     </>
   )
+  else return (<View style={{backgroundColor:bgColor,flex:1}}><Loading color={"#fff"}/></View>)
 }
 
-const localStyle = StyleSheet.create ({
-  container: { 
-    textAlign:'left',
-    backgroundColor: bgColor
-  },
-  image: {
-    aspectRatio: 1,
-    flex:1,
-    width:150,
-    height:150,
-    backgroundColor:bgColor
-  },
-  imageContainer: {
-    backgroundColor: bgColor,
-    flexDirection: 'row',
-    marginBottom:5
-  },
-  imagePadding: {
-    flex:1,
-    backgroundColor: themeColor
-  },
-  input: {
-    paddingVertical: 10,
-    borderRadius: 0,
-    marginBottom:5,
-    color:themeColor,
-    backgroundColor:'#fff7',
-    fontWeight: "600",
-    padding: 10,
-    paddingVertical:10
-  },
-  adder: {
-    backgroundColor: 'white',
-    //marginTop: 10,
-    marginBottom:5,
-    alignItems: 'center'
-  },
-  plusContainer: {
-    backgroundColor: 'white',
-    justifyContent: "center",
-    textAlign: 'center',
-    alignItems:'center',
-    width: 43,
-    height: 43,
-  },
-  textContainer: {
-    alignItems:'center',
-    flexDirection:'row',
-    paddingRight:10,
-    flex:1
-  },
-  text: {
-    color: 'black',
-    margin: 10,
-  },
-  profession: {
-    paddingLeft: 0,
-    marginTop:5
-  },
-  divider: {
-    height:2,
-    backgroundColor:'gray'
-  },
-  label: {
-    marginLeft: 20,
-    marginVertical: 10,
-    fontSize: 16,
-    textAlign:'center'
-  },
-  smallButton: {
-    paddingHorizontal:20,
-    alignItems: 'center',
-    justifyContent: "center",
-    flex:1,
-    width:150/2,
-    backgroundColor:'white'
+  const localStyles = {
+    image: {
+      aspectRatio: 1,
+      flex:1,
+      width:150,
+      height:150,
+      backgroundColor:bgColor
+    },
+    imageContainer: {
+      backgroundColor: bgColor,
+      flexDirection: 'row',
+      marginBottom:5
+    },
+    imagePadding: {
+      flex:1,
+      backgroundColor: themeColor
+    },
+    input: {
+      paddingVertical: 10,
+      borderRadius: 0,
+      marginBottom:5,
+      color:themeColor,
+      backgroundColor:'#fff7',
+      fontWeight: "600",
+      padding: 10,
+      paddingVertical:10
+    },
+    adder: {
+      backgroundColor: 'white',
+      //marginTop: 10,
+      marginBottom:5,
+      alignItems: 'center'
+    },
+    plusContainer: {
+      backgroundColor: 'white',
+      justifyContent: "center",
+      textAlign: 'center',
+      alignItems:'center',
+      width: 43,
+      height: 43,
+    },
+    textContainer: {
+      alignItems:'center',
+      flexDirection:'row',
+      paddingRight:10,
+      flex:1
+    },
+    text: {
+      color: 'black',
+      margin: 10,
+    },
+    profession: {
+      paddingLeft: 0,
+      marginTop:5
+    },
+    divider: {
+      height:2,
+      backgroundColor:'gray'
+    },
+    label: {
+      marginLeft: 20,
+      marginVertical: 10,
+      fontSize: 16,
+      textAlign:'center'
+    },
+    smallButton: {
+      paddingHorizontal:20,
+      alignItems: 'center',
+      justifyContent: "center",
+      flex:1,
+      width:150/2,
+      backgroundColor:'white'
+  
+    },
+  
+    fcontainer: {
+      flex:1,
+      marginTop: 25,
+      marginLeft: 25,
+      backgroundColor:'white',
+      paddingHorizontal:20,
+      justifyContent:'center', 
+      zIndex:'auto', 
+      shadowColor: '#171717',
+      shadowOffset: {width: 2, height: 4},
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      borderRadius:8
+    },
+    container: {
+      marginTop: 25,
+      marginLeft: 25,
+      backgroundColor:'white',
+      paddingHorizontal:20,
+      justifyContent:'center',
+      zIndex:'auto' ,
+      shadowColor: '#171717',
+      shadowOffset: {width: 2, height: 4},
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      borderRadius:8
+    },
+    containerNoBg: {
+      marginTop: 25,
+      marginLeft: 25,
+      paddingHorizontal:20,
+      justifyContent:'center',
+      zIndex:'auto' ,
+      shadowColor: '#171717',
+      shadowOffset: {width: 2, height: 4},
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      borderRadius:8
+    },
+    text:{
+      fontWeight: 'bold',
+      color: "black",
+      fontSize:25,
+      paddingVertical: 8,
+    },
+    subText: {
+      fontSize: 20
+    },
+    verticleLine: {
+      width: 1,
+      backgroundColor: '#909090',
+    },
+    horizontalLine: {
+      height: 1,
+      backgroundColor: '#909090',
+    },
+    section:{
+      height: 50,
+      justifyContent: 'center',
+      paddingHorizontal:20,
+      backgroundColor: 'rgb(245, 209, 66)',
+      borderColor: bgColor,
+      marginTop: 5,
+      marginLeft: 5,
+      
+    },
+    sectionText:{
+      fontWeight: 'bold',
+      fontSize:26,
 
+    },
+    map: {
+      flex:1
+    },
   }
-})
 
-
-export default Edit
+  export default Profile

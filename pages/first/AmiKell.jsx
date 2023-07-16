@@ -1,23 +1,28 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { Auto, MyText } from "../../components/Components";
-import { useWindowDimensions } from "../../lib/hooks/window";
+import CustomInput from "../../components/CustomInput";
 
 const modules = [
     [
         "Cuccok, ruhák eladása",
-        "Önismeret, lélekápolás",
+        "Albérlet keresése",
         "Programok keresése országszerte",
     ],
     [
         "Cuccok, ruhák vásárlása",
-        "Hazai könnyűzene",
-        "Szakemberek keresése"
+        "Munka keresése",
+        "Új helyek megismerése"
     ],
 ]
 
-const AmiKell = () => {
+const AmiKell = ({data,setData}) => {
     const { width } = useWindowDimensions()
+    const inputs = [
+        {type:'checkbox',attribute:'sale',label:'Eladó tárgyak',data:data,setData:setData,style:{backgroundColor:'#fbf1e0'}},
+        {type:'checkbox',attribute:'work',label:'Elérhető munkák',data:data,setData:setData,style:{backgroundColor:'#fbf1e0'}},
+        {type:'checkbox',attribute:'places',label:'Kiadó lakások',data:data,setData:setData,style:{backgroundColor:'#fbf1e0'}}
+      ]
     const titleStyleW = {
         color:'white',
         fontSize: width > 900 ? 50 : 30,
@@ -31,16 +36,17 @@ const AmiKell = () => {
         <MyText style={titleStyleW} adjustsFontSizeToFit>Mi az ami érdekel?</MyText>
         <MyText style={styles.text} adjustsFontSizeToFit>
             Válaszd ki azokat a témákat, amikkel kapcsolatban szeretnél hasznos linkeket,{'\n'}
-            funkciókat, frissítéseket kapni! 
+            funkciókat, frissítéseket kapni! Ezeken a beállításokon bármikor változtathatsz a főoldalon majd.
         </MyText>
         <Auto>
             <View style={{flex:width<=900?'none':3}}>
-                {modules[0].map(s=><Module title={s}/>)}
+                {inputs.map((input,ind)=><CustomInput {...input} key={'inp'+ind} style={[{padding:10,margin:5},input.style]}/>)}
             </View>
             <View style={{flex:width<=900?'none':3}}>
-                {modules[1].map(s=><Module title={s}/>)}
+                {[].map((input,ind)=><CustomInput {...input} key={'inp2'+ind}  style={[{padding:10,margin:5},input.style]}/>)}
             </View>
         </Auto>
+
     </>)
 }
 

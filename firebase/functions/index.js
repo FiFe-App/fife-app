@@ -43,7 +43,7 @@ exports.newMessage = functions.database.ref('/users/{uid}/messages/{uid2}/last')
                 },
                 webpush: {
                   fcmOptions: {
-                    link: "https://fifeapp.hu/uzenetek?selected="+newMsg.from
+                    link: "https://fifeapp.hu/uzenetek?uid="+newMsg.from
                   }
                 },
                 data: {

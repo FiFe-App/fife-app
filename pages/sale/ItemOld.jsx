@@ -1,20 +1,23 @@
 
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
-import { useSelector } from "react-redux";
-import { getNameOf, getUri, Loading, MyText, NewButton, Row } from "../../components/Components";
-import { config } from "../../firebase/authConfig";
-import { elapsedTime } from "../../lib/textService/textService";
-import ImageView from "react-native-image-viewing";
-import ExpoFastImage from "expo-fast-image";
+import ImageModal from "react-native-image-modal";
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from "@react-navigation/native";
+import { useSelector } from "react-redux";
+import { Loading, MyText, NewButton, ProfileImage, Row, Slideshow, getNameOf, getUri } from "../../components/Components";
+import { config } from "../../firebase/authConfig";
 import { saleCategories } from "../../lib/categories";
+import { elapsedTime } from "../../lib/textService/textService";
+import Comments from "../../components/tools/Comments"
+import { FirebaseContext } from "../../firebase/firebase";
 
 
-export const Item = ({data,toLoadId,deleteItem,setSelected}) => {
+
+export const Item = ({data,toLoadId,bookItem,deleteItem,setSelected}) => {
     const uid = useSelector((state) => state.user.uid)
+    const {api} = useContext(FirebaseContext);
     const navigation = useNavigation();
     const width = useWindowDimensions().width
     const [loadData, setLoadData] = useState(data);
@@ -24,40 +27,54 @@ export const Item = ({data,toLoadId,deleteItem,setSelected}) => {
     const [elapsed, setElapsed] = useState();
     const [openedImage, setOpenedImage] = useState(null);
 
-    useEffect(() => {
-      setLoadData(null);
-      setImages([])
-      setLoading(true)
-      axios.get('/sale/'+toLoadId,config()).then(async res=>{
-        console.log('res',res);
-        res.data.authorName = await getNameOf(res.data.author)
-        if (res.data.bookedBy) {
-        res.data.bookedByName = await getNameOf(res.data.bookedBy)
-        console.log('!!!!!!LOG',res.data);
-        }
-        setLoadData(res.data)
-        setElapsed(elapsedTime(res.data.created_at))
-        console.log(res.data);
-        setLoading(false)
-        const loadImgs = async () => {
-          console.log(res.data.imagesDesc);
-          if (res.data.imagesDesc?.length)
-          setImages(
-            await Promise.all(res.data.imagesDesc?.map( async (e,i)=>{
-                try {
-                    return {uri: await getUri('sale/'+res.data.id+'/'+i),text: e.description}
-                } catch (error) {
-                    return {uri: require('../../assets/profile.jpeg'), text: e.description}
-                }
-            }))
-          )
-        }
-        loadImgs()
-      }).catch(err=>{
-        console.log('err',err);
-        setLoading(false)
-      })
-    }, [toLoadId]);
+    useFocusEffect(
+      useCallback(() => {
+        setLoadData(null);
+        setImages([])
+        setLoading(true)
+        console.log('send query',toLoadId,data);
+        
+        axios.get('/sale/'+toLoadId,config()).then(async res=>{
+          console.log('res',res);
+          res.data.authorName = res.authorName || await getNameOf(res.data.author)
+          if (res.data.bookedBy) {
+          res.data.bookedByName = await getNameOf(res.data.bookedBy)
+          console.log('!!!!!!LOG',res.data);
+          }
+          setLoadData(res.data)
+          setElapsed(elapsedTime(res.data.created_at))
+          console.log(res.data);
+          setLoading(false)
+          const loadImgs = async () => {
+            console.log(res.data.imagesDesc);
+            if (res.data.imagesDesc?.length)
+            setImages(
+              await Promise.all(res.data.imagesDesc?.map( async (e,i)=>{
+                  try {
+                      return {uri: await getUri('sale/'+res.data.id+'/'+i),text: e.description}
+                  } catch (error) {
+                      return {uri: require('../../assets/profile.jpeg'), text: e.description}
+                  }
+              }))
+            )
+          }
+          loadImgs()
+        }).catch(err=>{
+          console.log('err',err);
+          if (err?.response?.data == 'Token expired') {
+            console.log('Token expired');
+            api.logout();
+            return
+          }          setLoading(false)
+        })
+      }, [toLoadId])
+    );
+
+    const handleBook = async () => {
+      const newBooked = await bookItem(id,booked)
+      console.log(newBooked);
+      setLoadData({...loadData,booked:newBooked,bookedBy:uid})
+    }
 
     const goBack = () => {
       if (width <= 900)
@@ -68,46 +85,72 @@ export const Item = ({data,toLoadId,deleteItem,setSelected}) => {
 
     return (
       <>
-      <Pressable onPress={goBack} style={{backgroundColor:'#FDEEA2'}}>
+      <Pressable onPress={goBack} style={{backgroundColor:'#FDEEA200',position:'absolute',zIndex:10,width:'100%'}}>
         <Row style={{padding:10,alignItems:'center'}}>
-          <Icon name="chevron-back" size={32}/>
-          <MyText style={{fontSize:32}}>Vissza</MyText>
+          <Icon name="chevron-back" size={32} color="white"/>
+          <MyText style={{fontSize:32,color:'white'}}>Vissza</MyText>
         </Row>
       </Pressable>
         {!loading ?
       <ScrollView style={{flex:1,padding:0,backgroundColor:'#FDEEA2'}}>
         { loadData ? <>
-          {booked && <TouchableOpacity onPress={()=>navigation.push('profil',{uid:bookedBy})}>
-            <MyText style={[styles.booked,{backgroundColor:'#669d51aa'}]}>
-              {bookedBy==uid ? 'Lefoglaltad!' : 'Ezt '+bookedByName+' lefoglalta!'}
-            </MyText>
-          </TouchableOpacity>}
-            <View style={{alignSelf: 'flex-start'}}>
-              <MyText size={24} style={{marginRight:10,backgroundColor:saleCategories[category].color,padding:5}}>{saleCategories[category].name}</MyText>
-            </View>
-          <Row style={{padding:10}}>
-            {author == uid && <Row>
+          <Slideshow 
+            photos={images}
+            style={{backgroundColor:'#FDEEA2'}}
+          />
+          {author == uid && false && 
+          <Row style={{}}>
               <NewButton style={{marginBottom:20,fontSize:25,padding:10,flex:1}} title='szerkesztés' />
               <NewButton style={{marginBottom:20,fontSize:25,padding:10}} title='törlés' color='#aa2786' onPress={deleteItem}/>
             </Row>}
-          </Row>
-          {uid!=author && <TouchableOpacity onPress={()=>navigation.push('profil',{uid:author})}>
-            <MyText style={styles.author}>{'Ezt '+authorName+' töltötte fel, '+elapsed}</MyText>
+
+          {booked && bookedBy!=uid && false &&
+          <TouchableOpacity onPress={()=>navigation.push('profil',{uid:bookedBy})}>
+            <MyText style={[styles.booked,{backgroundColor:'#669d51aa'}]}>
+              {'Ezt '+bookedByName+' lefoglalta!'}
+            </MyText>
           </TouchableOpacity>}
-            <MyText style={{margin:20,fontSize:25}}>{title}</MyText>
+          {(bookedBy==uid || !booked) && uid!=author &&
+            <NewButton title={booked?"Feloldom a foglalást":"Lefoglalom"} onPress={handleBook}
+              color={booked?'#669d51aa':'#90dd72aa'}
+            />
+          }
+
+
+          <Row>
+            <MyText title style={{marginLeft:20,marginTop:0}}>{title}</MyText>
+            <View style={{alignSelf: 'flex-start',marginTop:5}}>
+              <MyText size={24} style={{marginHorizontal:10,backgroundColor:saleCategories[category].color,padding:5}}>{saleCategories[category].name}</MyText>
+            </View>
+          </Row>
+          {uid!=author && 
+            <MyText style={[styles.author,{}]}>{'Ezt '}
+            <TouchableOpacity onPress={()=>navigation.push('profil',{uid:author})}>
+            <Row>
+              <ProfileImage uid={author} size={24} style={{marginRight:5}}/>
+              <MyText bold>{authorName}</MyText>
+            </Row>
+            </TouchableOpacity>
+            {' töltötte fel '}<MyText bold>{elapsed}</MyText></MyText>
+          }
           <MyText style={{marginBottom:20,fontSize:20,padding:10,margin:10,backgroundColor:'#fff',borderRadius:8}}>{description}</MyText>
-          <ScrollView horizontal style={{backgroundColor:'#FDEEA2',flex:1}}>
+          {!!images.length && <ScrollView horizontal style={{backgroundColor:'#FDEEA2',flex:1,marginBottom:20}}>
             {images.map((img,ind)=>
               <View key={"img"+ind} style={styles.image}>
-                {imagesBookable[ind] ? <NewButton title='Foglalható' /> : <NewButton style={{backgroundColor:'#fff'}} disabled />}
 
                 <Pressable onPress={()=>setOpenedImage(ind)}>
-                  <ExpoFastImage source={img} modalImageResizeMode="contain" resizeMode="cover" style={{height:200,width:200}}/>
+                  <ImageModal renderFooter={()=>
+                    <View style={{backgroundColor:'#00000066',width:'100%'}}>
+                      <MyText style={{color:'white',fontSize:24}}>{imagesDesc[ind]}</MyText>
+                    </View>
+                  } source={img} modalImageResizeMode="contain" resizeMode="cover" style={{height:200,width:200}}/>
                 </Pressable>
-                <MyText>{imagesDesc[ind]}</MyText>
+                {!!imagesDesc[ind] && <MyText style={{margin:5}}>{imagesDesc[ind]}</MyText>}
+                {!!imagesBookable[ind] && <NewButton title='Foglalható' />}
               </View>
             )}
-          </ScrollView>
+          </ScrollView>}
+          <Comments path={'sale/'+id+'/comments'}/>
         </> : <MyText>Nem jött adat :(</MyText>}
         
       </ScrollView>
@@ -145,7 +188,8 @@ const styles = StyleSheet.create({
     backgroundColor:'#f7f7f7'
   },
   image: {
-    width:200
+    width:200,
+    flex:1
   },
   close:{
     position: 'absolute', 

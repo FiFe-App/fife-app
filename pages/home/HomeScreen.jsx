@@ -1,27 +1,24 @@
-  import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
-
-  import Image from 'expo-fast-image';
-import { Platform, Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
-
-  import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import Image from 'expo-fast-image';
+import { Platform, Pressable, ScrollView, View } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Animated } from "react-native";
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Auto, B, Col, getUri, MyText, Row, TextInput } from '../../components/Components';
-
-  import { useSelector } from 'react-redux';
+import { Auto, B, Col, MyText, NewButton, Row, getUri } from '../../components/Components';
+import { useSelector } from 'react-redux';
 import { FirebaseContext } from '../../firebase/firebase';
-
-  import axios from 'axios';
-import { child, get, getDatabase, limitToFirst, onChildAdded, query, ref } from 'firebase/database';
+import axios from 'axios';
+import { child, get, getDatabase, limitToFirst, onChildAdded, query, ref, set } from 'firebase/database';
 import { useWindowDimensions } from 'react-native';
 import { useDispatch } from 'react-redux';
 import Module from '../../components/homeComponents/Module';
 import { config } from '../../firebase/authConfig';
 import { saleCategories } from '../../lib/categories';
-import { getGreeting, TextFor } from '../../lib/textService/textService';
-import { removeUnreadMessage, setUnreadMessage } from '../../lib/userReducer';
-import Search from '../Search';
+import { TextFor, getGreeting } from '../../lib/textService/textService';
+import { removeUnreadMessage, setTempData, setUnreadMessage } from '../../lib/userReducer';
 import HomeBackground from './HomeBackground';
+import HelpModal from '../../components/help/Modal';
+
   
   const EventData = [
     { 
@@ -99,74 +96,34 @@ import HomeBackground from './HomeBackground';
   ]
   const HomeScreen = () => {
     const name = useSelector((state) => state.user.name)
+    const uid = useSelector((state) => state.user.uid)
+    const { api, database } = useContext(FirebaseContext);
     const nav = useNavigation()
+    const dispatch = useDispatch()
     const opacity = useRef(new Animated.Value(1)).current 
     const opacity2 = useRef(new Animated.Value(0)).current 
     const height = useRef(new Animated.Value(0)).current 
     const [searchText, setSearchText] = useState('');
     const { width } = useWindowDimensions();
+    const small = width < 900;
     const [greeting, setGreeting] = useState(getGreeting);
-    const [saleList, setSaleList] = useState([]);
     const [docsList, setDocsList] = useState([]);
+    const [filterModal, setFilterModal] = useState(false);
+    const [filter, setFilter] = useState({
+      sale: true,
+      work: true,
+      places: false,
+    });
+
     useFocusEffect(
       useCallback(() => {
-        const fn = async () => {
-          
-          let res 
-          try {
-            res = (await axios.get('/sale/latest',config()))
-              
-          } catch (error) {
-            if (error?.response?.data == 'Token expired') {
-              console.log('Token expired');
-              return
-              //firebase.logout()
-            }
-            console.log('server not reachable',error);
-          }
+        dispatch(setTempData(null))
+        const filterRef = ref(getDatabase(),'/users/'+uid+'/settings/homeFilter')
+        get(filterRef).then(snapshot=>{
+          if (snapshot.exists())
+          setFilter(snapshot.val())
+        })
 
-            console.log('body',res);
-          try {
-            
-            res = await Promise.all(res.data.map( async (el,i)=> {
-              try {
-                return {...el,image: await getUri('sale/'+el._id+'/'+0)}
-              } catch (error) {
-                return {...el,image: null}
-              }
-            }))
-            console.log(res);
-            setSaleList(res)
-          } catch (error) {
-            setDocsList([null,null,null])
-
-            console.log('error',error);
-            setSaleList([]) 
-          }
-        }
-        const fn2 = async () => {
-          
-          try {
-            console.log('fn2');
-            const db = getDatabase();
-            const docsQuery = query(ref(db,'docs'),limitToFirst(3))
-            onChildAdded(docsQuery,async (childSnapshot) => {
-              console.log('child',childSnapshot.val());
-              setDocsList(old=>[...old,{id:childSnapshot.key, ...childSnapshot.val()}])
-            })
-              
-          } catch (error) {
-            setDocsList([])
-            console.error(error);
-          }
-
-        }
-        fn();
-        fn2();
-        return () => {
-          setSaleList([])
-          setDocsList([])
-        };
       }, [])
     );
 
@@ -177,7 +134,6 @@ import HomeBackground from './HomeBackground';
         close()
     }, [searchText]);
     const delay = ms => new Promise(res => setTimeout(res, ms));
-
 
     const open = async () => {
       Animated.timing(height,{ toValue: 100, duration: 500, useNativeDriver: false }).start();
@@ -195,57 +151,94 @@ import HomeBackground from './HomeBackground';
       Animated.timing(opacity2,{ toValue: 0, duration: 500, useNativeDriver: false }).start();
     }
 
+    const saleModule = <Module title="Friss, ropogós cuccok" link="cserebere" params={{category:0}}
+    serverPath='/sale/latest?category=0'/>
+
+    const workModule = <Module title="Új munkák" link="cserebere" params={{category:3}} 
+    serverPath='/sale/latest?category=3'
+    />
+
+    const apartmentModule = <Module title="Új kiadó lakások" link="cserebere" params={{category:2}} 
+    serverPath='/sale/latest?category=2'
+    />
+
+    const newsModule =<Module title="Cikkek" data={docsList}  link="cikk"
+      firebasePath='docs'
+    />
+    const [list, setList] = useState([saleModule,workModule]);
+
+    useEffect(() => {
+      console.log(filter);
+      setList(
+        [saleModule,workModule,apartmentModule].filter((e,i)=>{
+          console.log(i,!![filter.sale,filter.work,filter.places][i]);
+          return !![filter.sale,filter.work,filter.places][i]
+        })
+      )
+      console.log([1,2,3].filter((e,i)=>!![filter.sale,filter.work,filter.places][i]))
+    }, [filter]);
+
+    useEffect(() => {
+      console.log(list);
+    }, [list]);
+
+    const save = () => {
+      const saveRef = ref(getDatabase(),'users/'+uid+'/settings/homeFilter')
+      set(saveRef,filter).then(()=>{
+        setFilterModal(false)
+      })
+    }
+
     return (
-      <ScrollView style={{flex:1,backgroundColor:'#c4df98'}} >
+      <ScrollView style={{flex:1,backgroundColor:'#ffffd6',zIndex:0,elevation: 0,}} >
         <HomeBackground >
-          <Auto style={{flex:3,zIndex:10,elevation: 10,justifyContent:'center'}}>
+          <Row style={{flex:3,zIndex:0,elevation: 0,justifyContent:'center'}}>
             <Col style={{flex:width<=900?1:2,alignItems:'center',shadowOpacity:2,}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
                 <Stickers style={{flex:1}}/>
-                <Row style={{alignItems:'flex-end',paddingLeft:50,paddingVertical:20}}>
-                  <MyText style={{fontSize:40}}><TextFor text={greeting} embed={name}/></MyText>
+                <Row style={{alignItems:'center',paddingHorizontal:20,paddingVertical:20}}>
+                  <MyText style={{fontSize:small?24:40,marginRight:20}} bold><TextFor text={greeting} embed={name}/></MyText>
                   <Smiley/>
                 </Row>
               </Animated.View> 
             </Col>
-          </Auto>
+            <View style={{padding:10,alignItems:'center',justifyContent:'center'}}>
+              <NewButton icon title={<Icon name="options-outline" size={30} />} onPress={()=>setFilterModal(true)}/>
+            </View>
+          </Row>
         </HomeBackground>
-            {width <= 900 && 
-            <Auto style={{flex:1}}>
-              <Module title="Új cserebere cikkek" link="cserebere" 
-              data={saleList.map(el=>{
-                return{
-                  id:el._id,
-                  title:el.title,
-                  date:el.date,
-                  image:el.image,
-                  text:el.description,
-                  category: saleCategories[el.category].name,
-                  color: saleCategories[el.category].color
-                }})}/>
-              <Module title="Cikkek" data={docsList} link="cikk"/>
-              
-            </Auto>}
-          {width > 900 && <>
+          {width > 900 ? <>
             <Auto >
-              <Module title="Új cserebere cikkek" link="cserebere" 
-              data={saleList.map(el=>{
-                return{
-                  id:el._id,
-                  title:el.title,
-                  date:el.date,
-                  image:el.image,
-                  text:el.description,
-                  category: saleCategories[el.category].name,
-                  color: saleCategories[el.category].color
-                }})}/>{false &&
-              <Module title="Közösségek" data={GroupsData}/>}
+              <View>
+                {list?.[0]}
+                {newsModule}
+              </View>
+              <View>
+                {list?.[1]}
+                {list?.[2]}
+              </View>
             </Auto>
-            <Auto >
-              <Module title="Cikkek" data={docsList}  link="cikk"/>{false&&
-              <Module title="events" link="esemenyek" data={EventData}/>}
-            </Auto>
-          </>}
+          </> : <View>
+            
+          {list?.[0]}
+              {list?.[1]}
+                {list?.[2]}
+                  {newsModule}
+          </View> }
+          <HelpModal 
+            title="Mi érdekel?"
+            text={`Válaszd ki hogy mi jelenjen meg a főoldalon!`}
+            actions={[
+              {title:'mégse',onPress:()=>setFilterModal(false)},
+              {title:'mentés',onPress:save,color:'#ff462b'}]}
+            open={filterModal}
+            setOpen={setFilterModal}
+            inputs={[
+              {type:'checkbox',attribute:'sale',label:'Eladó tárgyak',data:filter,setData:setFilter,style:{backgroundColor:'#fbf1e0'}},
+              {type:'checkbox',attribute:'work',label:'Elérhető munkák',data:filter,setData:setFilter,style:{backgroundColor:'#fbf1e0'}},
+              {type:'checkbox',attribute:'places',label:'Kiadó lakások',data:filter,setData:setFilter,style:{backgroundColor:'#fbf1e0'}}
+            ]}
+          />
       </ScrollView>
     );
   }
@@ -379,6 +372,7 @@ import HomeBackground from './HomeBackground';
         {
           toValue: 1,
           duration: 1000,
+          useNativeDriver: false,
         }
       ).start();
       else
@@ -387,6 +381,7 @@ import HomeBackground from './HomeBackground';
         {
           toValue: size._value*3,
           duration: 1000,
+          useNativeDriver: false,
         }
       ).start();
     }
@@ -394,6 +389,7 @@ import HomeBackground from './HomeBackground';
       <Animated.View                 // Special animatable View
       style={[{
         transform: [{ scale: size }],
+        transformOrigin:'50% 30%'
       },style]}
       >
       <Pressable onPress={handleGrow}>

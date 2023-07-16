@@ -7,7 +7,7 @@ const HomeButton = () => {
     const navigation = useNavigation()
     return (
         <Pressable onPress={()=>navigation.push('fooldal')} style={{justifyContent:'center',alignItems:'center'}}>
-          <MyText style={[styles.title,{fontFamily:'AmaticSC_700Bold',whiteSpace:'pre'}]}>
+          <MyText style={[styles.title,{fontFamily:'AmaticSC_700Bold',whiteSpace:'pre',userSelect:'none',marginHorizontal:40}]}>
           FiFe App
           </MyText>
         </Pressable>

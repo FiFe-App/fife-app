@@ -39,20 +39,10 @@ const LoginScreen = ({ navigation, route }) => {
     backgroundColor: '#fff',
   }
 
-    React.useEffect(() => {
-      if (api && !canLogin)
-        api.login().then((res)=>{
-          if (res?.success) {
-            navigation.push('fooldal') 
-            console.log('auto singed in');
-          }
-        })
-    }, []);
-
     const handleMoreInfo = () => {
       console.log('more');
       if (width <= 900)
-        navigation.push('az-approl')
+        navigation.push('regisztracio')
       else
         scrollView.scrollToEnd(true)
     }
@@ -78,7 +68,7 @@ const LoginScreen = ({ navigation, route }) => {
       </Helmet>
       <LinearGradient colors={["rgba(255,196,0,1)", "#fcf3d4"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
         
-      <NewButton title="Rólunk" onPress={()=>navigation.push('rolunk')} style={{padding:10}} textStyle={{fontSize:30}} color="#bbff6e"/>
+      <NewButton title="Rólunk" onPress={()=>navigation.push('rolunk')} style={{padding:10}} textStyle={{fontSize:30}} color="#0a0a0a"/>
         {width > 900 ?
           <MyText style={{fontSize:'10vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>
           FiFe App
@@ -89,7 +79,7 @@ const LoginScreen = ({ navigation, route }) => {
         </MyText>
         }
         <MyText style={{fontSize:small?30:60, fontFamily:'SpaceMono_400Regular',color:'rgb(255, 217, 90)',backgroundColor:'black',textAlign:'right',paddingLeft:30,paddingRight:30}}>
-        <B>MÉG NEM TUDSZ REGISZTRÁLNI</B> </MyText>
+        <B>légy közelebb</B> </MyText>
 
         <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
             {!true ?
@@ -128,7 +118,7 @@ const  LoginForm = () => {
     console.log(context);
     context?.api?.login(email,password).then((res) => {
       if (res?.success) {
-        navigation.push('fooldal') 
+        //navigation.push('fooldal')
         console.log('user',user);
       } else {
         onChangeLoginError(res?.error)
@@ -200,7 +190,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
     api.register(email,password,dataToAdd).then((res) => {
       console.log('res',res);
       if (res?.success) {
-        api.login(email,password,true) 
+        api.login(email,password,true)
         //setData(true)
       } else {
         onChangeLoginError(res?.error)
@@ -223,8 +213,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
     })
   }
   return (
-    <View style={{flex:width <= 900 ? 'none' : 1}}>
-      <View style={{maxWidth:500}}>
+    <View style={{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,padding:20,width:'100%'}}>
         <MyText>Email-cím</MyText>
         <TextInput
           style={styles.searchInput}
@@ -250,11 +239,12 @@ export const RegisterForm = ({setData,dataToAdd}) => {
             secureTextEntry
             placeholder="***************"
         />
-      </View>
-      <MyText style={styles.error} >{loginError}</MyText>
-      <NewButton style={styles.headline} title="Kész!" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
-        signUp(email,password)
-      } />{false&&
+        <MyText style={styles.error} >{loginError}</MyText>
+        <NewButton style={styles.headline} title="Kész!" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
+          signUp(email,password)
+        } />
+      
+      {false&&
       <Button title="Facebook Bejelentkezés"  onPress={fbLogin} color="#4267B2"/>}
     </View>
   )
@@ -287,8 +277,7 @@ export const MoreInfoForm = ({setData}) => {
     setData({name,bio,username:usernameValid?username:null})
   }, [name,bio,username,usernameValid]);
   return (
-    <View style={{flex:width <= 900 ? 'none' : 1}}>
-      <View style={{maxWidth:500}}>
+    <View style={{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,padding:20,width:'100%'}}>
         <MyText>Neved, vagy ahogy szeretnéd, hogy szólítsanak:)</MyText>
         <TextInput
           style={styles.searchInput}
@@ -297,10 +286,10 @@ export const MoreInfoForm = ({setData}) => {
           placeholder="Fiatal Felnőtt"
         />
         <MyText>Az egyedi felhasználóneved</MyText>
-        <View style={[{flexDirection:'row',alignItems:'center'}]}>
+        <View style={[{flexDirection:'row',width:'100%'}]}>
             <Icon style={{position:"absolute",alignSelf:'center',top:15,left:15}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={usernameValid ? "green" : "red"}/>
             <TextInput
-              style={[styles.searchInput,{paddingLeft:50,flex:1}]}
+              style={[styles.searchInput,{paddingLeft:50,marginRight:0}]}
               onChangeText={onChangeUsername}
               editable
               placeholder="fifevok69420"
@@ -308,7 +297,6 @@ export const MoreInfoForm = ({setData}) => {
           </View>
             {!usernameValid && !!username && <MyText style={[localStyle.label,{color:'red'}]}>Nem lehet ez a felhasználóneved!</MyText>}
 
-      </View>
     </View>
   )
 }

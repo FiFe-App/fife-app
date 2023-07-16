@@ -3,9 +3,9 @@
 
     "search_text": ["Keress a fifén..."],
 
-    "greeting_morning": ["Szép napot, $!","Szia $!","Jó reggelt $!","Milyen szép a mosolyod!"],
+    "greeting_morning": ["Szép kávét, boldog napot!","Szia $!","Jó reggelt $!"],
+    "greeting_normal": ["Szia $!","De jól nézel ki!"],
     "greeting_evening": ["Remélem jó napod volt!","Szia $!","Jó estét $!","Pihend ki magad!"],
-    "greeting_normal": ["Szia $!","Szép a fejed!","De jól nézel ki!"],
 
     "no_result": ["Nincs találat","Bakfitty! Nem találtunk semmit.","Próbáld meg más megfogalmazásban!","Azt a hét meg a nyolcát!"],
     "sale": ["Cserebere","Adok-veszek"],
@@ -17,5 +17,6 @@
     "help_needed": ["Egyedül nem merek elmenni","Valaki segítene eltévedni?"],
     "messages": ["Üzeneteim","Dumcsi","Üzik"],
     "logout": ["Kijelentkezés","Viszlát","Adios"],
-    "heart": ["Tetszik ez a hely","Jó a hely!","Ez a hely klafa"]
+    "heart": ["Tetszik ez a hely","Jó a hely!","Ez a hely klafa"],
+    "open_maps": ["Útvonalterv"]
 }

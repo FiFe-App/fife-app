@@ -34,11 +34,13 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/latest", async (req, res) => {
+  console.log(req?.query?.category || -1);
   const db = await adb
   let collection = await db.collection("sale");
   let results = await collection.aggregate([
     {"$project": {"author": 1, "title": 1, "category":1, "description":1, "created_at": 1}},
     {"$sort": {"created_at": -1}},
+    { "$match": req?.query?.category != undefined ? { category: Number(req?.query?.category) } : null},
     {"$limit": 3}
   ]).toArray();
   console.log('sending '+results.length+' data');
@@ -48,6 +50,7 @@ router.get("/latest", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
+
   const prisma = new PrismaClient();
   const result = await prisma.sale.findFirst({
     where: {
@@ -58,9 +61,9 @@ router.get("/:id", async (req, res) => {
     res.send("Not found").status(404);
     return
   }
-//  res.send(result)
-  res.send(JSON.parse(JSON.stringify(result)))
-  return "hello"; 
+  res.send(result)
+//  res.send(JSON.parse(JSON.stringify(result)))
+  //return "hello"; 
 
 });
 
@@ -146,6 +149,57 @@ router.patch("/:id/book", async (req, res) => {
   };
 });
 
+router.patch("/:id/book/:ind", async (req, res) => {
+  const { booked, bookedBy } = req.body;
+  const result = await prisma.sale.updateMany({
+    where: {
+      OR: [
+        {
+          id: req.params.id,
+          booked: false
+        },
+        {
+          id: req.params.id,
+          booked: true,
+          bookedBy: req.uid
+        },
+      ]
+    },
+    data: {
+      booked,
+      bookedBy: booked ? req.uid : null
+    }
+  })
+
+  if (!result) res.send("Not found").status(404);
+  else {
+    const updated = await prisma.sale.findFirst({
+      where: {
+        id: req.params.id,
+      },
+      select: {
+        author: true
+      },
+    })
+    console.log(result);
+    if (booked) {
+      await database().ref('users/'+updated.author+'/messages/'+req.uid).push({
+        text: req.params.id,
+        time: Date.now(),
+        uid: req.uid,
+        automated: true
+      })
+      await database().ref('users/'+req.uid+'/messages/'+updated.author).push({
+        text: req.params.id,
+        time: Date.now(),
+        uid: req.uid,
+        automated: true
+      })
+    }
+    res.send(!!result.count).status(200)
+  };
+});
+
 // Add a new document to the collection
 router.post("/", async (req, res) => {
   console.log('create',req.body);
@@ -154,30 +208,19 @@ router.post("/", async (req, res) => {
   })
   console.log(result);
   if (!result) res.send("could not create").status(404);
-  res.send(result.id).status(204);
+  res.send(result.id);
 });
 
-// Update the post with a new comment
-router.patch("/comment/:id", async (req, res) => {
-  const query = { _id: ObjectId(req.params.id) };
-  const updates = {
-    $push: { comments: req.body }
-  };
-
-  let collection = await db.collection("sale");
-  let result = await collection.updateOne(query, updates);
-
-  res.send(result).status(200);
-});
 
 // Delete an entry
 router.patch("/:id", async (req, res) => {
+  console.log(req);
   const result = await prisma.sale.updateMany({
     where: {
       id: req.params.id,
       author: req.uid
     },
-    data: req.data
+    data: req
   })
 
   if (!result) res.send("Not found").status(404);

@@ -8,7 +8,7 @@ import { emptyUnreadMessages, removeHelp, setUnreadMessage } from "../../lib/use
 import Chat from "../Chat";
 import { Auto, Col, NewButton, Row, MyText } from "../../components/Components";
 import Icon from 'react-native-vector-icons/Ionicons'
-import { useWindowDimensions } from "../../lib/hooks/window";
+import { useWindowDimensions } from "react-native";
 import { styles } from "../../styles/styles";
 
 export const HomeSide = ({tabProp})  => {
@@ -122,7 +122,7 @@ const Messenger = () => {
     const dispatch = useDispatch()
   
     if (help) return(
-      <View style={{flex:1,justifyContent:'center',backgroundColor:'#ffdb5b44'}}>
+      <View style={{flex:1,justifyContent:'center',backgroundColor:'#ffdb5b00'}}>
         <View style={{textAlign:'center',flexGrow:1,justifyContent:'center'}}>
           <MyText style={{fontSize:30}}>Ez itt egy üzenőfal, ahova bárki regisztrált tag írhat.</MyText>
         </View>

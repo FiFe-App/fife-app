@@ -3,10 +3,10 @@
 
 import React, { createContext, useEffect, useState } from 'react'
 import firebaseConfig from './firebaseConfig';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged,
-    FacebookAuthProvider, signInWithPopup, fetchSignInMethodsForEmail, sendPasswordResetEmail } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+    FacebookAuthProvider, signInWithPopup, fetchSignInMethodsForEmail, sendPasswordResetEmail, browserSessionPersistence, setPersistence } from "firebase/auth";
 
-import { initializeApp } from 'firebase/app';
+import { getApp, getApps, initializeApp } from 'firebase/app';
 import { get, getDatabase, ref, set } from "firebase/database";
 import { useDispatch, useSelector } from 'react-redux';
 import { login as sliceLogin, logout as sliceLogout, removeUnreadMessage, setName, setSettings, setUnreadMessage, setUserData } from '../lib/userReducer';
@@ -15,6 +15,9 @@ import { Platform } from 'react-native';
 import { getMessaging, getToken, deleteToken } from "firebase/messaging";
 import { getStorage } from 'firebase/storage';
 import { getFirestore } from '@firebase/firestore';
+import axios from 'axios';
+import { config } from './authConfig';
+import { useNavigation } from '@react-navigation/native';
 
 const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check");
 
@@ -23,44 +26,39 @@ const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check"
 const FirebaseContext = createContext(null)
 export { FirebaseContext }
 
+const app = initializeApp(firebaseConfig)
+
 export default ({ children }) => {
-    const [app,setApp] = useState(null)
-    const [auth,setAuth] = useState(null)
-    const [database,setDatabase] = useState(null)
     const [storage,setStorage] = useState(null)
     const [firestore, setFirestore] = useState(null);
-    const [api,setApi] = useState(null)
     const dispatch = useDispatch()
     const [messaging, setMessaging] = useState(null);
     const uid = useSelector((state) => state.user.uid);
 
-
-    useEffect(()=>{init()},[])
-
     const loadUid = async () => {
-        const app = auth ? app : await init()
+        //const app = auth ? app : await init()
         const auth = getAuth()
-        onAuthStateChanged(auth,(user)=>{
-            const uid = user.uid
-            return uid
-        })
+
     }
 
+    useEffect(() => {
+
+        init()        
+    }, []);
     const init = async () => {
-        if (!app?.apps?.length) {
+        if (true) {
 
-            const appNew = initializeApp(firebaseConfig);
+            console.log("INIT");
 
-            setApi({
-                    login,loadUid,register,facebookLogin,logout,forgotPassword
-                })
-            setApp(appNew)
-            appCheck(appNew)
-            setDatabase(getDatabase(appNew))
-            setFirestore(getFirestore(appNew))
-            setStorage(getStorage(appNew))
-            setAuth(getAuth(appNew))
-            return appNew;
+            //const appNew = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+            appCheck()
+            //setDatabase(getDatabase(app))
+            //setFirestore(getFirestore(app))
+            //setStorage(getStorage(app))
+            //console.log('auth.currentUser',getAuth(app)?.currentUser);
+            //setAuth(getAuth(app))
+            return //getAuth(app);
         }
     }
 
@@ -103,7 +101,7 @@ export default ({ children }) => {
         })
     }
 
-    const appCheck = (app) => {
+    const appCheck = () => {
 
         // Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
         // key is the counterpart to the secret key you set in the Firebase console.
@@ -132,6 +130,12 @@ export default ({ children }) => {
     }
 
     const logout = () => {
+        console.log('logout1');
+        if (Platform.OS != 'web') {
+            console.log('logout');
+            dispatch(sliceLogout())
+            return
+        };
         const msg = getMessaging()
         if (msg) {
             deleteToken(msg).then(e=>console.log('token deleted?',e))
@@ -141,114 +145,96 @@ export default ({ children }) => {
             })
         }
     }
-
+//init()
     const login = async (email, password, firstLogin) => {
         let newEmail = email
         let newPass = password
         let response = null
-        if (!auth) {
-            const retApp = await init()
-            const a = getAuth(retApp)
-            await signInWithEmailAndPassword(a, newEmail, newPass)
-            .then(async (userCredential) => {
-                const user = userCredential.user
-                userCredential.user.getIdToken().then(token=>{
-                    console.log(token);
 
-                    dispatch(setUserData({
-                        authtoken:token,
-                        email:user.email,
-                        emailVerified:user.emailVerified,
-                        providerData:user.providerData,
-                        createdAt:user.createdAt,
-                        lastLoginAt:user.lastLoginAt
-                    }))
+        
+        const retApp = app
+        const a = getAuth()
+        console.log('auth',a);
+        //await setPersistence(a, browserSessionPersistence)
+        await signInWithEmailAndPassword(a, newEmail, newPass)
+        .then(async (userCredential) => {
+            const user = userCredential.user
+            await user.getIdToken(true).then(token=>{
+                console.log(token);
 
-                })
-                if (firstLogin) {
-                    const db = getDatabase(retApp);
-                    const user = getAuth(retApp).currentUser;
-                    console.log(user);
-                    if (user == null) {
-                        console.log('USER NULL');
-                        return
-                    }
-                    console.log('set',`users/${user.uid}/data`,firstLogin);
-                    try{await set(ref(db,`users/${user.uid}/data`),{...firstLogin,username:null}).then(()=>{
+                dispatch(setUserData({
+                    authtoken:token,
+                    email:user.email,
+                    emailVerified:user.emailVerified,
+                    providerData:user.providerData,
+                    createdAt:user.createdAt,
+                    lastLoginAt:user.lastLoginAt
+                }))
+
+            })
+            dispatch(sliceLogin(user.uid))
+
+            if (firstLogin) {
+                const user = getAuth(retApp).currentUser;
+                console.log(user);
+                if (user == null) {
+                    console.log('USER NULL');
+                    return
+                }
+                console.log('set',`users/${user.uid}/data`,firstLogin);
+                try{
+                    await axios.post('users',firstLogin,config()).then(()=>{
                         response = {success:true,user}
-                    })} catch (err) {
-                        console.log('ERROR',err);
-                    }
-                } 
-                console.log(userCredential);
-
-                dispatch(sliceLogin(user.uid))
-
-                const dbRef = ref(getDatabase(retApp),'users/' + user.uid + "/settings");
-                get(dbRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    dispatch(setSettings(snapshot.val()))
+                    })
+                    //await 
+                    //set(ref(db,`users/${user.uid}/data`),{...firstLogin,username:null}).then(()=>{
+                    //response = {success:true,user}
+                } catch (err) {
+                    console.log('ERROR',err);
                 }
-                
-                })
-                const nameRef = ref(getDatabase(retApp),'users/' + user.uid + "/data/name");
-                get(nameRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    dispatch(setName(snapshot.val()))
-                    console.log(snapshot.val());
-                }
-                
-                })
-                response = {success:true}
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.error(error);
-            
-                if (errorCode == "auth/invalid-email" || errorCode == "auth/user-not-found")
-                    response = {error:"Bakfitty! Nem jó az email cím, amit megadtál!"};
-                else if (errorCode == "auth/internal-error")
-                    response = {error:"Bocsi, a szerveren hiba történt!"};
-                else if (errorCode == "auth/wrong-password")
-                    response = {error:"Bakfitty! Lehet elírtad a jelszavad"};
-                else
-                    response = {error:"error: " + errorCode + " - " + errorMessage};
-            });
-        } else {
-            await signInWithEmailAndPassword(auth, newEmail, newPass)
-            .then((userCredential) => {
-                console.log('signed in as ',userCredential.user.email);
-                dispatch(sliceLogin(userCredential.user.uid))
+            } 
+            console.log(userCredential);
 
-                response = {success:true,user:userCredential.user}
-                
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.error(error);
+
+            const dbRef = ref(getDatabase(retApp),'users/' + user.uid + "/settings");
+            get(dbRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                dispatch(setSettings(snapshot.val()))
+            }
             
-                if (errorCode == "auth/invalid-email")
-                    response = {error:"Rossz email adtál meg :("};
-                else if (errorCode == "auth/internal-error")
-                    response = {error:"Bejelentkezési hiba!"};
-                else if (errorCode == "auth/wrong-password")
-                    response = {error:"Rossz jelszavat adtál meg :/"};
-                else
-                    response = {error:"error: " + errorCode + " - " + errorMessage};
-            });
-        }
+            })
+            const nameRef = ref(getDatabase(retApp),'users/' + user.uid + "/data/name");
+            get(nameRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                dispatch(setName(snapshot.val()))
+                console.log(snapshot.val());
+            }
+            
+            })
+            response = {success:true}
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.error(error);
+        
+            if (errorCode == "auth/invalid-email" || errorCode == "auth/user-not-found")
+                response = {error:"Bakfitty! Nem jó az email cím, amit megadtál!"};
+            else if (errorCode == "auth/internal-error")
+                response = {error:"Bocsi, a szerveren hiba történt!"};
+            else if (errorCode == "auth/wrong-password")
+                response = {error:"Bakfitty! Lehet elírtad a jelszavad"};
+            else
+                response = {error:"error: " + errorCode + " - " + errorMessage};
+        });
 
         return response
 
     }
 
     const register = async (email,password,data) => {
-        const app = auth ? app : await init()
         let response = null
         const auth = getAuth();
-        const db = getDatabase();
         console.log('register',data);
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
             .then(async (userCredential) => {
@@ -337,7 +323,9 @@ export default ({ children }) => {
     }
 
     return (
-        <FirebaseContext.Provider value={{app,auth,database,api,messaging,storage,firestore,initMessaging}}>
+        <FirebaseContext.Provider value={{app,auth:getAuth(),database:getDatabase(),api:{
+            login,loadUid,register,facebookLogin,logout,forgotPassword
+        },messaging,storage,firestore,initMessaging}}>
             {children}
         </FirebaseContext.Provider>
     )

@@ -96,7 +96,6 @@ const MetaHeader = () => {
     console.log('theme color');
     return (<Helmet>
       <meta name="theme-color" content="#FDEEA2"/>
-      <title>FiFe App</title>
       <meta name="title" content="FiFe Alkalmazás" />
       <meta name="description" content="Sokrétű online felületet a nagyvárosban élőknek." />
 
@@ -132,30 +131,30 @@ const Navigator = () => {
   const user = useSelector((state) => state.user);
   return (
     <Stack.Navigator initialRouteName="rolunk" 
+    
     fallback={<View style={{backgroundColor:'#FDEEA2',flex:1}}></View>} 
-    screenOptions={{ header: () => <LogoTitle />, title:"FiFe App"}}>
+    screenOptions={{ header: () => <LogoTitle />,headerStyle:{zIndex:100,elevation:100,position:'absolute'}, title:"FiFe App",}}>
         <>
-          <Stack.Screen name="rolunk" component={About} options={{ headerShown: false }} />
-          <Stack.Screen name="bejelentkezes" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="az-approl" component={First} options={{ headerShown: false }} />
-          <Stack.Screen name="elfelejtett-jelszo" component={Forgot} options={{ headerShown: false }} />
-          <Stack.Screen name="adatvedelem" component={PrivacyPolicy} options={{ headerShown: false }} />
-          <Stack.Screen name="hasznalati-feltetelek" component={TermsAndServices} options={{ headerShown: false }} />
-          {
+          { !user?.uid && <>
+          <Stack.Screen name="bejelentkezes" component={LoginScreen} options={{ headerShown: false, title:'Bejelentkezés' }} />
+          <Stack.Screen name="rolunk" component={About} options={{ headerShown: false, title:"Rólunk" }} />
+          <Stack.Screen name="regisztracio" component={First} options={{ headerShown: false, title:'Regisztráció' }} />
+          <Stack.Screen name="elfelejtett-jelszo" component={Forgot} options={{ headerShown: false, title:'Új jelszó' }} />
+          </>
           //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
           }
             {user?.uid && <>
-          <Stack.Screen name="fooldal" component={HomeScreen} />
-          <Stack.Screen name="kereses" component={Search} />
+          <Stack.Screen name="fooldal" component={HomeScreen} options={{title:'FiFe Főoldal'}} />
+          <Stack.Screen name="kereses" component={Search} options={{title:'FiFe Keresés'}} />
 
-          <Stack.Screen name="beallitasok" component={Settings} />
+          <Stack.Screen name="beallitasok" component={Settings} options={{title:'FiFe Beállítások'}}/>
           
-          <Stack.Screen name="profil" component={Profile} options={{ title: "Profil" }} />
+          <Stack.Screen name="profil" component={Profile} options={{ title: "FiFe Profil" }} />
           <Stack.Screen name="profil-szerkesztese" component={Edit} options={{ title: "Profil szerkesztése" }} />
           <Stack.Screen name="uzenetek" component={Messages} options={{ title: "Beszélgetések" }} />
           <Stack.Screen name="beszelgetes" component={Chat} options={{ title: "Beszélgetés" }} />
 
-          <Stack.Screen name="terkep" component={Maps} />
+          <Stack.Screen name="terkep" component={Maps} options={{title:'FiFe Térkép'}} />
 
           <Stack.Screen name="esemenyek" component={Events} options={{ title: "Események" }} />
           <Stack.Screen name="esemeny" component={Event} />
@@ -170,6 +169,8 @@ const Navigator = () => {
           
 
           </>}
+          <Stack.Screen name="adatvedelem" component={PrivacyPolicy} options={{ headerShown: false }} />
+          <Stack.Screen name="hasznalati-feltetelek" component={TermsAndServices} options={{ headerShown: false }} />
         </>
       
     </Stack.Navigator>

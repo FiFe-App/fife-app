@@ -120,6 +120,8 @@ const NewItem = ({route,data}) => {
           config()
         ).then(async (res)=>{
           console.log('updated db',res);
+        }).catch(err=>{
+          console.log(err);
         })
       }
     };
@@ -132,7 +134,7 @@ const NewItem = ({route,data}) => {
           <MyText style={{fontSize:32}}>Vissza</MyText>
         </Row>
       </Pressable>}
-      <View style={{flex:1,padding:10,backgroundColor:'#FDEEA2'}}>
+      <ScrollView style={{flex:1,padding:10,backgroundColor:'#FDEEA2'}}>
         <MyText style={{marginBottom:10,fontSize:25}}>
         <B>Hirdess!</B> Válassz kategóriát, és töltsd fel a hirdetésedet.
         </MyText>
@@ -185,7 +187,7 @@ const NewItem = ({route,data}) => {
             onPress={save}/>
         </View>
         {loading && <Loading color="#FFC372" height={10}/>}
-      </View>
+      </ScrollView>
       </>
     )
 }
@@ -238,7 +240,8 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,globalImageBookale,setG
     setGlobalImageTexts(texts.map((e,i)=>i==index ? text : e))
   }
   return(
-    <ScrollView  style={{width:'100%',marginHorizontal:5}}>
+    <View  style={{width:'100%',marginHorizontal:5}}>
+      <MyText>Termékenként csak egy képet jelölj ,,Külön foglalható''-nak, hiába tartozik hozzá több kép.</MyText>
       {!!images.length && images.map((image,index)=>
       <View key={'image'+index} style={{flex:1}}>
         <View style={{flexDirection:'row',flex:1}}>
@@ -246,7 +249,7 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,globalImageBookale,setG
           <Pressable style={styles.close} onPress={()=>deleteImage(index)}><Icon name="close" size={20} color="white"/></Pressable>
           <View style={{flex:1}}>
             <TextInput onChangeText={text=>handleTextChange(text,index)} value={texts[index]}
-            style={{height:150,padding:10}} multiline numberOfLines={3} placeholder={"Mondj valamit erről a képről"}/>
+            style={{height:150,padding:10,backgroundColor:'#fff'}} multiline numberOfLines={3} placeholder={"Mondj valamit erről a képről"}/>
           </View>
           <Pressable style={{justifyContent:'center',alignItems:'center',padding:10
           ,backgroundColor:separate[index] ? '#ffe8ae' : '#fbf7f0d7'}}
@@ -261,7 +264,7 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,globalImageBookale,setG
         <MyText style={{fontSize:20}}>+ Új kép</MyText>
       </Pressable>
 
-    </ScrollView>
+    </View>
   )
 }
 

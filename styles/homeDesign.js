@@ -2,9 +2,8 @@ import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
     moduleContainer: {
-        paddingBottom:20,
+        paddingBottom:30,
         paddingTop:5,
-        backgroundColor:'#c4df98',
         height:280,
         justifyContent:'center',
     },
@@ -14,18 +13,17 @@ const styles = StyleSheet.create({
         flexGrow:1,
         width: 200,
         margin:2,
+        marginBottom:10,
         borderTopLeftRadius:8,
         borderTopRightRadius:8,
-        shadowOffset: {width: 4, height: 4},
-        shadowOpacity: 0.2,
-        shadowRadius: 1,
+        borderRadius:8,
+        shadowOffset: {width: 4, height: 6},
+        shadowOpacity: 0.15,
+        shadowRadius: 2,
     },
     moduleText: {
         backgroundColor:'white',
         padding:2,
-        shadowOffset: {width: 4, height: 4},
-        shadowOpacity: 0.2,
-        shadowRadius: 1,
     },
     moduleScrollView: {
         height:170,

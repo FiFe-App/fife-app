@@ -26,8 +26,7 @@ export const styles = StyleSheet.create({
     title: {
         fontFamily: "AmaticSC_700Bold",
         fontSize: 50,
-        fontWeight: "bold",
-        padding: 10,
+        fontWeight: "bold"
     },
     subTitle: {
         fontSize: 40,
@@ -55,6 +54,7 @@ export const styles = StyleSheet.create({
         padding: 10,
         fontSize:20,
         fontWeight: "500",
+        width:'100%'
     },
     fixToText: {
         flexDirection: 'row',
@@ -73,7 +73,8 @@ export const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 18,
         marginTop: 10,
-        marginBottom: 5
+        marginBottom: 5,
+        width:'100%'
     },
     error: {
         textAlign: 'center', // <-- the magic

@@ -1,10 +1,11 @@
 import SelectDropdown from "react-native-select-dropdown"
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const Select = ({list,placeholder,onSelect,style}) => {
+const Select = ({list,defaultValue,placeholder,onSelect,style}) => {
     return (
         <SelectDropdown
                 data={list}
+                defaultValueByIndex={defaultValue}
                 buttonStyle={[{backgroundColor:'#fbf7f0',padding:10,borderWidth:2,marginTop:-2,borderColor:'black',width:'100%'},style]}
                 buttonTextStyle={{fontFamily:'SpaceMono_400Regular',fontSize:20,}}
                 rowTextStyle={{fontFamily:'SpaceMono_400Regular',fontSize:20}}

@@ -11,7 +11,7 @@ import { elapsedTime, search } from "../../lib/textService/textService";
 import ImageModal from 'react-native-image-modal';
 
 import { ref as dbRef, child, get, set, onChildAdded, query, orderByChild } from "firebase/database";
-import { useWindowDimensions } from "../../lib/hooks/window";
+import { useWindowDimensions } from "react-native";
 import { ref as sRef, listAll } from "firebase/storage";
 
 

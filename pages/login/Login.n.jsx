@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { FirebaseContext } from '../../firebase/firebase';
 import { getAuth, signOut, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, onAuthStateChanged } from "firebase/auth";
 import { MyText } from '../../components/Components';
+import { useFocusEffect } from '@react-navigation/native';
 
 const LoginScreen = ({ navigation, route }) => {
     const {app, auth, user, api}  = useContext(FirebaseContext);
@@ -36,43 +37,19 @@ const LoginScreen = ({ navigation, route }) => {
       })
      
     }
-  
-    React.useEffect(() => {
-      if (api && !canLogin)
-        api.login().then((res)=>{
-          if (res?.success) {
-            navigation.push('fooldal') 
-            console.log('auto singed in');
-          }
-        })
-      if (false) {
-        onAuthStateChanged(auth,function (user) {
-          if (user && !canLogin) {
-            //api.login(user)
-            navigation.push('fooldal')
-          } else {
-            setCanLogin(true)
-            signOut(auth).then(() => {
-              console.log('signed Out');
-            }).catch((error) => {
-              // An error happened.
-            })
-          }
-        });
-  
-        setPersistence(auth, browserSessionPersistence)
-        .then(() => {
-          //
-          console.log('auto sign in');
-          signIn(email, password,'auto sign in');
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-        });
-      }
-    }, []);
-  
+    useFocusEffect(
+      useCallback(() => {
+        if (api && !canLogin)
+          api.login().then((res)=>{
+            if (res?.success) {
+              navigation.push('fooldal') 
+              console.log('auto singed in');
+            }
+          })
+        return () => {
+        };
+      }, [])
+    );
   
     let [fontsLoaded] = useFonts({
       AmaticSC_700Bold, Poppins_200ExtraLight
@@ -108,7 +85,7 @@ const LoginScreen = ({ navigation, route }) => {
           <MyText style={{margin:20,fontSize:20}}>Először vagy itt?</MyText>
           <Button style={styles.headline} title="Regisztráció" color="black"
           onPress={() =>
-            navigation.push('az-approl')
+            navigation.push('regisztracio')
           } />
         </LinearGradient>
   

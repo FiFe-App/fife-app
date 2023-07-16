@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { MyText, Row } from './Components';
 import { styles } from '../styles/styles';
 
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { FirebaseContext } from '../firebase/firebase';
 
 import { useHover } from 'react-native-web-hooks';
@@ -17,28 +17,49 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { OpenNav, SearchBar } from './Components';
 import { Helmet } from 'react-helmet';
 import { HomeButton } from './LogoComponents';
+import { setBugData } from '../lib/userReducer';
+import BugModal from './BugModal';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export function LogoTitle() {
-    const {api} = useContext(FirebaseContext);
+    const {api,app,auth} = useContext(FirebaseContext);
     const navigation = useNavigation();
-    const route = useRoute();
-
+    const dispatch = useDispatch()
+    
+    const [height, setHeight] = useState(null);
     const { width } = useWindowDimensions();
     const unreadMessage = useSelector((state) => state.user.unreadMessage)
     const [open, setOpen] = useState(false);
+    const [loggedIn, setLoggedIn] = useState(false);
+
+    onAuthStateChanged(auth,(user)=>{
+        setLoggedIn(!!user)
+        console.log('onAuthStateChanged',!!user);
+        //if (!user)
+        //logout()
+    })
+
 
     const logout = () => {
       console.log('logout');
-      api.logout()
+      navigation.navigate('bejelentkezes');
+     api.logout()
     }
 
+    const bug = <MenuLink title={<Icon name='bug' size={30} />} onPress={()=>dispatch(setBugData(true))} style={{width:55,borderRadius:50,alignItems:'center',padding:10}}/>
+    const search = <MenuLink title={<Icon name='search' size={25} />} link={"kereses"} style={{width:55,borderRadius:50,alignItems:'center',padding:10}}/>
+    const alert = <MenuLink title={<Icon name='alert' size={25} />} style={{width:55,borderRadius:50,alignItems:'center',padding:10}}/>
+
     return (
-      <LinearGradient style={{zIndex:100,elevation: 100,}} colors={['#FDEEA2', "#FDEEA2"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
+      <LinearGradient onLayout={(event) => {
+        setHeight(event.nativeEvent.layout.height);
+      }}
+      colors={['#FDEEA2', "#FDEEA2"]} start={{ x: 0, y: 0 }} end={{ x: 0.5, y: 1 }} >
         <Helmet>
           <meta name="theme-color" content="#FDEEA2"/>
         </Helmet>
         <SafeAreaView>
-          <OpenNav open={open && width < 900} style={{width:'100%',zIndex: -10,elevation: -10}}>
+          <OpenNav height={height} open={open && width <= 900} style={{width:'100%',zIndex: 13000,elevation: 10030}}>
             <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
             <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
             <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
@@ -46,12 +67,21 @@ export function LogoTitle() {
             <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
             <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
           </OpenNav>
-          <View style={{flexDirection:'row',justifyContent:width <= 900 ? 'center' :'space-between'}}>
+          <View style={[{flexDirection:'row',justifyContent:width <= 900 ? 'center' :'space-between',paddingLeft:width > 900 ?25:0,
+          zIndex: 9,elevation: 9,backgroundColor:'#FDEEA2'},width > 900 && {shadowOffset: {width: 0, height: 6 },shadowOpacity: 0.2,shadowRadius: 2}
+          ]}
+  shadowOffset={{height: 4,width:1}}
+  shadowOpacity={0.2} shadowRadius={3}>
+            { width <= 900 && <>{search}{bug}</>}
+            { !loggedIn && alert}
             <HomeButton />
             {width > 1340 && <SearchBar/>}
             { width >  900 ?
             <View style={{flexDirection:'row',justifyContent:'center',marginRight:20,marginBottom:5}}>
               <Row>
+              {width <= 1340 && width >  900 && search}
+
+                <MenuLink title={<Icon name='bug' size={30} />} onPress={()=>dispatch(setBugData(true))} style={{width:55,borderRadius:50,alignItems:'center',padding:10}}/>
                 <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
                 <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
                 <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
@@ -61,20 +91,20 @@ export function LogoTitle() {
               </Row>
             </View>
             :
-            <Row style={{}}>
               <TouchableOpacity onPress={()=>setOpen(!open)} style={{justifyContent:'center',width:70}}>
-                {open ? <MyText style={{justifyContent:'center',textAlign:'center'}}><Icon name='caret-up-outline' size={30}/></MyText>
-                      : <MyText style={{justifyContent:'center',textAlign:'center'}}><Icon name='menu-outline' size={30}/></MyText>}
-              </TouchableOpacity>
-            </Row>}
+                <MyText style={{justifyContent:'center',textAlign:'center'}}>
+                  <Icon name={open ? 'caret-up-outline':'menu-outline'} size={30}/>
+                </MyText>
+              </TouchableOpacity>}
           </View>
         </SafeAreaView>
+        <BugModal />
       </LinearGradient>)
   }
 
 
 
-  const MenuLink = ({title,link,number,setOpen,onPress}) => {
+  const MenuLink = ({title,link,number,setOpen,onPress,style}) => {
     const ref = useRef(null);
     const { width } = useWindowDimensions();
 
@@ -83,8 +113,8 @@ export function LogoTitle() {
     const route = useRoute()
     return (
       <Pressable ref={ref}
-        style={(!isHovered && route.name != link ? menuLink(width).default : 
-          [menuLink(width).default,menuLink(width).hover])}
+        style={[(!isHovered && route.name != link ? menuLink(width).default : 
+          [menuLink(width).default,menuLink(width).hover]),style]}
         onPress={()=>{
           if (onPress)
             onPress()
