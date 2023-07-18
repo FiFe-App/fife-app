@@ -129,6 +129,9 @@ const SnowfallWrap = () => {
 
 const Navigator = () => {
   const user = useSelector((state) => state.user);
+  useEffect(() => {
+    console.log('user.uid',user);
+  }, [user]);
   return (
     <Stack.Navigator initialRouteName="rolunk" 
     

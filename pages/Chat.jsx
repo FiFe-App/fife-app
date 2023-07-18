@@ -57,7 +57,6 @@ const Chat = ({route, navigation, propUid, global}) => {
                 text: message,
                 uid: uid,
                 time: Date.now(),
-                name: 
             })
             set(child(messageListRef2,'read'),null).then(e=>{
                 console.log('set!!!!');

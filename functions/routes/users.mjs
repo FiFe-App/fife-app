@@ -107,8 +107,7 @@ router.patch("/", async (req, res) => {
   }
 
   const newB = req.body.page.buziness
-  const oldB = result.page.buziness
-  const diff = newB.filter(x => !oldB.includes(x));
+  const diff = newB.filter(x => x?.removed==true);
 
 /*  console.log(newB);
   console.log(oldB);
@@ -116,6 +115,7 @@ router.patch("/", async (req, res) => {
   return*/
 
   const result2 = await Promise.all(newB.map(async (buzi,ind)=>{
+    if (buzi)
     return await prisma.buziness.upsert({
       where: {
         id: result.page.buziness[ind]?.id || '000000000000000000000000'
@@ -124,6 +124,7 @@ router.patch("/", async (req, res) => {
         num: ind,
         uid: req.uid,
         ...buzi,
+        removed: undefined,
         page: {
           connect: {
             id: result.pageId
@@ -134,15 +135,17 @@ router.patch("/", async (req, res) => {
         num: ind,
         uid: req.uid,
         ...buzi,
+        removed: undefined,
         id: undefined
       }
     })
   }))
   if (diff.length) {
   const deleteOld = await Promise.all(diff.map(async (buzi,ind)=>{
+    if (buzi)
     return await prisma.buziness.delete({
       where: {
-        name: buzi.name
+        id: buzi.id
       }
     })
   }))

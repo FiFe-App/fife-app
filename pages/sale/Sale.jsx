@@ -23,7 +23,7 @@ import { saleCategories } from "../../lib/categories";
 const categories = ['Minden',...saleCategories.map(c=>{return c.name})];
 
 const Sale = ({ navigation, route }) => {
-    const { id, category=-1 } = route.params || {};
+    const { id, category=0 } = route.params || {};
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);

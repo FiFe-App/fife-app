@@ -51,7 +51,7 @@ const SaleModule = () => {
                 }} />
             <ScrollView style={[styles.label,{marginLeft:5,maxHeight:500}]}>
                 {list.map(el=>{
-                  return <SaleListItem key={el.id} data={el}/>
+                  return <SaleListItem key={'sale'+el._id} data={el}/>
                 })}
             </ScrollView>
           </Section>)

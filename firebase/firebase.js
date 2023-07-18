@@ -1,45 +1,41 @@
 // firebase.js
 // contains the Firebase context and provider
 
-import React, { createContext, useEffect, useState } from 'react'
+import {
+    FacebookAuthProvider,
+    createUserWithEmailAndPassword,
+    fetchSignInMethodsForEmail,
+    getAuth,
+    sendPasswordResetEmail,
+    signInWithEmailAndPassword,
+    signInWithPopup
+} from "firebase/auth";
+import React, { createContext, useEffect, useState } from 'react';
 import firebaseConfig from './firebaseConfig';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    FacebookAuthProvider, signInWithPopup, fetchSignInMethodsForEmail, sendPasswordResetEmail, browserSessionPersistence, setPersistence } from "firebase/auth";
 
-import { getApp, getApps, initializeApp } from 'firebase/app';
+import { initializeApp } from 'firebase/app';
 import { get, getDatabase, ref, set } from "firebase/database";
-import { useDispatch, useSelector } from 'react-redux';
-import { login as sliceLogin, logout as sliceLogout, removeUnreadMessage, setName, setSettings, setUnreadMessage, setUserData } from '../lib/userReducer';
 import { Platform } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { removeUnreadMessage, setName, setSettings, setUserData, login as sliceLogin, logout as sliceLogout } from '../lib/userReducer';
 
-import { getMessaging, getToken, deleteToken } from "firebase/messaging";
-import { getStorage } from 'firebase/storage';
-import { getFirestore } from '@firebase/firestore';
 import axios from 'axios';
+import { deleteToken, getMessaging, getToken } from "firebase/messaging";
 import { config } from './authConfig';
-import { useNavigation } from '@react-navigation/native';
 
 const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check");
 
 // we create a React Context, for this to be accessible
 // from a component later
 const FirebaseContext = createContext(null)
-export { FirebaseContext }
+export { FirebaseContext };
 
 const app = initializeApp(firebaseConfig)
 
 export default ({ children }) => {
-    const [storage,setStorage] = useState(null)
-    const [firestore, setFirestore] = useState(null);
     const dispatch = useDispatch()
     const [messaging, setMessaging] = useState(null);
     const uid = useSelector((state) => state.user.uid);
-
-    const loadUid = async () => {
-        //const app = auth ? app : await init()
-        const auth = getAuth()
-
-    }
 
     useEffect(() => {
 
@@ -323,9 +319,9 @@ export default ({ children }) => {
     }
 
     return (
-        <FirebaseContext.Provider value={{app,auth:getAuth(),database:getDatabase(),api:{
-            login,loadUid,register,facebookLogin,logout,forgotPassword
-        },messaging,storage,firestore,initMessaging}}>
+        <FirebaseContext.Provider value={{app,auth:getAuth(app),database:getDatabase(app),api:{
+            login,register,facebookLogin,logout,forgotPassword
+        },messaging,initMessaging}}>
             {children}
         </FirebaseContext.Provider>
     )

@@ -64,9 +64,9 @@ const LoginScreen = ({ navigation, route }) => {
       showsVerticalScrollIndicator={false}>
 
       <Helmet>
-        <meta name="theme-color" content="rgba(255,196,0,1)"/>
+        <meta name="theme-color" content="#fce69c"/>
       </Helmet>
-      <LinearGradient colors={["rgba(255,196,0,1)", "#fcf3d4"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
+      <LinearGradient colors={["#fce69c", "#fcf3d4"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
         
       <NewButton title="Rólunk" onPress={()=>navigation.push('rolunk')} style={{padding:10}} textStyle={{fontSize:30}} color="#0a0a0a"/>
         {width > 900 ?
@@ -78,7 +78,7 @@ const LoginScreen = ({ navigation, route }) => {
           FiFe App
         </MyText>
         }
-        <MyText style={{fontSize:small?30:60, fontFamily:'SpaceMono_400Regular',color:'rgb(255, 217, 90)',backgroundColor:'black',textAlign:'right',paddingLeft:30,paddingRight:30}}>
+        <MyText style={{fontSize:small?30:60, fontFamily:'SpaceMono_400Regular',color:'#fce69c',backgroundColor:'black',textAlign:'right',paddingLeft:30,paddingRight:30}}>
         <B>légy közelebb</B> </MyText>
 
         <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>

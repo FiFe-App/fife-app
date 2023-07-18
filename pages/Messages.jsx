@@ -97,6 +97,7 @@ const Messages = ({route,navigation}) => {
             }
     
           return () => {
+            console.log('off');
             off(msgQuery,'child_added')
           };
         }, [])

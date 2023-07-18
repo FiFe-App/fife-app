@@ -1,4 +1,4 @@
-import { useContext, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import { Pressable, SafeAreaView, TouchableOpacity, View } from 'react-native';
 
@@ -31,13 +31,17 @@ export function LogoTitle() {
     const unreadMessage = useSelector((state) => state.user.unreadMessage)
     const [open, setOpen] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
-
-    onAuthStateChanged(auth,(user)=>{
-        setLoggedIn(!!user)
-        console.log('onAuthStateChanged',!!user);
-        //if (!user)
-        //logout()
-    })
+    useEffect(() => {
+      console.log('onAuthChanged');
+      onAuthStateChanged(auth,(user)=>{
+          setLoggedIn(!!user)
+          console.log('onAuthStateChanged',!!user);
+          //if (!user)
+          //logout()
+      })
+  
+      
+    }, []);
 
 
     const logout = () => {

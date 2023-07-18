@@ -1,7 +1,7 @@
 import { Auto, Loading, MyText, NewButton, Popup, ProfileImage, Row, TextInput } from '../../components/Components';
 
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Image, Platform, Pressable, View } from 'react-native';
+import { Animated, Image, Platform, Pressable, View, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import styles from '../../styles/profileDesign';
 
@@ -46,6 +46,7 @@ const Profile = ({ navigation, route }) => {
   const [dbImage, setDbImage] = useState(null);
   const [changed, setChanged] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const {database, api} = useContext(FirebaseContext);
   const [data, setData] = React.useState(tempData?.data);
   const [newData, setNewData] = React.useState(tempData?.data);
@@ -151,6 +152,7 @@ const Profile = ({ navigation, route }) => {
   }, [newData]);
 
   async function save() {
+    setSaving(true);
     if (changed)
       uploadImage().then(e=>console.log('uploadSuccess'))
       .catch(err=>console.error('uploadError',err))
@@ -163,6 +165,7 @@ const Profile = ({ navigation, route }) => {
         console.log("data to upload:", {
           data:newData,
           buziness: page.buziness.map(bu=>{
+            if (bu?.id == null && bu?.removed == true) return
             return {
               ...bu,
               pageId: undefined
@@ -175,6 +178,7 @@ const Profile = ({ navigation, route }) => {
           page:{
               ...page,
               buziness: page.buziness.map(bu=>{
+                if (bu?.id == null && bu?.removed == true) return
                 return {
                   ...bu,
                   pageId: undefined
@@ -184,12 +188,13 @@ const Profile = ({ navigation, route }) => {
         },config())
         .then((e) => {
           console.log('success',e);
-          setNewData(data)
+          setNewData(data) 
           dispatch(setTempData({
             ...newData,
             page:{
                 ...page,
                 buziness: page.buziness.map(bu=>{
+                if (bu?.removed == true) return
                 return {
                   ...bu,
                   pageId: undefined
@@ -197,6 +202,7 @@ const Profile = ({ navigation, route }) => {
               })
             }
           }))
+          setSaving(false);
           navigation.push('profil')
         }).catch(error => {
           console.log(error);
@@ -210,6 +216,9 @@ const Profile = ({ navigation, route }) => {
     }
   }
 
+  useEffect(() => {
+    console.log('page',page);
+  }, [page]);
   useFocusEffect(
     useCallback(() => {
       console.log(data);
@@ -258,16 +267,18 @@ const Profile = ({ navigation, route }) => {
         <GoBack style={{marginLeft:20}}/>
         <Row style={{}}>
             <View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:small?5:25,alignSelf:'center'}]}>
-              <Pressable onPress={pickImage}>
+              <Pressable onPress={pickImage} disabled={saving}>
                 <Image source={image} style={[{paddingHorizontal:0,background:'none',borderRadius:8,height:150,width:150}]}/>
               </Pressable>
             </View>
             <View >
               <NewButton onPress={pickImage}
+              disabled={saving}
               title={<Icon name='cloud-upload-outline' size={25} />} 
               style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginBottom:0}]}/>
 
               <NewButton onPress={deleteImage}
+              disabled={saving}
               title={<Icon name='close-outline' size={40} />} 
               style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginBottom:0}]}/>
 
@@ -278,11 +289,13 @@ const Profile = ({ navigation, route }) => {
             onChangeText={(e)=>setNewData({...newData, name: e})}
             editable
             placeholder="Név"
+              disabled={saving}
             defaultValue={data.name}/>
           <TextInput style={[localStyles.fcontainer,{marginLeft:small?5:25,padding:5,fontSize:30,flex:0}]} 
             onChangeText={(e)=>setNewData({...newData, title: e})}
             editable
             placeholder="Titulus"
+              disabled={saving}
             defaultValue={data.title}/>
           <Row style={{flex:width <= 900 ? 'none' : 1}}>
           <Icon style={{position:"absolute",alignSelf:'center',top:3,left:7}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={usernameValid ? "green" : "red"}/>
@@ -292,6 +305,7 @@ const Profile = ({ navigation, route }) => {
               editable
               placeholder="Add meg a felhasználóneved"
               defaultValue={data.username}
+              disabled={saving}
             />
           </Row>
         </View>
@@ -299,7 +313,8 @@ const Profile = ({ navigation, route }) => {
 
         
           <NewButton onPress={save}
-          title="Mentés" textStyle={{fontSize:30}}
+              disabled={saving}
+          title={saving?<ActivityIndicator />:"Mentés"} textStyle={{fontSize:30}}
           style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginLeft:small?5:25}]}
               />
           

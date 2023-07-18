@@ -1,104 +1,22 @@
-import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import Image from 'expo-fast-image';
-import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Animated } from "react-native";
+import Image from 'expo-fast-image';
+import { child, get, getDatabase, onChildAdded, ref, set } from 'firebase/database';
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Animated, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Auto, B, Col, MyText, NewButton, Row, getUri } from '../../components/Components';
-import { useSelector } from 'react-redux';
-import { FirebaseContext } from '../../firebase/firebase';
-import axios from 'axios';
-import { child, get, getDatabase, limitToFirst, onChildAdded, query, ref, set } from 'firebase/database';
-import { useWindowDimensions } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { Auto, B, Col, MyText, NewButton, Row } from '../../components/Components';
+import HelpModal from '../../components/help/Modal';
 import Module from '../../components/homeComponents/Module';
-import { config } from '../../firebase/authConfig';
-import { saleCategories } from '../../lib/categories';
+import { FirebaseContext } from '../../firebase/firebase';
 import { TextFor, getGreeting } from '../../lib/textService/textService';
 import { removeUnreadMessage, setTempData, setUnreadMessage } from '../../lib/userReducer';
 import HomeBackground from './HomeBackground';
-import HelpModal from '../../components/help/Modal';
 
-  
-  const EventData = [
-    { 
-      id:'w4ifm8m948emm',
-      title: 'MORNING YOGA a Manyiban!',
-      text: 'MANYI - Kulturális Műhely',
-      category: 'Test és lélek',
-      date: Date.now(),
-      image: 'https://scontent.fbud7-3.fna.fbcdn.net/v/t39.30808-6/321673215_5848982685198666_209761172298717480_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=340051&_nc_ohc=eEGnkSafpcoAX-46eqz&_nc_ht=scontent.fbud7-3.fna&oh=00_AfAOkREX-VOBpkLgoz7gAD051IbrQoOqd5_5rT49pFyXDg&oe=63EF2A6F'
-    },
-    { 
-      id:'49k9fk43iofmwe',
-      title: 'Farsang // Bánkitó x Auróra',
-      text: 'Auróra',
-      category: 'Buli',
-      date: Date.now(),
-      image: 'https://scontent.fbud7-3.fna.fbcdn.net/v/t39.30808-6/328133400_938505357142186_7978671228144834840_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=340051&_nc_ohc=7TibZcvx8bkAX8zg-4u&_nc_ht=scontent.fbud7-3.fna&oh=00_AfA6VcrXp6zOc6Xe6sfsOzqEtUEHyR4JrReG81xU-FXLMg&oe=63EF2172'
-    },
-    { 
-      id:'59ge9jefimefromk',
-      title: 'HIPERKARMA VALENTIN-NAPI KONCERT',
-      text: 'A38 HAJÓ',
-      category: 'Koncert',
-      date: Date.now(),
-      image: 'https://scontent.fbud7-3.fna.fbcdn.net/v/t39.30808-6/325778181_890244938767674_5098273371750338140_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=340051&_nc_ohc=WcDJrHAuREEAX-LNcK6&_nc_ht=scontent.fbud7-3.fna&oh=00_AfCwXx8EjOJ7hjj5fEe6d3JVKqdxiKJ3AdaehJEajb8dAw&oe=63F02D32'
-    }
-  ]
 
-  const FunctionsData = [
-    { 
-      id:'w4ifm8m948emm',
-      title: 'Oszd meg a pisikódod!',
-      text: 'Pislini kell? Van megoldás!',
-      category: 'Térkép',
-      image: 'https://media.wired.co.uk/photos/606d9cdadbc4c121710a3ebe/master/w_1600%2Cc_limit/wired-pee.jpg'
-    },
-    { 
-      id:'59ge9jefimefromk',
-      title: 'Van ötleted a apphoz?',
-      text: 'Írd le nekünk és szívesen elkészítjük!',
-      category: 'Visszajelzés',
-      image: 'https://www.upvoty.com/wp-content/uploads/2020/01/how-to-saas-idea.png'
-    },
-    { 
-      id:'49k9fk43iofmwe',
-      title: 'Szeretnéd kiönteni a lelked?',
-      text: 'Lépj be a safespacebe!',
-      category: 'Segítségnyújtás',
-      image: 'https://hips.hearstapps.com/hmg-prod/images/gettyimages-1660669048.jpg?resize=1200:*'
-    },
-  ]
-
-  const GroupsData = [
-    { 
-      id:'w4ifm8m948emm',
-      title: 'Pesti túrázók',
-      text: 'Hetente kirándulni megyünk!',
-      category: 'Kiszakadás',
-      image: 'https://www.mozgasvilag.hu/media_mv/10219/2021/other/85641-turatippek_during_SLIDER.jpg'
-    },
-    { 
-      id:'59ge9jefimefromk',
-      title: 'Csoportos lelkizés',
-      text: 'Vezetett csoport bárkinek',
-      category: 'Test és lélek',
-      image: 'https://www.benceganti.com/wp-content/uploads/2021/04/korvezetes_tabor1-1024x683.jpg'
-    },
-    { 
-      id:'49k9fk43iofmwe',
-      title: 'Kezdő webfejlesztés',
-      text: 'Tanulj meg csudi dolgokat készíteni a foteledből!',
-      category: 'Tanulás',
-      image: 'https://www.educative.io/api/page/6096075812241408/image/download/6443342641496064'
-    },
-  ]
   const HomeScreen = () => {
     const name = useSelector((state) => state.user.name)
     const uid = useSelector((state) => state.user.uid)
-    const { api, database } = useContext(FirebaseContext);
-    const nav = useNavigation()
     const dispatch = useDispatch()
     const opacity = useRef(new Animated.Value(1)).current 
     const opacity2 = useRef(new Animated.Value(0)).current 

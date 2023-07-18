@@ -259,6 +259,7 @@ console.log(profile);
         setIRated(!iRated);
       })
     }
+    if (prof)
     return (
       <><Auto 
       breakPoint={500}

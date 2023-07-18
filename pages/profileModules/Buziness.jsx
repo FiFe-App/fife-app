@@ -31,26 +31,34 @@ const Buziness = ({data,setData}) => {
     } 
     const remove = (i) => {
         setList(list.filter((item,ei) => ei !== i));
-        setData({...data,buziness:list.filter((item,ei) => ei !== i)})
+        setData({...data,buziness:list.map((item,ei) =>{
+            return {...item, removed:ei == i?true:item?.removed} 
+        })})
     }
+
+    useEffect(() => {
+        console.log('buzinessList:',list);
+    }, [list]);
 
         return(<Section title="Bizniszeim" flex={1}>
                 
                 <ScrollView style={{marginLeft:small?5:20}}>
-                    {list.map((prof,i) =>               
-                         
-                    <View style={{flexDirection:'row'}}>
-                        <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
-                            <MyText style={{fontSize:20}}>{i+1}</MyText>
-                            <Pressable onPress={()=>remove(i)}>
-                                <Icon name="trash" color={'black'} size={25}/>
-                            </Pressable>
-                        </View>
-                        <View style={{flex:1,justifyContent:'center'}}>
-                            <TextInput placeholder="kategória" onChangeText={(val)=>set(val,i,'name')} value={prof.name}/>
-                            <TextInput placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={prof.description} multiline numberOfLines={2}/>
-                        </View>
-                    </View>
+                    {list.map((prof,i) =>  
+                    {
+                        if (prof?.removed != true && prof != undefined)
+                        return (
+                        <View style={{flexDirection:'row'}} key={'buzinesslist'+prof.id}>
+                            <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
+                                <MyText style={{fontSize:20}}>{i+1}</MyText>
+                                <Pressable onPress={()=>remove(i)}>
+                                    <Icon name="trash" color={'black'} size={25}/>
+                                </Pressable>
+                            </View>
+                            <View style={{flex:1,justifyContent:'center'}}>
+                                <TextInput placeholder="kategória" onChangeText={(val)=>set(val,i,'name')} value={prof.name}/>
+                                <TextInput placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={prof.description} multiline numberOfLines={2}/>
+                            </View>
+                        </View>)}
                     )}            
 
                     <View>
