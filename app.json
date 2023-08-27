@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/b02f20b4-99d4-458f-b217-4b0d38f0b239"
     },
     "ios": {
       "supportsTablet": true,
@@ -26,12 +27,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.kristofakos.fifeapp",
-      "versionCode": 2,
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyBIBqP1wWKXVXYjyNn14R-4fV_F6ERCyZQ"
-        }
-      }
+      "versionCode": 2
     },
     "web": {
       "plugins": [
@@ -45,6 +41,9 @@
       "eas": {
         "projectId": "b02f20b4-99d4-458f-b217-4b0d38f0b239"
       }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
     }
   }
 }

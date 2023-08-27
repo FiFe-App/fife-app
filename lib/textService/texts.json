@@ -1,17 +1,17 @@
 {
     "web_title": ["légy közelebb"],
 
-    "search_text": ["Keress a fifén..."],
+    "search_text": ["Keress a fifén...","Keress a fife appon!"],
 
-    "greeting_morning": ["Szép kávét, boldog napot!","Szia $!","Jó reggelt $!"],
-    "greeting_normal": ["Szia $!","De jól nézel ki!"],
+    "greeting_morning": ["Szép kávét, boldog napot!","Szia $!","Jó reggelt $!","Légy türelmes!","Igyál sok vizet!"],
+    "greeting_normal": ["Szia $!","Legyen meg a napi jócselekedeted!","Segíts egy ismeretlennek!"],
     "greeting_evening": ["Remélem jó napod volt!","Szia $!","Jó estét $!","Pihend ki magad!"],
 
-    "no_result": ["Nincs találat","Bakfitty! Nem találtunk semmit.","Próbáld meg más megfogalmazásban!","Azt a hét meg a nyolcát!"],
+    "no_result": ["A manóba! Nincs találat","Bakfitty! Nem találtunk semmit.","Hinnye! Próbáld meg más megfogalmazásban!","Azt a hét meg a nyolcát!"],
     "sale": ["Cserebere","Adok-veszek"],
     "buy_item": ["Megveszem","Kell nekem"],
     "item_header": ["Új cserebere poszt létrehozása","Adj el, vagy vegyél valamit!","Hirdess!"],
-    "places": ["Térképek","Mi merre van","Hol vagyok"],
+    "places": ["Térkép","Mi merre van","Hol vagyok"],
     "profile": ["Profil","Én"],
     "events": ["Programok","Progik"],
     "help_needed": ["Egyedül nem merek elmenni","Valaki segítene eltévedni?"],

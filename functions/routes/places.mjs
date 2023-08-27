@@ -1,5 +1,5 @@
 import express from "express";
-import db from "../db/conn.mjs";
+import adb from "../db/conn.mjs";
 import { ObjectId } from "mongodb";
 import { PrismaClient } from "@prisma/client";
 
@@ -31,6 +31,33 @@ const categories = [
 router.get("/", async (req, res) => {
   res.send(JSON.parse(JSON.stringify(categories))).status(200);
   return "HELO"
+});
+
+router.get("/latest", async (req, res) => {
+  const db = await adb
+  let collection = await db.collection("place");
+  let results = await collection.aggregate([
+    {"$project": {"title": 1, "description":1, "category":1, "created_at": 1}},
+    {"$sort": {"created_at": -1}},
+    {"$limit": 3}
+  ]).toArray();
+  console.log('sending '+results.length+' data');
+  res.send(results)
+  return "hello"; 
+  res.send(results).status(202);
+});
+
+// search by id
+router.get("/:id/search", async (req, res) => {
+
+  const result = await prisma.place.findFirst({
+    where: {
+      id: req.params.id
+    }
+  })  
+  if (!result) res.send("Not found").status(404);
+  else res.send(result)
+
 });
 
 // Get a single post

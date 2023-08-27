@@ -12,9 +12,10 @@ import { push, ref, set } from 'firebase/database';
 import { useWindowDimensions } from 'react-native';
 import { FirebaseContext } from '../../firebase/firebase';
 import { getMaps, getPlaces, LocationData } from "./mapService";
-import { MapElement } from '../../components/MapElement';
+import { MapElement } from '../../components/MapList';
 import axios from 'axios';
 import { config } from '../../firebase/authConfig';
+import { Checkbox } from 'react-native-paper';
 
 
 const defaultFilterList = [
@@ -25,6 +26,7 @@ const defaultFilterList = [
 
 const Maps = ({navigation, route}) => {
     //#region state
+    const { id } = route?.params || {}
     const {database} = useContext(FirebaseContext);
     const { width } = useWindowDimensions();
 
@@ -153,7 +155,8 @@ const Maps = ({navigation, route}) => {
           let location = await Location.getCurrentPositionAsync({});
 
           L.marker([location.coords.latitude, location.coords.longitude],{icon: locationIcon }).addTo(map)
-          })()
+        })()
+        if (id) setSelected(id)
       }
     }, [map]);
 
@@ -258,16 +261,12 @@ const Maps = ({navigation, route}) => {
         placeholder="Keress helyekre, kategóriákra"
       />
 
-      <View style={{flexDirection:'row',marginHorizontal:30,marginVertical:5}}>
-        <MyText style={{flex:1}}>Csak ellenőrzött helyek mutatása</MyText>
-        <Switch
-            trackColor={{ false: '#767577', true: '#3e3e3e' }}
-            thumbColor={settings?.secure ? '#f5dd4b' : '#f4f3f4'}
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={(e)=>{setSettings({...settings, secure: e})}}
-            value={settings?.secure}
-            style={{alignSelf:'flex-end'}}
-        />
+      <View style={{marginHorizontal:30,marginVertical:5}}>
+        <Checkbox.Item label={<MyText>Csak ellenőrzött helyek mutatása</MyText>} 
+          color="#000" style={[]} 
+          labelStyle={{fontFamily:'SpaceMono_400Regular', letterSpacing:-1}}
+          status={settings.secure?'checked':'unchecked'} onPress={v=>setSettings({...settings,secure:!settings.secure})} />
+        
       </View>
       <ScrollView style={{}}>
         {filteredCategoryList.map((map,index)=>{

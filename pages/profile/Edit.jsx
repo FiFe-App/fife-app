@@ -22,15 +22,16 @@ import { ref as databaseRef, equalTo, get, getDatabase, query, set } from 'fireb
 import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { config } from '../../firebase/authConfig';
 import Select from '../../components/Select';
-import { saleCategories } from '../../lib/categories';
+import { categories as cats } from '../../lib/categories';
 import Section from './Section';
 import Buziness from '../profileModules/Buziness';
 import SaleModule from '../profileModules/SaleModule';
 import { setTempData } from '../../lib/userReducer';
+import { deepEqual } from '../../lib/functions';
 
 const bgColor = '#FDEEA2'//'#ffd581dd'
 const themeColor = '#000';//#ba9007
-const categories = saleCategories.map(c=>{return c.name});
+const categories = cats.sale.map(c=>{return c.name});
 
 const Profile = ({ navigation, route }) => {
   
@@ -52,8 +53,7 @@ const Profile = ({ navigation, route }) => {
   const [newData, setNewData] = React.useState(tempData?.data);
   const [page, setPage] = useState(tempData?.page || null);
   const [usernameValid, setUsernameValid] = React.useState(true);
-
-  const [saleCategory, setSaleCategory] = useState(null);
+  const dataChanged = !(deepEqual(newData,data) && deepEqual(image,dbImage) && deepEqual(page,tempData?.page || null))
 
   //#region imagePicker
   const init = async () => {
@@ -130,24 +130,16 @@ const Profile = ({ navigation, route }) => {
   //#endregion
 
   useEffect(() => {
-    if (database && newData) {
+    if (newData) {
       const username = newData.username
       if (username && username.length > 3 && username.length < 20 && username.match(/^([a-z0-9_])*$/)) {
-        const usernameRef = query(databaseRef(database, 'usernames'), equalTo(null,username.toLowerCase()))
-        get(usernameRef).then(snapshot=>{
-          if (snapshot.exists() && !snapshot.val()[data.username]) {
-            setUsernameValid(false)
-          } else setUsernameValid(true)
-        })
+        setUsernameValid(true)
       } else setUsernameValid(false)
     } 
   }, [newData?.username]);
 
   useEffect(() => {
-    if (navigation && newData) {
-      //if (deepEqual(newData,data))
-      //console.log('newData',newData);
-      //setLoading(false)
+    if (newData) {
     } 
   }, [newData]);
 
@@ -164,26 +156,26 @@ const Profile = ({ navigation, route }) => {
         }
         console.log("data to upload:", {
           data:newData,
-          buziness: page.buziness.map(bu=>{
+          buziness: page.buziness?.map(bu=>{
             if (bu?.id == null && bu?.removed == true) return
             return {
               ...bu,
               pageId: undefined
             }
-          }),
+          }) || [],
           page:page
         });
         axios.patch('users',{
           data:newData,
           page:{
               ...page,
-              buziness: page.buziness.map(bu=>{
+              buziness: page.buziness?.map(bu=>{
                 if (bu?.id == null && bu?.removed == true) return
                 return {
                   ...bu,
                   pageId: undefined
                 }
-              })
+              }) || []
           }
         },config())
         .then((e) => {
@@ -193,13 +185,13 @@ const Profile = ({ navigation, route }) => {
             ...newData,
             page:{
                 ...page,
-                buziness: page.buziness.map(bu=>{
+                buziness: page.buziness?.map(bu=>{
                 if (bu?.removed == true) return
                 return {
                   ...bu,
                   pageId: undefined
                 }
-              })
+              }) || []
             }
           }))
           setSaving(false);
@@ -207,6 +199,7 @@ const Profile = ({ navigation, route }) => {
         }).catch(error => {
           console.log(error);
           console.log(newData);
+          setSaving(false);
           if (error?.response?.data == 'Token expired') {
             console.log('Token expired');
             api.logout();
@@ -216,9 +209,6 @@ const Profile = ({ navigation, route }) => {
     }
   }
 
-  useEffect(() => {
-    console.log('page',page);
-  }, [page]);
   useFocusEffect(
     useCallback(() => {
       console.log(data);
@@ -255,19 +245,14 @@ const Profile = ({ navigation, route }) => {
     }, [uid])
   );
 
-  useEffect(() => {
-    console.log('page',page);
-  }, [page]);
-
   if (!loading)
   return(
-    <>
-    <BasePage style={{paddingRight:small?5:25,paddingBottom:25,backgroundColor:bgColor,flex:1}}>
+    <BasePage full style={{paddingRight:small?5:50,paddingLeft:small?5:25,paddingBottom:50,backgroundColor:bgColor,flex:1}}>
       <Auto style={{flex:'none'}}>
         <GoBack style={{marginLeft:20}}/>
         <Row style={{}}>
             <View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:small?5:25,alignSelf:'center'}]}>
-              <Pressable onPress={pickImage} disabled={saving}>
+              <Pressable onPress={pickImage} disabled={saving || deepEqual(newData,data) && deepEqual(image,dbImage)}>
                 <Image source={image} style={[{paddingHorizontal:0,background:'none',borderRadius:8,height:150,width:150}]}/>
               </Pressable>
             </View>
@@ -285,35 +270,28 @@ const Profile = ({ navigation, route }) => {
             </View>
         </Row>
         <View style={{flex:width <= 900 ? 'none' : 1,zIndex:10,elevation: 10}}>
-          <TextInput style={[localStyles.fcontainer,{marginLeft:small?5:25,padding:5,fontSize:30}]} 
-            onChangeText={(e)=>setNewData({...newData, name: e})}
-            editable
-            placeholder="Név"
-              disabled={saving}
-            defaultValue={data.name}/>
-          <TextInput style={[localStyles.fcontainer,{marginLeft:small?5:25,padding:5,fontSize:30,flex:0}]} 
-            onChangeText={(e)=>setNewData({...newData, title: e})}
-            editable
-            placeholder="Titulus"
-              disabled={saving}
-            defaultValue={data.title}/>
-          <Row style={{flex:width <= 900 ? 'none' : 1}}>
+          <Input attribute="name" name="Név" 
+            helpText='Írd ide, hogy hogyan szeretnéd hogy szólítsanak mások:)'
+            small={small} setNewData={setNewData} newData={newData} data={data} saving={saving}/>
+          <Input attribute="full-name" name="Teljes név" 
+            helpText='Ha szeretnéd, hogy a teljes neved alapján megtaláljanak, írd ide!'
+            small={small} setNewData={setNewData} newData={newData} data={data} saving={saving}/>
+          <Input attribute="title" name="Titulus" 
+            helpText='Megadhatod, hogy mi a te fő bizniszed'
+            small={small} setNewData={setNewData} newData={newData} data={data} saving={saving}/>
+
+          {false&&<Row style={{flex:width <= 900 ? 'none' : 1}}>
           <Icon style={{position:"absolute",alignSelf:'center',top:3,left:7}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={usernameValid ? "green" : "red"}/>
-            <TextInput
-              style={[localStyles.fcontainer,{marginLeft:small?5:25,padding:5,fontSize:20,borderColor: data.username == newData.username ? 'green' : 'orange'}]}
-              onChangeText={(e)=>{setNewData({...newData, username: e})}}
-              editable
-              placeholder="Add meg a felhasználóneved"
-              defaultValue={data.username}
-              disabled={saving}
-            />
-          </Row>
+            <Input attribute="username" name="Felhasználónév"     
+           helpText='Egy olyan egyedi kifejezést adj, meg, ami alapján '
+          small={small} setNewData={setNewData} newData={newData} data={data} saving={saving}/>
+          </Row>}
         </View>
         
 
         
           <NewButton onPress={save}
-              disabled={saving}
+              disabled={saving || !dataChanged}
           title={saving?<ActivityIndicator />:"Mentés"} textStyle={{fontSize:30}}
           style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginLeft:small?5:25}]}
               />
@@ -323,13 +301,13 @@ const Profile = ({ navigation, route }) => {
       <Auto style={{flex:1,zIndex:-1,elevation: -1}}>
         <View style={{flex:width <= 900 ? 'none' : 1}}>
           
-          <Section title="Helyzetem" flex={width <= 900 ? 'none' : 1} style={{}}>
+          {true&&<Section title="Helyzetem" flex={width <= 900 ? 'none' : 1} style={{}}>
             {
             (Platform.OS !== 'web') ? 
             <MapView style={localStyles.map} />
-            : <Map data={profile} editable setData={setData}/>
+            : <Map data={page} editable setData={(e)=>setPage({...page,location: e.location})}/>
             }
-          </Section>
+          </Section>}
         </View>
         <View style={{flex:(width <= 900 ? 'none' : 2)}}>
             <Buziness data={page} setData={setPage}/>
@@ -339,9 +317,13 @@ const Profile = ({ navigation, route }) => {
             <SaleModule />
           
         </View>
+          {small && <NewButton onPress={save}
+              disabled={saving || !changed}
+          title={saving?<ActivityIndicator />:"Mentés"} textStyle={{fontSize:30}}
+          style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginLeft:small?5:25}]}
+              />}
       </Auto>
     </BasePage>
-    </>
   )
   else return (<View style={{backgroundColor:bgColor,flex:1}}><Loading color={"#fff"}/></View>)
 }
@@ -495,6 +477,28 @@ const Profile = ({ navigation, route }) => {
     map: {
       flex:1
     },
+  }
+
+
+  const Input = ({attribute,name,helpText="",small,data,setNewData,newData,saving}) => {
+    const [opened, setOpened] = useState(false);
+
+    return (
+      <View>
+        <TextInput style={[localStyles.fcontainer,{marginLeft:small?5:25,padding:5,fontSize:30}]}
+          onChangeText={(e)=>setNewData({...newData, [attribute]: e})}
+          editable
+          onFocus={()=>setOpened(true)}
+          onBlur={()=>setOpened(false)}
+          
+          placeholder={name}
+          disabled={saving}
+          defaultValue={data?.[attribute]}
+        />
+        {opened && 
+        <MyText size={16} style={{padding:10}}
+        >{helpText}</MyText>}
+      </View>)
   }
 
   export default Profile

@@ -2,10 +2,13 @@ import express from "express";
 import cors from "cors";
 import "./lib/loadEnvironment.mjs";
 import "express-async-errors";
+import admin from "./routes/admin.mjs";
+import all from "./routes/all.mjs";
 import sale from "./routes/sale.mjs";
 import users from "./routes/users.mjs";
 import search from "./routes/search.mjs";
 import places from "./routes/places.mjs";
+import docs from "./routes/docs.mjs";
 import { checkAuth } from "./lib/auth.mjs";
 import serverless from 'serverless-http';
 
@@ -17,7 +20,10 @@ app.use(cors());
 app.use(express.json());
 
 // Load the /posts routes
+router.use("/admin", checkAuth, admin);
+router.use("/all", checkAuth, all);
 router.use("/sale", checkAuth, sale);
+router.use("/docs", checkAuth, docs);
 router.use("/users", checkAuth, users);
 router.use("/places", checkAuth, places);
 router.use("/search", checkAuth, search);

@@ -15,6 +15,7 @@ const Comments = ({style,path,placeholder}) => {
     const [author, setAuthor] = useState(name);
     const [text, setText] = useState('');
     const [loading, setLoading] = useState(false);
+    const [downloading, setDownloading] = useState(true);
     const db = getDatabase()
 
     const handleSend = async () => {
@@ -40,7 +41,11 @@ const Comments = ({style,path,placeholder}) => {
         
         onChildAdded(ref(db,path), (data) => {
             setList(old => [data.val(),...old])
+            setDownloading(false)
         });
+        setTimeout(() => {
+            setDownloading(false)    
+        }, 3000);
         return (()=>{
             off(ref(db,path),'child_added')
         })
@@ -74,7 +79,8 @@ const Comments = ({style,path,placeholder}) => {
                     )
                 })}
             </View>
-            {!list?.length && <MyText>Még nem érkezett komment</MyText>}
+            {downloading ? <Loading /> :
+            !list?.length && <MyText style={{padding:20}}>Még nem érkezett komment</MyText>}
         </View>)
 }
 

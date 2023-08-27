@@ -54,7 +54,8 @@ export const styles = StyleSheet.create({
         padding: 10,
         fontSize:20,
         fontWeight: "500",
-        width:'100%'
+        width:'100%',
+        borderRadius:8
     },
     fixToText: {
         flexDirection: 'row',

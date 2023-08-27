@@ -3,12 +3,16 @@
 
 import {
     FacebookAuthProvider,
+    browserSessionPersistence,
     createUserWithEmailAndPassword,
     fetchSignInMethodsForEmail,
     getAuth,
+    inMemoryPersistence,
     sendPasswordResetEmail,
+    setPersistence,
     signInWithEmailAndPassword,
-    signInWithPopup
+    signInWithPopup,
+    signOut
 } from "firebase/auth";
 import React, { createContext, useEffect, useState } from 'react';
 import firebaseConfig from './firebaseConfig';
@@ -101,13 +105,15 @@ export default ({ children }) => {
 
         // Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
         // key is the counterpart to the secret key you set in the Firebase console.
-        const appCheckObj = initializeAppCheck(app, {
+        try{const appCheckObj = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider('6LcSls0bAAAAAKWFaKLih15y7dPDqp9qMqFU1rgG'),
 
         // Optional argument. If true, the SDK automatically refreshes App Check
         // tokens as needed.
         isTokenAutoRefreshEnabled: true
-        });
+        });}catch(err){
+            console.log(err);
+        }
     }
 
     const forgotPassword = async (email) => {
@@ -127,6 +133,7 @@ export default ({ children }) => {
 
     const logout = () => {
         console.log('logout1');
+        signOut(getAuth());
         if (Platform.OS != 'web') {
             console.log('logout');
             dispatch(sliceLogout())
@@ -146,13 +153,8 @@ export default ({ children }) => {
         let newEmail = email
         let newPass = password
         let response = null
-
         
-        const retApp = app
-        const a = getAuth()
-        console.log('auth',a);
-        //await setPersistence(a, browserSessionPersistence)
-        await signInWithEmailAndPassword(a, newEmail, newPass)
+        await signInWithEmailAndPassword(getAuth(app), newEmail, newPass)
         .then(async (userCredential) => {
             const user = userCredential.user
             await user.getIdToken(true).then(token=>{
@@ -217,9 +219,9 @@ export default ({ children }) => {
             if (errorCode == "auth/invalid-email" || errorCode == "auth/user-not-found")
                 response = {error:"Bakfitty! Nem jó az email cím, amit megadtál!"};
             else if (errorCode == "auth/internal-error")
-                response = {error:"Bocsi, a szerveren hiba történt!"};
+                response = {error:"Azáldóját! A szerveren hiba történt, próbáld újra!"};
             else if (errorCode == "auth/wrong-password")
-                response = {error:"Bakfitty! Lehet elírtad a jelszavad"};
+                response = {error:"A fene egye meg! Lehet elírtad a jelszavad"};
             else
                 response = {error:"error: " + errorCode + " - " + errorMessage};
         });

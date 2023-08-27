@@ -9,14 +9,14 @@ import { getUri, NewButton, ProfileImage, Row, MyText, Auto } from '../../compon
 import Icon from 'react-native-vector-icons/Ionicons'
 import { styles } from "../../styles/styles";
 import ImageModal from 'react-native-image-modal';
-import { saleCategories } from '../../lib/categories';
+import { categories as cats } from '../../lib/categories';
 
-const categories = saleCategories
+const categories = cats.sale
 
 export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,openUserModal,readOnly}) {
     const navigation = useNavigation();
     const route = useRoute();
-    const {title,description,author,name,created_at,imagesDesc,imageBookable,_id,booked,bookedBy,category} = data
+    const {title,description,author,name,created_at,imagesDesc,imageBookable,_id,booked,interestedBy,bookedBy,category} = data
     const myUid = useSelector((state) => state.user.uid)
     const [loadedImage, setLoadedImage] = useState(null);
     const [elapsed, setElapsed] = useState('');
@@ -41,8 +41,8 @@ export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,open
         getImages()
     }, [imagesDesc]);
     const book = (id,isBook) => {
-        console.log('booking '+id);
-        bookItem(id,isBook)
+        console.log('booking '+id,bookItem);
+        bookItem({id,message:''})
     }
     const onPress = (e) => {
         if (setSelected) {
@@ -76,11 +76,11 @@ export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,open
                             e.stopPropagation();
                         }}>
                         { author == myUid ?
-                        booked ?
+                        interestedBy?.length ?
                             // A sajátom és lefoglalta valaki
                             <TouchableOpacity style={[{backgroundColor:'#669d51'},localStyles.square]} onPress={()=>handleMessage(author)}>
                                 <Icon name='happy-outline' color='white' size={25}/>
-                                <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>Lefoglalva</MyText>
+                                <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>Valaki érdeklődik!</MyText>
                             </TouchableOpacity>
                         :
                             // A sajátom és nincs még lefoglalva
@@ -89,24 +89,24 @@ export function SaleListItem({data,selected,setSelected,deleteItem,bookItem,open
                                 <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>Törlés</MyText>
                             </TouchableOpacity>
                         :
-                        booked ?
-                            bookedBy == myUid ?
+                        interestedBy?.length ?
+                            interestedBy.includes(myUid) ?
                                 // Valakié és lefoglaltam ff7ad4
                                 <TouchableOpacity style={[{backgroundColor:'#ff7ad4'},localStyles.square]} onPress={()=>book(_id,booked)}>
-                                    <Icon name={'checkmark'} color='white' size={25}/>
-                                    <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Lefoglaltad!'}</MyText>
+                                    <Icon name={'hand-left'} color='white' size={25}/>
+                                    <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Mégsem érdekel!'}</MyText>
                                 </TouchableOpacity>
                             :
                                 // Valakié és lefoglalta valaki 111111
                                 <TouchableOpacity style={[{backgroundColor:'#111111'},localStyles.square]} onPress={()=>book(_id,booked)}>
                                     <Icon name={'lock-closed'} color='white' size={25}/>
-                                    <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Valaki lefoglalta'}</MyText>
+                                    <MyText style={{color:'white',fontSize:11,fontWeight:'bold'}}>{'Nem elérhető'}</MyText>
                                 </TouchableOpacity>
                         :
                             // Valakié és szabad ddd
                             <TouchableOpacity style={[{backgroundColor:'#ddd'},localStyles.square]} onPress={()=>book(_id,booked)}>
-                                <Icon name={'lock-open'} color='black' size={25}/>
-                                <MyText style={{color:'black',fontSize:11,fontWeight:'bold'}}>{'Foglalás'}</MyText>
+                                <Icon name={'hand-left-outline'} color='black' size={25}/>
+                                <MyText style={{color:'black',fontSize:11,fontWeight:'bold'}}>{'Érdekel!'}</MyText>
                             </TouchableOpacity>
                     
                         }

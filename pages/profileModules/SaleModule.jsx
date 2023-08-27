@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { saleCategories } from "../../lib/categories";
+import { categories as cats } from "../../lib/categories";
 import { useSelector } from "react-redux";
 import Section from "../profile/Section";
 import Select from "../../components/Select";
@@ -10,7 +10,7 @@ import axios from "axios";
 import { config } from "../../firebase/authConfig";
 import { FirebaseContext } from "../../firebase/firebase";
 
-const categories = saleCategories.map(c=>{return c.name});
+const categories = cats.sale.map(c=>{return c.name});
 
 const SaleModule = () => {
 

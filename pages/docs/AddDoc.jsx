@@ -14,15 +14,24 @@ const AddDoc = () => {
         backgroundColor: '#ffffff88',
         textAlignVertical: "top"
     }
+    const [forms, setForms] = useState([]);
     return ((
-    <BasePage style={{backgroundColor:'#9efd7b'}}>
-        <GoBack text="Vissza a főoldalra" previous="fooldal" breakPoint={1000}/>
+    <BasePage style={{backgroundColor:'#FDEEA2'}}>
+        <GoBack text="Vissza" previous="fooldal" breakPoint={1000}/>
         <MyText title>Van valami amit megosztanál minden felhasználóval?</MyText>
         <MyText size={18}>Írd le az üzeneted, hogy eljuthasson mindenkihez</MyText>
         <TextInput multiline numberOfLines={15} style={defStyle}/>
-        
+
+        <View style={{padding:20}}>
+            <MyText title>{data?.title}</MyText>
+            <MyText size={20} >{data?.text}</MyText>
+            <View style={{margin:width <= 900 ? 5 : 30}}>
+                {data?.forms.map((f)=> <CustomInput {...f} setData={setInput} data={input} />)}
+            </View>
+        </View>
+
         <MyText size={18}>Ha elküldöd, mi megnézzük, hogy valóban az oldalra illik-e a posztod, és ha igen, mindenki elérheti majd</MyText>
-        <NewButton color="#7ac35f" title="Küldés"/>
+        <NewButton  title="Küldés"/>
     </BasePage>)
     )
 }

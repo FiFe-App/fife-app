@@ -15,8 +15,7 @@ model sale {
   description    String
   category       Int
   created_at     DateTime  @default(now()) @db.Timestamp
-  booked         Boolean   @default(false)
-  bookedBy       String?
+  interestedBy   Json[]
   imagesDesc     String[]
   imagesBookable Boolean[]
 }
@@ -60,17 +59,16 @@ model event {
 }
 
 model user {
-  id         String  @id @default(auto()) @map("_id") @db.ObjectId
-  uid        String  @unique
-  name       String
-  username   String
-  title      String?
-  fcm        String?
-  textToType String?
-  page       page?   @relation(fields: [pageId], references: [id])
-  pageId     String? @db.ObjectId
-  place      place?  @relation(fields: [placeId], references: [id])
-  placeId    String? @db.ObjectId
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  uid       String     @unique
+  name      String
+  username  String
+  title     String?
+  page      page?      @relation(fields: [pageId], references: [id])
+  pageId    String?    @db.ObjectId
+  place     place?     @relation(fields: [placeId], references: [id])
+  placeId   String?    @db.ObjectId
+  documents document[]
 }
 
 model page {
@@ -80,7 +78,7 @@ model page {
   buziness   buziness[]
   images     images[]
   texts      text[]
-  locations  location[]
+  location   Float[]
 
   user user[]
 }
@@ -112,12 +110,12 @@ model text {
 }
 
 model location {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  page   page   @relation(fields: [pageId], references: [id])
-  pageId String @db.ObjectId
-  lat    Float
-  lng    Float
-  title  String
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  //age   page   @relation(fields: [pageId], references: [id])
+  //pageId String @unique @db.ObjectId // relation scalar field (used in the `@relation` attribute above)
+  lat   Float
+  lng   Float
+  title String
 }
 
 model like {
@@ -125,4 +123,19 @@ model like {
   uid     String
   place   place  @relation(fields: [placeId], references: [id])
   placeId String @db.ObjectId
+}
+
+model document {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  author   user    @relation(fields: [authorId], references: [id])
+  authorId String  @db.ObjectId
+  active   Boolean
+
+  category   String
+  color      String?
+  title      String
+  text       String
+  image      String?
+  forms      Json
+  created_at DateTime @default(now()) @db.Timestamp
 }

@@ -7,11 +7,12 @@ import ImageModal from "react-native-image-modal";
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from "react-redux";
 import { Loading, MyText, NewButton, ProfileImage, Row, Slideshow, getNameOf, getUri } from "../../components/Components";
+import Comments from "../../components/tools/Comments";
 import { config } from "../../firebase/authConfig";
-import { saleCategories } from "../../lib/categories";
-import { elapsedTime } from "../../lib/textService/textService";
-import Comments from "../../components/tools/Comments"
 import { FirebaseContext } from "../../firebase/firebase";
+import { categories } from "../../lib/categories";
+import { elapsedTime } from "../../lib/textService/textService";
+import GoBack from "../../components/Goback";
 
 
 
@@ -22,7 +23,7 @@ export const Item = ({data,toLoadId,bookItem,deleteItem,setSelected}) => {
     const width = useWindowDimensions().width
     const [loadData, setLoadData] = useState(data);
     const [images, setImages] = useState([]);
-    const { title, description, author, category, created_at, booked, bookedBy, id, imagesDesc, imagesBookable, authorName, bookedByName } = loadData || {};
+    const { title, description, author, category, created_at, booked, bookedBy, interestedBy, id, imagesDesc, imagesBookable, authorName, bookedByName } = loadData || {};
     const [loading, setLoading] = useState(true);
     const [elapsed, setElapsed] = useState();
     const [openedImage, setOpenedImage] = useState(null);
@@ -70,8 +71,8 @@ export const Item = ({data,toLoadId,bookItem,deleteItem,setSelected}) => {
       }, [toLoadId])
     );
 
-    const handleBook = async () => {
-      const newBooked = await bookItem(id,booked)
+    const handleBook = async (toBook) => {
+      const newBooked = await bookItem(id,toBook)
       console.log(newBooked);
       setLoadData({...loadData,booked:newBooked,bookedBy:uid})
     }
@@ -85,34 +86,30 @@ export const Item = ({data,toLoadId,bookItem,deleteItem,setSelected}) => {
 
     return (
       <>
-      <Pressable onPress={goBack} style={{backgroundColor:'#FDEEA200',position:'absolute',zIndex:10,width:'100%'}}>
-        <Row style={{padding:10,alignItems:'center'}}>
-          <Icon name="chevron-back" size={32} color="white"/>
-          <MyText style={{fontSize:32,color:'white'}}>Vissza</MyText>
-        </Row>
-      </Pressable>
-        {!loading ?
+      {!loading ?
       <ScrollView style={{flex:1,padding:0,backgroundColor:'#FDEEA2'}}>
+        <GoBack breakPoint={10000}
+        previous={'cserebere'} floating style={{backgroundColor:'#000000aa'}} color='white'/>
         { loadData ? <>
-          <Slideshow 
-            photos={images}
+          {images.length?<Slideshow 
+            photos={images.length ? images : []}
             style={{backgroundColor:'#FDEEA2'}}
-          />
+          />:<ProfileImage uid={author} style={{width:'100%',height:300}}/>}
           {author == uid && false && 
           <Row style={{}}>
               <NewButton style={{marginBottom:20,fontSize:25,padding:10,flex:1}} title='szerkesztés' />
               <NewButton style={{marginBottom:20,fontSize:25,padding:10}} title='törlés' color='#aa2786' onPress={deleteItem}/>
             </Row>}
 
-          {booked && bookedBy!=uid && false &&
-          <TouchableOpacity onPress={()=>navigation.push('profil',{uid:bookedBy})}>
+          {!!interestedBy?.length && !interestedBy.includes(uid) &&
+          <TouchableOpacity>
             <MyText style={[styles.booked,{backgroundColor:'#669d51aa'}]}>
-              {'Ezt '+bookedByName+' lefoglalta!'}
+              {'Valaki érdeklődik már!'}
             </MyText>
           </TouchableOpacity>}
-          {(bookedBy==uid || !booked) && uid!=author &&
-            <NewButton title={booked?"Feloldom a foglalást":"Lefoglalom"} onPress={handleBook}
-              color={booked?'#669d51aa':'#90dd72aa'}
+          {(!interestedBy?.length || interestedBy.includes(uid)) && uid!=author &&
+            <NewButton title={interestedBy.includes(uid)?"Mégsem érdekel":"Érdekel"} onPress={()=>handleBook(!interestedBy.includes(uid))}
+              color={interestedBy.includes(uid)?'#669d51aa':'#90dd72aa'}
             />
           }
 
@@ -120,7 +117,7 @@ export const Item = ({data,toLoadId,bookItem,deleteItem,setSelected}) => {
           <Row>
             <MyText title style={{marginLeft:20,marginTop:0}}>{title}</MyText>
             <View style={{alignSelf: 'flex-start',marginTop:5}}>
-              <MyText size={24} style={{marginHorizontal:10,backgroundColor:saleCategories[category].color,padding:5}}>{saleCategories[category].name}</MyText>
+              <MyText size={24} style={{marginHorizontal:10,backgroundColor:categories.sale[category].color,padding:5}}>{categories.sale[category].name}</MyText>
             </View>
           </Row>
           {uid!=author && 

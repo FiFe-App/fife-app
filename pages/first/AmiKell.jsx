@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { Auto, MyText } from "../../components/Components";
-import CustomInput from "../../components/CustomInput";
+import CustomInput from "../../components/custom/CustomInput";
 
 const modules = [
     [

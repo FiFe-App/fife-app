@@ -64,11 +64,11 @@ const LoginScreen = ({ navigation, route }) => {
       showsVerticalScrollIndicator={false}>
 
       <Helmet>
-        <meta name="theme-color" content="#fce69c"/>
+        <meta name="theme-color" content="#FDEEA2"/>
       </Helmet>
-      <LinearGradient colors={["#fce69c", "#fcf3d4"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
+      <LinearGradient colors={["#FDEEA2", "#FDEEA2"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
         
-      <NewButton title="Rólunk" onPress={()=>navigation.push('rolunk')} style={{padding:10}} textStyle={{fontSize:30}} color="#0a0a0a"/>
+      <NewButton title="Rólunk" onPress={()=>navigation.push('rolunk')} style={{padding:10}} textStyle={{fontSize:30}} color="#fdcf99"/>
         {width > 900 ?
           <MyText style={{fontSize:'10vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>
           FiFe App
@@ -78,8 +78,8 @@ const LoginScreen = ({ navigation, route }) => {
           FiFe App
         </MyText>
         }
-        <MyText style={{fontSize:small?30:60, fontFamily:'SpaceMono_400Regular',color:'#fce69c',backgroundColor:'black',textAlign:'right',paddingLeft:30,paddingRight:30}}>
-        <B>légy közelebb</B> </MyText>
+        <MyText style={{fontSize:small?30:60, fontFamily:'SpaceMono_400Regular',color:'#000',backgroundColor:'transparent',textAlign:'right',paddingLeft:30,paddingRight:30}}>
+        <B>légy közelebb</B></MyText>
 
         <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
             {!true ?
@@ -155,10 +155,10 @@ const  LoginForm = () => {
             onSubmitEditing={()=>signIn(username, password, onChangeLoginError)}
           />
       </View>
-      <Pressable style={{width:70,backgroundColor:'black',justifyContent:'center',alignItems:"center",margin:5,borderRadius:8}} 
+      <Pressable style={{width:70,backgroundColor:'#fdcf99',justifyContent:'center',alignItems:"center",margin:5,borderRadius:8}} 
         onPress={() => signIn(username, password, onChangeLoginError)}>
         {!loading ?
-        <Icon name="arrow-forward-outline" color="white" size={40}/>
+        <Icon name="arrow-forward-outline" color="black" size={40}/>
         :<Loading/>}
       </Pressable>
       </View>
@@ -325,7 +325,7 @@ const Loading = () => {
 
   return (<Animated.View
     style={{transform: [{rotate: spin}] }}>
-      <Icon name="arrow-forward-outline" color="white" size={40}/>
+      <Icon name="arrow-forward-outline" color="black" size={40}/>
     </Animated.View>)
 } 
 

@@ -13,8 +13,7 @@ import { TextFor, getGreeting } from '../../lib/textService/textService';
 import { removeUnreadMessage, setTempData, setUnreadMessage } from '../../lib/userReducer';
 import HomeBackground from './HomeBackground';
 import styles from '../../styles/homeDesign';
-import axios from 'axios';
-import { onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 
   const HomeScreen = () => {
@@ -39,7 +38,7 @@ import { onAuthStateChanged } from 'firebase/auth';
     const [loggedIn, setLoggedIn] = useState(false);
     useEffect(() => {
       console.log('onAuthChanged');
-      onAuthStateChanged(auth,(user)=>{
+      onAuthStateChanged(getAuth(),(user)=>{
           setLoggedIn(!!user)
           console.log('onAuthStateChanged',!!user);
           //if (!user)
@@ -48,7 +47,6 @@ import { onAuthStateChanged } from 'firebase/auth';
   
       
     }, []);
-
 
     useFocusEffect(
       useCallback(() => {
@@ -61,6 +59,30 @@ import { onAuthStateChanged } from 'firebase/auth';
 
       }, [])
     );
+
+    useEffect(() => {
+      if (searchText.length > 0) 
+        open()
+      else
+        close()
+    }, [searchText]);
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+    const open = async () => {
+      Animated.timing(height,{ toValue: 100, duration: 500, useNativeDriver: false }).start();
+
+      await delay(1000);
+
+      Animated.timing(opacity,{ toValue: 0, duration: 500, useNativeDriver: false }).start();
+      Animated.timing(opacity2,{ toValue: 1, duration: 500, useNativeDriver: false }).start();
+    }
+
+    const close = async () => {
+      Animated.timing(height,{ toValue: 0, duration: 500, useNativeDriver: false }).start();
+      //await delay(1000);
+      Animated.timing(opacity,{ toValue: 1, duration: 500, useNativeDriver: false }).start();
+      Animated.timing(opacity2,{ toValue: 0, duration: 500, useNativeDriver: false }).start();
+    }
 
     const modules = {
       sale: <Module title="Friss, ropogós cuccok" link="cserebere" params={{category:0}}
@@ -79,11 +101,16 @@ import { onAuthStateChanged } from 'firebase/auth';
     const [list, setList] = useState([]);
 
     useEffect(() => {
-      if (filter?.length) {
-        axios.get('/latest',{params:filter}).then(res=>{
-          setList(res)
+      console.log(filter);
+      setList(
+        [modules.sale,modules.work,modules.rent,modules.places].filter((e,i)=>{
+          console.log(i,!![filter.sale,filter.work,filter.rent,filter.places][i]);
+          return !![filter.sale,filter.work,filter.rent,filter.places][i]
         })
-      }
+      )
+      console.log(['saleModule','workModule','rentModule','placesModule'].filter((e,i)=>{
+        return !![filter.sale,filter.work,filter.rent,filter.places][i]
+      }))
     }, [filter]);
 
     useEffect(() => {
@@ -113,6 +140,7 @@ import { onAuthStateChanged } from 'firebase/auth';
                 </Row>
               </Animated.View> 
             </Col>
+            {!loggedIn && <MyText size={40}>!</MyText>}
             <View style={{padding:10,alignItems:'center',justifyContent:'center'}}>
               <NewButton icon title={<Icon name="options-outline" size={30} />} onPress={()=>setFilterModal(true)}/>
             </View>
@@ -121,19 +149,19 @@ import { onAuthStateChanged } from 'firebase/auth';
           {width > 900 ? <>
             <Auto >
               <View>
-                {<Module data={list?.[0]} />}
-                {<Module data={newsModule} />}
+                {list?.[0]}
+                {newsModule}
               </View>
               <View>
-                {<Module data={list?.[1]} />}
-                {<Module data={list?.[2]} />}
+                {list?.[1]}
+                {list?.[2]}
               </View>
             </Auto>
           </> : <View>
-                {<Module data={list?.[0]} />}
-                {<Module data={list?.[1]} />}
-                {<Module data={list?.[2]} />}
-                {<Module data={newsModule} />}
+          {list?.[0]}
+              {list?.[1]}
+                {list?.[2]}
+                  {newsModule}
           </View> }
           <HelpModal 
             title="Mi érdekel?"

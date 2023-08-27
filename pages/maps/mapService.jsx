@@ -15,6 +15,7 @@ import axios from 'axios';
 import { config } from '../../firebase/authConfig';
 import UrlText from '../../components/tools/UrlText';
 import openMap from 'react-native-open-maps';
+import { MapContext } from './MapContext';
 
 
 
@@ -77,6 +78,20 @@ export const getPlaces = async (id) => {
   }
 }
 
+export const getPlaceById = async (id) => {
+
+  try {
+    const data = await axios.get('/places/'+id+'/search',config())
+    console.log('getPlaces',data);
+    return data.data
+  } catch (error) {
+    console.log(error);
+    return null
+  }
+}
+
+
+
 export const getHearts = async (locationId) => {
     if (locationId ) {
       const heart = await axios.get('/places/' + locationId + '/like',config());
@@ -115,30 +130,30 @@ export const helpLocation = async (db,uid,mapId,locationId,toHelp) => {
 export const LocationData = (props) => {
     const { width } = useWindowDimensions();
     const {database} = useContext(FirebaseContext);
+    const {selectedPlace,setSelectedPlace} = useContext(MapContext);
     const uid = useSelector((state) => state.user.uid)
-    const {location,locationId,mapId,setLocation} = props;
     const [heartedList, setHeartedList] = useState(null);
     const [hearted, setHearted] = useState(false);
     const [help, setHelp] = useState(false);
     const [helpModal, setHelpModal] = useState(false);
 
     useEffect(() => {
-      console.log('locationLIke',location.id);
+      console.log('locationLIke',selectedPlace.id);
 
-      if (location.id) {
+      if (selectedPlace.id) {
         (async ()=>{
-        const hearted = await getHearts(location.id)
+        const hearted = await getHearts(selectedPlace.id)
         console.log('hearted',hearted);
         setHearted(hearted)
         })()
         
       }
-    }, [location.id]);
+    }, [selectedPlace?.id]);
 
-    if (!location) return null
+    if (!selectedPlace) return null
 
     const handleHeart = async () => {
-      const success = await heartLocation(location.id,hearted)
+      const success = await heartLocation(selectedPlace.id,hearted)
       if (success)
       setHearted(!hearted)
     }
@@ -151,20 +166,20 @@ export const LocationData = (props) => {
     return (
       <ScrollView style={[styles.selectedLocation,{flex: width <= 900 ? 1 : 'none'} ]}>
         <Row>
-          <MyText style={{fontSize:20,padding:10,flexGrow:1}}>{location?.title}</MyText>
-          <Pressable style={{paddingHorizontal:10}} onPress={()=>setLocation(null)}><MyText style={{fontSize:20}}>X</MyText></Pressable>
+          <MyText style={{fontSize:20,padding:10,flexGrow:1}}>{selectedPlace?.title}</MyText>
+          <Pressable style={{paddingHorizontal:10}} onPress={()=>setSelectedPlace(null)}><MyText style={{fontSize:20}}>X</MyText></Pressable>
         </Row>
-        <UrlText style={{padding:10}} text={location?.description} />
+        <UrlText style={{padding:10}} text={selectedPlace?.description} />
         <TouchableOpacity onPress={handleHeart} style={{flexDirection:'row',alignItems:'center'}}>
             <Icon name={hearted ? "heart" : "heart-outline"} size={25} color="red" style={{paddingHorizontal:10}}/>
             <TextFor text="heart" />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={()=>openMap({ 
-          latitude: location.lat, 
-          longitude: location.lng,
-          query: location.title,
-          end: location.title,
+          latitude: selectedPlace.lat, 
+          longitude: selectedPlace.lng,
+          query: selectedPlace.title,
+          end: selectedPlace.title,
         }) } 
         style={{flexDirection:'row',alignItems:'center'}}>
             <Icon name={"compass-outline"} size={25} color="blue" style={{paddingHorizontal:10}}/>
@@ -173,7 +188,7 @@ export const LocationData = (props) => {
         <AloneModal 
         modalVisible={helpModal} 
         setModalVisible={setHelpModal} 
-        locationName={location?.name}
+        locationName={selectedPlace?.name}
         handleOK={handleHelp}/>
       </ScrollView>
     )

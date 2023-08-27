@@ -30,18 +30,6 @@ export function LogoTitle() {
     const { width } = useWindowDimensions();
     const unreadMessage = useSelector((state) => state.user.unreadMessage)
     const [open, setOpen] = useState(false);
-    const [loggedIn, setLoggedIn] = useState(false);
-    useEffect(() => {
-      console.log('onAuthChanged');
-      onAuthStateChanged(auth,(user)=>{
-          setLoggedIn(!!user)
-          console.log('onAuthStateChanged',!!user);
-          //if (!user)
-          //logout()
-      })
-  
-      
-    }, []);
 
 
     const logout = () => {
@@ -72,12 +60,11 @@ export function LogoTitle() {
             <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
           </OpenNav>
           <View style={[{flexDirection:'row',justifyContent:width <= 900 ? 'center' :'space-between',paddingLeft:width > 900 ?25:0,
-          zIndex: 9,elevation: 9,backgroundColor:'#FDEEA2'},width > 900 && {shadowOffset: {width: 0, height: 6 },shadowOpacity: 0.2,shadowRadius: 2}
+          zIndex: 9,elevation: 9,backgroundColor:'#FDEEA2'},width > 900 && {shadowOffset: {width: 0, height: 3 },shadowOpacity: 0.4,shadowRadius: 2}
           ]}
   shadowOffset={{height: 4,width:1}}
-  shadowOpacity={0.2} shadowRadius={3}>
+  shadowOpacity={0.4} shadowRadius={3}>
             { width <= 900 && <>{search}{bug}</>}
-            { !loggedIn && alert}
             <HomeButton />
             {width > 1340 && <SearchBar/>}
             { width >  900 ?
@@ -101,8 +88,8 @@ export function LogoTitle() {
                 </MyText>
               </TouchableOpacity>}
           </View>
+          <BugModal />
         </SafeAreaView>
-        <BugModal />
       </LinearGradient>)
   }
 

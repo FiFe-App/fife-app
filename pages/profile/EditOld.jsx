@@ -21,244 +21,6 @@ const color2 = '#aaa'//'#FFC372'
 //const themeColor = '#fcf3d4';FFC372
 const bgColor = '#FDEEA2'
 
-const Edit = ({ navigation, route }) => {
-  const uid = useSelector((state) => state.user.uid)
-  const small = width <= 900;
-  const { width } = useWindowDimensions();
-  const Dpath = 'users/'+uid+'/pro_file'
-  const Spath = 'profiles/'+uid+"/profile.jpg"
-  const [image, setImage] = useState(null);
-  const [dbImage, setDbImage] = useState(null);
-  const [changed, setChanged] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const {database, app, auth} = useContext(FirebaseContext);
-  const [data, setData] = React.useState({});
-  const [newData, setNewData] = React.useState(null);
-  const [usernameValid, setUsernameValid] = React.useState(true);
-
-  //#region imagePicker
-  const init = async () => {
-    const storage = getStorage();
-    getDownloadURL(storageRef(storage, Spath+''))
-    .then((url) => {
-        setImage({uri: url})
-        setDbImage({uri: url})
-    }).catch(error => {
-        setImage(require("../../assets/profile.jpeg"))
-    })
-  }
-
-  useEffect(() => {
-    if (image != 'oldimage')
-    console.log('changed');
-  }, [image]);
-
-  const pickImage = async () => {
-      // No permissions request is necessary for launching the image library
-      let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      });
-
-      if (!result.cancelled) {
-          setImage(result.uri)
-          setChanged(true)
-      }
-  }
-
-  const deleteImage = () => {
-    setImage(require('../../assets/profile.jpeg'))
-  }
-
-  const uploadImage = async () => {
-      console.log('changed',changed);
-      if (changed) {
-        const db = getDatabase()
-        const storage = getStorage();
-        const ref = storageRef(storage, Spath);
-
-        let localUri = image;
-        let filename = localUri.split('/').pop();
-
-        let match = /\.(\w+)$/.exec(filename);
-        let type = match ? `image/${match[1]}` : `image`;
-
-        const blob = await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.onload = function () {
-              resolve(xhr.response);
-            };
-            xhr.onerror = function (e) {
-              console.log(e);
-            reject(new TypeError("Network request failed"));
-            };
-            xhr.responseType = "blob";
-            xhr.open("GET", localUri, true);
-            xhr.send(null);
-        });
-
-        uploadBytes(ref, blob).then((snapshot) => {
-            console.log('Uploaded a blob or file!');
-            console.log(snapshot.metadata.size);
-            set(databaseRef(db, Dpath), filename);
-        }).catch(error=>console.error(error))
-      }
-
-      return true
-  }
-  //#endregion
-
-  useEffect(() => {
-    if (database) {
-      get(databaseRef(database,'users/'+uid+'/data')).then(snapshot=>{
-        if (snapshot.exists()) {
-          let newData = snapshot.val()
-          setData(newData)
-          setNewData(newData)
-        } else {
-          const object = {
-            name: '',
-            username: '',
-            bio: '',
-            buziness: [],
-            links: []
-          }
-          setData(object)
-          setNewData(object)
-        }
-      })
-      init()
-    }
-  }, [database]);
-
-  useEffect(() => {
-    if (database && newData) {
-      const username = newData.username
-      if (username && username.length > 3 && username.length < 20 && username.match(/^([a-z0-9_])*$/)) {
-        const usernameRef = query(databaseRef(database, 'usernames'), equalTo(null,username.toLowerCase()))
-        get(usernameRef).then(snapshot=>{
-          if (snapshot.exists() && !snapshot.val()[data.username]) {
-            setUsernameValid(false)
-          } else setUsernameValid(true)
-        })
-      } else setUsernameValid(false)
-    } 
-  }, [newData?.username]);
-
-  useEffect(() => {
-    if (navigation && newData) {
-      if (deepEqual(newData,data))
-      //console.log('newData',newData);
-      setLoading(false)
-    } 
-  }, [newData]);
-
-  async function save() {
-    if (changed)
-      uploadImage().then(e=>console.log('uploadSuccess'))
-    if (database)
-    if (uid) {
-        if (newData.username != data.username) {
-          await set(databaseRef(database, 'usernames/' + newData.username), {owner:uid})
-        }
-        newData.unread = null
-        console.log("newdata to upload:", newData);
-        console.log("data to upload:", data);
-        set(databaseRef(database, 'users/' + uid + '/data'), newData)
-        .then((e) => {
-          console.log('success',e);
-          setNewData(data)
-          navigation.push('profil')
-        }).catch(error => {
-          console.log(error);
-          console.log(newData);
-        });
-    } else
-    navigation.push('bejelentkezes')
-  }
-
-  if (loading)
-  return (
-  <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:bgColor}}>
-    <ActivityIndicator size='large' color='rgba(255,196,0,1)'/>
-  </View>)
-  else 
-  return (
-    <View style={[localStyle.container,{flex:1,paddingLeft: width > 900 ? 50 : 5}]}> 
-    <Pressable onPress={()=>{navigation.push('profil')}}>
-      <MyText style={{fontSize:35}}><Icon name="chevron-back-outline" size={35}/> Vissza a profilodhoz</MyText>
-    </Pressable>
-    <ScrollView style={[{padding: width > 900 ? 50 : 5,paddingTop:10}]}>  
-      <Auto >
-        <View style={{flex:1,marginHorizontal: width > 900 ? 20 : 0}}>        
-          <View style={localStyle.imageContainer}>
-            <View>
-              {!image ? <ActivityIndicator size='large' color='rgba(255,196,0,1)'/> :
-              <Pressable onPress={pickImage}>
-                <Image source={image} style={localStyle.image} resizeMode="cover"/>
-              </Pressable>}
-            </View>
-            <View >
-              <TouchableOpacity onPress={pickImage} style={[localStyle.smallButton,{marginBottom:-2}]}>
-                <Icon name='cloud-upload-outline' size={25}></Icon>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={deleteImage} style={localStyle.smallButton}>
-                <Icon name='close-outline' size={40}></Icon>
-              </TouchableOpacity>
-            </View>
-            <View style={{flex:1,paddingHorizontal: 5}}>
-              <NewButton title="Mentsd el a profilod" onPress={save} disabled={deepEqual(newData,data) && deepEqual(image,dbImage)}/>
-              <Row>
-                <Pressable onPress={()=>setImage(require('../../assets/profile.jpeg'))}>
-                  <Image source={require('../../assets/profile.jpeg')} style={{height:100,width:100}}/>
-                </Pressable>
-                <Pressable onPress={()=>setImage(require('../../assets/img-main.jpg'))}>
-                  <Image source={require('../../assets/img-main.jpg')} style={{height:100,width:100}}/>
-                </Pressable>
-                <Pressable onPress={()=>setImage(require('../../assets/img-prof.jpg'))}>
-                  <Image source={require('../../assets/img-prof.jpg')} style={{height:100,width:100}}/>
-                </Pressable>
-              </Row>
-            </View>
-          </View>
-          <Header title="Felhasználónév" icon="ios-finger-print" helpText="Ez az egyedi azonosítód a felhasználók közt"/>
-          <View style={[{flexDirection:'row',alignItems:'center'}]}>
-            <Icon style={{position:"absolute",alignSelf:'center',top:3,left:7}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={usernameValid ? "green" : "red"}/>
-            <TextInput
-              style={[localStyle.input,{paddingLeft:50,flex:1,borderColor: data.username == newData.username ? 'green' : 'orange'}]}
-              onChangeText={(e)=>{setNewData({...newData, username: e})}}
-              editable
-              placeholder="Add meg a felhasználóneved"
-              defaultValue={data.username}
-            />
-          </View>
-            {!usernameValid && !!newData.username && <MyText style={[localStyle.label,{color:'red'}]}>Nem lehet ez a felhasználóneved!</MyText>}
-
-          <Header title="Név" icon="person" helpText="A teljes neved, vagy ahogy szeretnéd hogy szólítsanak"/>
-          <TextInput
-            style={localStyle.input}
-            onChangeText={(e)=>setNewData({...newData, name: e})}
-            editable
-            placeholder="Név"
-            defaultValue={data.name}
-          />
-          <Header title="Helyzeted" icon="location-sharp" helpText="Olyan helyet vagy környéket adj meg, ahol általában elérhető vagy. A pontosságot te tudod megszabni, a nagyítás módosításával"/>
-          <Map data={newData} setData={setNewData} editable/>
-        </View>
-        <View style={{marginHorizontal: width > 900 ? 20 : 0,flex:1}}>
-          <MyText>{newData?.location?.name}</MyText>
-          <Professions data={newData} setData={setNewData}/>
-        </View>
-      </Auto>
-
-    </ScrollView>
-    </View>
-  )
-
-}
-
 export const Professions = (props) => {
   const {data,setData} = props
   const { width } = useWindowDimensions();
@@ -322,42 +84,49 @@ export const Professions = (props) => {
 }
 
 export const Map = ({data,setData,editable}) => {
-  const [location,setLocation] = useState(data?.location || {center:{lat:47.4983, lng:19.0408},zoom:10});
+  const [location,setLocation] = useState(data?.location);
   const [map, setMap] = useState(null);
   const small = useDimensions().window.width < 900
 
   useEffect(() => {
     if (map) {
-      console.log(location);
-      map.setView(location?.center, location?.zoom)
+      if (location?.length)
+        map.setView({lat:location[0],lng:location[1]}, 13)
+      else
+        map.setView({lat:47.498333,lng:	19.040833}, 13)
+    
+      
       L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
               attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(map);
 
       if (editable) {
+
         const circle = L.circleMarker(map.getCenter(), {radius:60,fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
         map.on('zoom',(ev)=> {
           const zoom = map.getZoom()
-          setLocation({zoom,center:map.getCenter()})
+          const center = map.getCenter()
+          //setLocation({zoom,lat:center.lat,lng:center.lng})
         })
         map.on('move',(ev)=>{
           const center = map.getCenter();
           circle.setLatLng(center)
-          setLocation({zoom:map.getZoom(),center:center})
+          setLocation([center.lat,center.lng])
         });
       } else {
         //const circle = L.circleMarker(map.getCenter(), {radius:60,fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
 
       }        
-      const circle2 = L.circle(map.getCenter(), {radius:28*map.getZoom(),fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
+      if (location?.length)
+        L.circle({lat:location[0],lng:location[1]}, {radius:24*(13),fill:true,fillColor:'#fff1a2',color:'#fff1a2',}).addTo(map)
 
       
     }
   }, [map]);
 
   useEffect(() => {
-    if (editable && location.center && location.zoom) {
-      setData({...data,location})
+    if (editable && location) {
+      setData({...data,location:location})
     }
   }, [location]);
 
@@ -405,7 +174,16 @@ export const Map = ({data,setData,editable}) => {
     }, [])
   )
 
-  return (<div id="map" style={{flex:small?'none':1,height:small?300:'none',marginTop:-2,marginBottom:5}}></div>)
+  const focus = () => {
+    if (location?.length)
+      map.flyTo(location)
+  }
+
+  return (<>
+    <NewButton title={<Icon name="location" size={30}/>} onPress={focus} 
+    floating style={{position:'absolute',zIndex:10,right:5,padding:10}}/><View>
+    <div id="map" style={{flex:small?'none':1,height:small?300:'none',marginTop:-2,marginBottom:5}}/>
+  </View></>)
 }
 
 const Header = (props) => {
@@ -523,5 +301,3 @@ const localStyle = StyleSheet.create ({
   
 })
 
-
-export default Edit

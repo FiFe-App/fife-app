@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
+import { getDatabase } from "firebase-admin/database";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -47,16 +48,21 @@ router.get("/all/:uid", async (req, res) => {
     return
   }
 //  res.send(result)
-  res.send(JSON.parse(JSON.stringify({...result,buziness:[{
-    name:'buzi1',
-    description:'ez vagyok igen bizu'
-  }]})))
+  res.send(result)
   return "hello"; 
 
 });
 
 router.patch("/", async (req, res) => {
   const prisma = new PrismaClient();
+
+
+  if (req.body.page.buziness?.length > 5) {
+    res.send({error:'Maximum 5 biniszed lehet!'})
+    return;
+  }
+
+  const location = req.body.page?.location;
 
   const result = await prisma.user.upsert({
     where: {
@@ -69,10 +75,12 @@ router.patch("/", async (req, res) => {
       page: {
         upsert: {
           create: {
-            uid: req.uid
+            uid: req.uid,
+            location: location?.length==2 ? location : null
           },
           update: {
-            uid: req.uid
+            uid: req.uid,
+            location: location?.length==2 ? location : null
           }
         }
       },
@@ -83,7 +91,8 @@ router.patch("/", async (req, res) => {
       ...req.body.data,
       page: {
         create: {
-          uid: req.uid
+          uid: req.uid,
+          location: location?.length==2 ? location : null
         }
       },
       uid: req.uid,
@@ -100,11 +109,10 @@ router.patch("/", async (req, res) => {
       }
     }
   })
+
+  const f = await getDatabase().ref('users/'+req.uid+'/data/name').set(req.body.data.name)
+  console.log('f',f);
   console.log(req.body.page);
-  if (req.body.page.buziness?.length > 5) {
-    res.send({error:'Maximum 5 biniszed lehet!'})
-    return;
-  }
 
   const newB = req.body.page.buziness
   const diff = newB.filter(x => x?.removed==true);

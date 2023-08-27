@@ -120,13 +120,11 @@ const Profile = ({ navigation, route }) => {
       })
     }, [uid])
   );
-  
-console.log(profile);
 
   if (profile)
   return(
     <>
-    <BasePage >
+    <BasePage full >
       <Auto style={{flex:'none'}}>
         <GoBack style={{marginLeft:20}}/>
         <View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:small?5:25,alignSelf:'center'}]}>
@@ -181,9 +179,9 @@ console.log(profile);
         <View style={{flex:width <= 900 ? 'none' : 1}}>
           
           <Section title="Helyzetem" flex={width <= 900 ? 'none' : 1}>
-            {profile.location ? (
+            {profile.page?.location?.length ? (
             (Platform.OS !== 'web') ? <MapView style={localStyles.map} />
-            : <Map data={profile}/>)
+            : <Map data={profile.page}/>)
             : <View style={{justifyContent:'center',alignItems:'center'}}>
               <MyText style={localStyles.subText}>Nincs megadva helyzeted</MyText>
             </View>
@@ -193,11 +191,15 @@ console.log(profile);
         <View style={{flex:(width <= 900 ? 'none' : 2)}}>
 
           <Section title="Bizniszeim" flex={1}>
-              <View style={{marginLeft:small?5:20}}>
-                {profile.page?.buziness && profile.page.buziness.map((prof,i) =>
-                  <Buziness prof={prof} uid={uid} index={i} key={i+'prof'} />
+              <ScrollView style={{marginLeft:small?5:20}}>
+                {profile.page?.buziness && profile.page.buziness.map((prof,i,arr) =>
+                  <View key={i+'prof'} >
+                    <Buziness prof={prof} uid={uid} index={i} />
+                    {arr.length <= i && <View style={{width:'100%',height:2,backgroundColor:'#dddddd'}} />}
+                  </View>
+
                 )}
-              </View>
+              </ScrollView>
           </Section>
         </View>
           {!!saleList.length && 
@@ -255,13 +257,14 @@ console.log(profile);
     const isHovered = useHover(ref);
     
     const handlePress=()=>{
+      
       set(ref(db,"users/"+uid+"/data/profession/"+index+"/rate/"+myuid),iRated ? null : true).then(res=>{
         setIRated(!iRated);
       })
     }
     if (prof)
     return (
-      <><Auto 
+      <Auto 
       breakPoint={500}
       style={[
         styles.buziness,
@@ -282,8 +285,7 @@ console.log(profile);
           {uid != myuid && 
           <NewButton title={iRated ? "Ajánlottam" :"Ajánlom"} style={{padding:10,borderRadius:8,alignSelf:'center'}} onPress={handlePress}/>}
         </Row>
-    </Auto>
-        <View style={{width:'100%',height:2,backgroundColor:'#dddddd'}} /></>
+      </Auto>
     )
   }
 

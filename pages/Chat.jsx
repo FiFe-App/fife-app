@@ -4,7 +4,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
-import { Loading, MyText, NewButton, ProfileImage, TextInput, getNameOf } from "../components/Components";
+import { Loading, MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from "../components/Components";
 import { FirebaseContext } from '../firebase/firebase';
 import { removeUnreadMessage } from '../lib/userReducer';
 
@@ -103,8 +103,11 @@ const Chat = ({route, navigation, propUid, global}) => {
                     onValue(profileListRef, (snapshot) => {
                         setHeader(
                             <Pressable onPress={()=>nav.push('profil',{uid:uid2})} style={chatStyles.header}>
-                                <ProfileImage style={styles.listIcon} size={70} uid={uid2}/>
-                                <MyText style={{margin:5,marginLeft:20,fontSize:28,fontWeight:'400'}}>{snapshot.child('name').val()}</MyText>
+                                <GoBack previous={'uzenetek'} style={{backgroundColor:'#FDEEA2',top:0,left:0}}/>
+                                <Row style={{justifyContent:'center',alignItems:'center',flexGrow:1}}>
+                                    <ProfileImage style={styles.listIcon} size={70} uid={uid2}/>
+                                    <MyText style={{margin:5,marginLeft:20,fontSize:28,fontWeight:'400'}}>{snapshot.child('name').val()}</MyText>
+                                </Row>
                             </Pressable>
                         )
                     });
@@ -143,8 +146,7 @@ const Chat = ({route, navigation, propUid, global}) => {
 
     return (
     <View style={{flex:1}}>
-        <GoBack style={{backgroundColor:'#FDEEA2'}}/>
-        <View style={{flex:1}}>
+        <View style={{flex:1,backgroundColor:'#FDEEA2'}}>
             {!global && header}
             <ScrollView 
             snapToEnd
@@ -152,6 +154,7 @@ const Chat = ({route, navigation, propUid, global}) => {
             style={{flex:1,backgroundColor:global?'transparent':'#fff'}} contentContainerStyle={styles.messages}>
                 <View style={{flex:1}}>
                     {!loading ?
+                    messages.length ? 
                     messages.map((e,i,arr)=> {
                         return (
                             <View key={i}>
@@ -164,7 +167,10 @@ const Chat = ({route, navigation, propUid, global}) => {
                                 {e?.automated ? <AutoMessage text={e.text} uid={e.uid} isMine={e.uid == uid}/> :
                                 <Message text={e.text} isMine={e.uid == uid}/>}
                             </View>
-                        )})
+                        )}):
+                        <View style={{flex:1, backgroundColor:'white',alignItems:'center',justifyContent:'center'}}>
+                            <MyText>Írj üzenetet ... számára!</MyText>
+                        </View>
                     :   <View style={{flex:1, backgroundColor:'white'}}>
                             <Loading color="rgba(255,175,0,0.7)"/>
                         </View>}
@@ -249,7 +255,7 @@ const styles = StyleSheet.create({
         paddingHorizontal:10,
     },
     messageContainer: {
-        margin:1
+        margin:1,
     },
     autoMessageContainer: {
         alignSelf:'center',
@@ -270,11 +276,12 @@ const styles = StyleSheet.create({
         color: 'white',
         maxWidth: '80%',
         fontSize:20,
+        borderRadius:8
     },
     mine: {
         backgroundColor: '#FDEEA2',
         color: 'black',
-        alignSelf:'flex-end'
+        alignSelf:'flex-end',
     },
     other: {
         backgroundColor: color,
@@ -304,6 +311,9 @@ const styles = StyleSheet.create({
         fontSize:20,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    listIcon: {
+        borderRadius:8
     }
 })
 

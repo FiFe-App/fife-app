@@ -6,11 +6,63 @@ import { PrismaClient } from "@prisma/client";
 const router = express.Router();
 const prisma = new PrismaClient()
 
+
+const getBuziness = async (key,myLocation) => {
+  const db = await adb
+  const b = await db.collection('buziness')
+  console.log('myLocation',myLocation);
+  const results = await b.aggregate( [
+    {
+      $lookup: {
+        from: "page",
+        let: { pageId: "$pageId", name: "$name" },
+        pipeline: [{
+          $geoNear: {
+            near: {
+              type: "Point", coordinates: myLocation
+            },
+            distanceMultiplier:0.001,
+            distanceField: "distance",
+      
+            includeLocs: "location",
+            spherical: true,
+            //query: {'$$name':{$regex: key}}
+          }
+        },
+        { $match:
+          { $expr:
+            { $and : [
+              { $eq: [ "$_id",  "$$pageId" ] },
+              
+            ]}
+          }
+        }
+      ],
+        as: "distance"
+      }
+    },
+    { 
+      $sort : { "distance.0.distance" : 1 } 
+    },
+    { 
+      $limit : 10
+    },{ 
+      $match: { 
+        name: { $regex: key}
+      } 
+    }
+ ] ).toArray();
+   console.log('buziness by dist',results);
+
+  return results
+
+}
+
 // Get a list of 50 posts
 router.post("/", async (req, res) => {
     const db = await adb
-    const {key,skip=0,take=5} = req.body;
-    console.log('search',key);  
+    const {key,skip=0,take=5,myLocation} = req.body;
+    console.log('search',key,myLocation);  
     // query for movies that have a runtime less than 15 minutes
     if (key.length < 3) {
       res.send({error:'Adj meg legalább három karaktert!'})
@@ -48,6 +100,10 @@ router.post("/", async (req, res) => {
           }
         }
       }),
+      buziness: await getBuziness(key,myLocation)
+    }
+
+    /**
       buziness: await prisma.buziness.findMany({
         where: {
           name: {
@@ -55,9 +111,8 @@ router.post("/", async (req, res) => {
             mode: 'insensitive',
           }
         }
-      })
-    }
-
+      }) */
+    
 
 
     //res.send('latestqd')

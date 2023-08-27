@@ -65,7 +65,7 @@ const BugModal = () => {
         open={!!data}
         setOpen={setData}
         inputs={[
-          {type:'text',attribute:'message',label:null,data:data,setData:setData,style:{backgroundColor:'#fbf1e0'}}
+          {type:'text-input',attribute:'message',label:null,data:data,setData:setData,style:{backgroundColor:'#fbf1e0'}}
         ]}
       />)
 }

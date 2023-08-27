@@ -51,7 +51,6 @@ router.get("/latest", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
 
-  const prisma = new PrismaClient();
   const result = await prisma.sale.findFirst({
     where: {
       id: req.params.id
@@ -84,68 +83,52 @@ router.patch("/:id/images", async (req, res) => {
 });
 
 router.patch("/:id/book", async (req, res) => {
-  const { booked, bookedBy } = req.body;
-  /*const db = await adb
-  let collection = await db.collection("sale");
-  const result = await collection.updateOne({
+  const { message } = req.body;
+  const updated = await prisma.sale.findFirst({
+    where: {
+      id: req.params.id,
+    },
+    select: {
+      author: true,
+      interestedBy: true
 
-    $or: [ 
-      {    id: req.params.id, booked: false},
-      {    
-        id: req.params.id, 
-        booked: true,
-        bookedBy: req.uid
-      }
-    ]}, {$set: {
-      booked,
-      bookedBy: booked ? req.uid : null
-    }})*/
+    },
+  })
+  const includes = updated.interestedBy.includes(req.uid)
   const result = await prisma.sale.updateMany({
     where: {
-      OR: [
-        {
-          id: req.params.id,
-          booked: false
-        },
-        {
-          id: req.params.id,
-          booked: true,
-          bookedBy: req.uid
-        },
-      ]
+        id: req.params.id
     },
-    data: {
-      booked,
-      bookedBy: booked ? req.uid : null
+    data:{
+      interestedBy: 
+      includes ?
+        updated.interestedBy.filter(e=>e!=req.uid)
+        : 
+        {push:req.uid}
     }
   })
 
   if (!result) res.send("Not found").status(404);
   else {
-    const updated = await prisma.sale.findFirst({
-      where: {
-        id: req.params.id,
-      },
-      select: {
-        author: true
-      },
-    })
+
     console.log(result);
-    if (booked) {
+    if (message) {
       await database().ref('users/'+updated.author+'/messages/'+req.uid).push({
-        text: req.params.id,
+        text: message,
+        extra: req.params.id,
         time: Date.now(),
         uid: req.uid,
         automated: true
       })
       await database().ref('users/'+req.uid+'/messages/'+updated.author).push({
-        text: req.params.id,
+        text: message,
+        extra: req.params.id,
         time: Date.now(),
         uid: req.uid,
         automated: true
       })
     }
-    res.send(!!result.count).status(200)
+    res.send(!!includes).status(200)
   };
 });
 

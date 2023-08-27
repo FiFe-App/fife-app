@@ -17,10 +17,11 @@ import { config } from "../../firebase/authConfig";
 import { deepEqual } from "../../lib/functions";
 import { Item } from "./ItemOld";
 import { SaleListItem } from "./SaleListItem";
-import { saleCategories } from "../../lib/categories";
+import { categories as cats } from "../../lib/categories";
+import HelpModal from "../../components/help/Modal";
 
 
-const categories = ['Minden',...saleCategories.map(c=>{return c.name})];
+const categories = ['Kategória: Minden',...cats.sale.map(c=>{return c.name})];
 
 const Sale = ({ navigation, route }) => {
     const { id, category=0 } = route.params || {};
@@ -42,12 +43,13 @@ const Sale = ({ navigation, route }) => {
         skip: 0,
         take: 5
     });
-    const [moreFilter, setMoreFilter] = useState(width > 900);
+    const [moreFilter, setMoreFilter] = useState(true);
     const [changed, setChanged] = useState(false);
     const [keys, setKeys] = useState([]);
 
     const [closeModal, setCloseModal] = useState(false);
     const [userModal, setUserModal] = useState(false);
+    const [interestModal, setInterestModal] = useState(null);
 
     const [searchText, setSearchText] = useState('');
     const [searchResult, setSearchResult] = useState([]);
@@ -106,12 +108,12 @@ const Sale = ({ navigation, route }) => {
     }
 
     const bookItem = async (index,isBook) => {
-        console.log('book');
-        if (firestore && storage && index)
+        console.log('book',interestModal);
+        if (interestModal.message)
         return (async ()=> {
-            const res = await axios.patch('/sale/'+index+'/book', {
+            const res = await axios.patch('/sale/'+interestModal.id+'/book', {
                 booked: !isBook,
-                bookedBy: !isBook ? uid : null
+                message: interestModal.message
               },config())
               .then((res)=>{
                 if (res.data) {
@@ -119,6 +121,7 @@ const Sale = ({ navigation, route }) => {
                 } else {
                     setList(list.map((e,i)=> e._id==index ? {...e, booked:true, bookedBy: 'other'} : e))
                 }
+                setInterestModal(null)
                 return res.data
               })
               .catch(error=>console.error(error))
@@ -161,13 +164,28 @@ const Sale = ({ navigation, route }) => {
         setLoading(false)
     }
 
+    useEffect(() => {
+        console.log('interestModal',interestModal);
+    }, [interestModal]);
+
     if (id && width <= 900)
     return <>
         <Item data={list.find(e=>e._id == selected)} toLoadId={selected} 
-            setSelected={setSelected} bookItem={bookItem}   deleteItem={()=>setCloseModal(true)}/>
+            setSelected={setSelected} bookItem={setInterestModal}   deleteItem={()=>setCloseModal(true)}/>
         <CloseModal modalVisible={closeModal} setModalVisible={setCloseModal} handleOK={deleteItem}/>
         <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.push('uzenetek',{uid:selected?.uid})}/>
-
+        <HelpModal
+            title="Érdekel a hirdetés?"
+            text='Írj üzenetet a hirdetőnek, foglald bele, mi az ami foglalkoztat.'
+            actions={[
+                {title:'bezárom',onPress:()=>setInterestModal(null)},
+                {title:'küldés',onPress:bookItem,color:'#2b80ff',submit:true}]}
+            open={!!interestModal}
+            setOpen={setInterestModal}
+            inputs={[
+                {type:'text-input',attribute:'message',label:null,data:interestModal,setData:setInterestModal,style:{backgroundColor:'#fbf1e0'}}
+            ]}
+        />
     </>
     return (
     <View style={{flex:1, flexDirection:'row',backgroundColor:'#FDEEA2'}}>
@@ -196,17 +214,17 @@ const Sale = ({ navigation, route }) => {
                         {(!hide || width > 600) && <><Select
                             list={categories}
                             defaultValue={settings.category}
-                            style={{fontSize:15,padding:10,marginVertical:0,margin:10,marginBottom:10,backgroundColor:'white',width:'96.5%',borderWidth:0}}
+                            style={{fontSize:15,padding:10,marginVertical:0,margin:10,marginBottom:0,backgroundColor:'white',width:'96.5%',borderWidth:0}}
                             placeholder="Válassz kategóriát"
                             onSelect={(selectedItem, index) => {
                                 const i = index == 0 ? 0 : index
                                 console.log(i)
                                 setSettings({...settings,category:i})
                             }} />
-                        {width <= 900 && <NewButton title={moreFilter?"Kevesebb szűrő":"Több szűrő"} color={moreFilter?undefined:'#fdd300'} 
+                        {false && <NewButton title={moreFilter?"Kevesebb szűrő":"Több szűrő"} color={moreFilter?undefined:'#fdd300'} 
                         onPress={()=>setMoreFilter(!moreFilter)}/>}
                         
-                        {moreFilter && <Row style={{justifyContent:'center',alignItems:'center'}}>
+                        {false && <Row style={{justifyContent:'center',alignItems:'center'}}>
                             <DateTimePicker
                                 setValue={(v)=>setSettings({...settings,minDate:v})}
                                 value={settings.minDate}
@@ -227,17 +245,19 @@ const Sale = ({ navigation, route }) => {
                     {(!hide || width > 600) && <View style={{flex:1,margin:5,marginLeft:0}}>
                         {moreFilter && <View style={{minWidth:300}}>
                             <View style={{flexDirection:'row', alignItems:'center',borderBottomWidth:5,borderColor:'#ffffff',marginHorizontal:5}}>
-                                <NewButton color={settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: null})}} title="Mindenki másé"
-                                style={{flex:1,marginBottom:0,marginLeft:0}} />
+                                <NewButton color={settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: null})}} 
+                                style={{flex:1,marginBottom:0,marginLeft:0,borderBottomLeftRadius:0,borderBottomRightRadius:0}} 
+                                title="Mindenki másé"/>
                                 <NewButton color={!settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: uid})}} 
-                                style={{flex:1,marginBottom:0,marginRight:0}} title="Sajátjaim" />
+                                style={{flex:1,marginBottom:0,marginRight:0,borderBottomLeftRadius:0,borderBottomRightRadius:0}}
+                                 title="Sajátjaim" />
                             </View>
 
-                            <TextInput
+                            {false && <TextInput
                                 onChangeText={v=>setSettings({...settings,author:v})}
                                 style={{fontSize:15,padding:10,margin:5,marginTop:5,backgroundColor:'white'}}
                                 placeholder="Szerző"
-                            />
+                            />}
                         </View>}
                         <Row style={{flex:1}}>
                             <NewButton title="Keresés!" onPress={()=>{setList([]);search(0)}} style={{flex:5}}/>
@@ -256,7 +276,7 @@ const Sale = ({ navigation, route }) => {
                             i={i} 
                             selected={selected == e._id}
                             setSelected={setSelected}
-                            bookItem={bookItem}
+                            bookItem={setInterestModal}
                             deleteItem={()=>{setCloseModal(true);setToDelete(e._id)}}
                             openUserModal={()=>setUserModal(true)}
                         />
@@ -275,7 +295,7 @@ const Sale = ({ navigation, route }) => {
         {(width > 900) &&
             <View style={{flex:1,backgroundColor:'white'}}>
                 {selected ? 
-                <Item data={list.find(e=>e._id == selected)} toLoadId={selected} 
+                <Item data={list.find(e=>e._id == selected)} toLoadId={selected} bookItem={setInterestModal}
                         setSelected={setSelected}    deleteItem={()=>setCloseModal(true)}/>
                 :
                 <NewSaleItem/>}
@@ -286,6 +306,18 @@ const Sale = ({ navigation, route }) => {
         }
         <CloseModal modalVisible={closeModal} setModalVisible={setCloseModal} handleOK={deleteItem}/>
         <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.push('uzenetek',{selected:selected?.uid})}/>
+        <HelpModal
+            title="Érdekel a hirdetés?"
+            text='Írj üzenetet a hirdetőnek! Foglald bele, mi érdekel téged.'
+            actions={[
+                {title:'bezárom',onPress:()=>setInterestModal(null)},
+                {title:'küldés',onPress:bookItem,color:'#2b80ff',submit:true}]}
+            open={!!interestModal}
+            setOpen={setInterestModal}
+            inputs={[
+                {type:'text-input',attribute:'message',label:null,data:interestModal,setData:setInterestModal,style:{backgroundColor:'#fbf1e0'}}
+            ]}
+        />
     </View>
     )
 }

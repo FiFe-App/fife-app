@@ -4,7 +4,7 @@ import { Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // routes
-const HomeScreen = React.lazy(()=>import("./pages/home/HomeScreen"))
+const HomeScreen = React.lazy(()=>import("./pages/home/HomeScreenOld"))
 const LogoTitle = React.lazy(()=>import("./components/LogoTitle").then(module=>({default:module.LogoTitle})))
 const LoginScreen = React.lazy(()=>import("./pages/login/Login"))
 const Search = React.lazy(()=>import("./pages/Search"))
@@ -19,7 +19,7 @@ const Events = React.lazy(()=>import("./pages/events/Events"))
 const Event = React.lazy(()=>import("./pages/events/Event"))
 const NewEvent = React.lazy(()=>import("./pages/events/NewEvent"))
 const New = React.lazy(()=>import("./pages/New"))
-const Maps = React.lazy(()=>import("./pages/maps/Maps"))
+const Maps = React.lazy(()=>import("./pages/maps/MapsNew"))
 const Settings = React.lazy(()=>import("./pages/settings"))
 const BodyAndSoul = React.lazy(()=>import("./pages/BodyAndSoul"))
 const Server = React.lazy(()=>import("./pages/server"))
@@ -28,6 +28,8 @@ const Forgot = React.lazy(()=>import("./pages/login/Forgot"))
 const PrivacyPolicy = React.lazy(()=>import("./pages/PrivacyPolicy"))
 const TermsAndServices = React.lazy(()=>import("./pages/TermsAndServices"))
 const Document = React.lazy(()=>import("./pages/docs/Document"))
+const AdminScreen = React.lazy(()=>import("./pages/admin/Admin"))
+const CustomPage = React.lazy(()=>import("./components/custom/CustomPage"))
 
 import Snowfall from 'react-snowfall';
 // fonts
@@ -71,20 +73,21 @@ export default function App(props) {
           <Provider store={store}>
             <MetaHeader />
             <SnowfallWrap />
-            <PersistGate loading={<MyText>Loading...</MyText>} persistor={persistor}>
               <FirebaseProvider>
+            <PersistGate loading={<MyText>Loading...</MyText>} persistor={persistor}>
                 <Messaging/>
-                  <SafeAreaProvider>
-                    <StatusBar style="dark" translucent/>
-                    <Suspense fallback={<Loading/>}>
-                      <NavigationContainer linking={linking} 
-                        fallback={<LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />}>
-                        {fontsLoaded ? ( <Navigator/> ) : (<></>)}
-                      </NavigationContainer>
-                    </Suspense>
-                  </SafeAreaProvider>
-              </FirebaseProvider>
+                <SafeAreaProvider>
+                  <StatusBar style="dark" translucent/>
+                  <Suspense fallback={<View style={{flex:1,backgroundColor:'#fcf3d4'}}><Loading/></View>}>
+                    <NavigationContainer linking={linking} 
+                    
+                      fallback={<LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />}>
+                      {fontsLoaded ? ( <Navigator/> ) : (<></>)}
+                    </NavigationContainer>
+                  </Suspense>
+                </SafeAreaProvider>
             </PersistGate>
+              </FirebaseProvider>
         </Provider>
     );
 }
@@ -140,9 +143,14 @@ const Navigator = () => {
         <>
           { !user?.uid && <>
           <Stack.Screen name="bejelentkezes" component={LoginScreen} options={{ headerShown: false, title:'Bejelentkezés' }} />
-          <Stack.Screen name="rolunk" component={About} options={{ headerShown: false, title:"Rólunk" }} />
+          <Stack.Screen name="rolunk" component={About} options={{ headerShown: false, title:"A FiFe Appról" }} />
           <Stack.Screen name="regisztracio" component={First} options={{ headerShown: false, title:'Regisztráció' }} />
           <Stack.Screen name="elfelejtett-jelszo" component={Forgot} options={{ headerShown: false, title:'Új jelszó' }} />
+          </>
+          //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
+          }
+          { user?.uid == '26jl5FE5ZkRqP0Xysp89UBn0MHG3' && <>
+          <Stack.Screen name="admin" component={AdminScreen} options={{ headerShown: false, title:'Admin' }} />
           </>
           //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
           }
@@ -166,9 +174,9 @@ const Navigator = () => {
           <Stack.Screen name="cserebere" component={Sale} options={{ title: "Cserebere" }} />
           <Stack.Screen name="uj-cserebere" component={Item} options={{ title: "Cserebere" }} />
 
-          <Stack.Screen name="cikk" component={Document} options={{ title: "Cikk" }} />
+          <Stack.Screen name="cikkek" component={Document} options={{ title: "Cikkek" }} />
           <Stack.Screen name="test-es-lelek" component={BodyAndSoul} options={{ title: "Test és lélek" }} />
-          <Stack.Screen name="server" component={Server} options={{ title: "Teszt" }} />
+          <Stack.Screen name="custom" component={CustomPage} options={{ title: "Teszt" }} />
           
 
           </>}

@@ -15,7 +15,7 @@ import { child, get, getDatabase, ref } from 'firebase/database';
 import { useHover } from 'react-native-web-hooks';
 import { shadeColor } from '../lib/functions';
 import { TextFor } from '../lib/textService/textService';
-import { isBright } from '../pages/home/HomeScreen';
+import { isBright } from '../pages/home/HomeScreenOld';
 import { config } from '../firebase/authConfig';
 import axios from 'axios';
 import { Button, TouchableRipple } from 'react-native-paper';
@@ -23,7 +23,7 @@ import { Button, TouchableRipple } from 'react-native-paper';
 
 //Dimensions.get('window');
 
-const Loading = (props) => {
+const Loading = ({color='#ffde7e'}) => {
   /*const sweepAnim = useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
   const fadeAnim = useRef(new Animated.Value(1)).current  // Initial value for opacity: 0
 
@@ -57,7 +57,7 @@ const Loading = (props) => {
   );*/
   return (
     <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
-      <ActivityIndicator color={props.color} size={'large'} />
+      <ActivityIndicator color={color} size={'large'} />
     </View>
   )
 }
@@ -81,8 +81,6 @@ const getNameOf = async (uid) => {
     return name;}
   else {
     const res = (await get(ref(getDatabase(),`users/${uid}/data/name`))).val()
-    //await axios.get(`users/name/${uid}`,config())
-    console.log('snapshot',res);
   
     if (res) {
       const name = res;
@@ -96,15 +94,15 @@ const getNameOf = async (uid) => {
 }
 
 
-const ProfileImage = ({uid,size=40,style}) => {
+const ProfileImage = ({uid,size=40,style,path}) => {
   // eslint-disable-next-line no-undef
   const defaultUrl = require('../assets/profile.jpeg');
   const [url, setUrl] = React.useState(null);
   const storage = getStorage();
 
   useEffect(() => {
-    if (uid){
-      getDownloadURL(sRef(storage, uid ? `profiles/${uid}/profile.jpg` : uid))
+    if (uid || path){
+      getDownloadURL(sRef(storage, path || `profiles/${uid}/profile.jpg`))
       .then((url) => {
         setUrl(url);
       })
@@ -114,11 +112,12 @@ const ProfileImage = ({uid,size=40,style}) => {
       });
 
     }
-  }, [uid]);
+  }, [uid,path]);
 
   if (!url) return <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
   return <ExpoFastImage style={[{width: size, height: size},style]}
-      cacheKey={`${uid}-uid`}
+      cachePolicy='memory-disk'
+      cacheKey={`${uid || path}-uid`}
       placeholderContent={( 
         <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
       )} 
@@ -196,7 +195,7 @@ class Slideshow extends React.Component {
               );
             })}
           </ScrollView>          
-          <View style={{justifyContent:'center',padding:20,position:'absolute',left:10,top:this.width/4-30}}>
+          {this.props.photos.length > 1 && <View style={{justifyContent:'center',padding:20,position:'absolute',left:10,top:this.width/4-30}}>
             <TouchableRipple 
             style={{borderRadius:30}}
             onPress={()=>{
@@ -206,8 +205,8 @@ class Slideshow extends React.Component {
             }}>
               <Icon name="arrow-back" size={30} color='white'/>
             </TouchableRipple>
-          </View>
-          <View style={{justifyContent:'center',padding:20,position:'absolute',right:10,top:this.width/4-30}}>
+          </View>}
+          {this.props.photos.length > 1 &&<View style={{justifyContent:'center',padding:20,position:'absolute',right:10,top:this.width/4-30}}>
             <TouchableRipple 
             style={{borderRadius:30}}
             onPress={()=>{
@@ -217,7 +216,7 @@ class Slideshow extends React.Component {
             }}>
               <Icon name="arrow-forward" size={30} color='white'/>
             </TouchableRipple>
-          </View>
+          </View>}
         </View>
         <View
           style={{ flexDirection: 'row',position:'absolute', bottom:10 }} // this will layout our dots horizontally (row) instead of vertically (column)
@@ -357,6 +356,7 @@ const SearchBar = (props) => {
   const {style} = props
   const allMethods = useForm();
   const { setFocus } = allMethods;
+  
   const navigation = useNavigation();
   const route = useRoute();
   const { control, handleSubmit, formState: { errors } } = useForm({
@@ -376,9 +376,11 @@ const SearchBar = (props) => {
     setShowHistory(false)
   } 
   const [showHistory,setShowHistory] = React.useState(false);
+  const [rect, setRect] = useState(null);
   const listItems = global.searchList.reverse().map((element) =>
-    <Pressable key={element.toString()} onPress={() => onSubmit()} >
-      <Row style={[newStyles.searchList,{}]}>
+    <Pressable key={element.toString()} onPress={() => onSubmit()} 
+      style={[newStyles.searchList,{width:rect?.width}]}>
+      <Row >
         <Icon name="time-outline" size={25} color="black" style={{ marginHorizontal: 5 }} />
         <MyText>{element}</MyText>
       </Row>
@@ -390,8 +392,10 @@ const SearchBar = (props) => {
         <Controller control={control} rules={{ required: true, }}
           render={({ field: { onChange, value } }) => (
             <TextInput
+              onLayout={e=>setRect(e.nativeEvent.layout)}
               style={[newStyles.searchInput,{flex:1,fontSize:16,padding:10,marginLeft:20}]}
               onBlur={onBlur}
+              returnKeyType="search"
               autoCapitalize='none'
               onChangeText={onChange}
               placeholder={TextFor({pureText:true,text:'search_text'})}
@@ -409,7 +413,7 @@ const SearchBar = (props) => {
         </Pressable>
       </View>
         <ScrollView contentContainerStyle={{justifyContent:'flex-start'}} 
-        style={{position:"absolute",width:'100%',marginTop:45,backgroundColor:'#fbf7f0',borderBottomLeftRadius:8,borderBottomRightRadius:8}}>
+        style={{position:"absolute",width:rect?.width,top:rect?.y+40,zIndex:10,left:rect?.x,backgroundColor:'#fbf7f0',borderBottomLeftRadius:8,borderBottomRightRadius:8}}>
           {(showHistory && global.searchList.length > 0) && listItems}
         </ScrollView>
     </View>

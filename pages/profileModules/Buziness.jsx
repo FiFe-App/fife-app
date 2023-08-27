@@ -16,7 +16,7 @@ const Buziness = ({data,setData}) => {
     const [list, setList] = useState(data?.profiession || []);
 
     useEffect(() => {
-        setList(data?.buziness || [])
+        setList(data?.buziness.filter(e=>!e?.removed) || [])
       }, [data]);
     
     const addNew = () => {
@@ -37,7 +37,7 @@ const Buziness = ({data,setData}) => {
     }
 
     useEffect(() => {
-        console.log('buzinessList:',list);
+        //console.log('buzinessList:',list);
     }, [list]);
 
         return(<Section title="Bizniszeim" flex={1}>
@@ -47,7 +47,7 @@ const Buziness = ({data,setData}) => {
                     {
                         if (prof?.removed != true && prof != undefined)
                         return (
-                        <View style={{flexDirection:'row'}} key={'buzinesslist'+prof.id}>
+                        <View style={{flexDirection:'row'}} key={'buzinesslist'+i}>
                             <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
                                 <MyText style={{fontSize:20}}>{i+1}</MyText>
                                 <Pressable onPress={()=>remove(i)}>
@@ -55,7 +55,7 @@ const Buziness = ({data,setData}) => {
                                 </Pressable>
                             </View>
                             <View style={{flex:1,justifyContent:'center'}}>
-                                <TextInput placeholder="kategória" onChangeText={(val)=>set(val,i,'name')} value={prof.name}/>
+                                <TextInput placeholder="kulcsszavak" onChangeText={(val)=>set(val,i,'name')} value={prof.name}/>
                                 <TextInput placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={prof.description} multiline numberOfLines={2}/>
                             </View>
                         </View>)}

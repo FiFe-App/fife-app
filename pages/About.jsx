@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native"
 import styles from "../styles/aboutDesign"
 import BasePage from "../components/BasePage"
 import Comments from "../components/tools/Comments"
-import { Smiley } from "./home/HomeScreen"
+import { Smiley } from "./home/HomeScreenOld"
 import { useState } from 'react';
 import { getDatabase, push, ref, set } from 'firebase/database';
 import AuthoredImage from '../components/tools/AuthoredImage';
@@ -31,16 +31,16 @@ const About = ({navigation}) => {
         }
     }
     return (
-    <BasePage style={styles.container}>
-        <Auto>
-        <View style={{flex:1}}/>
-        <MyText size={50} style={{margin:20,textAlign:'center',flex:1}}>FiFe App <Smiley style={{marginLeft:0}}/></MyText>
+    <BasePage style={styles.container} full>
+        <Auto style={{flex:'none'}}>
+            <View style={{flex:1}}/>
+            <MyText size={50} style={{margin:20,textAlign:'center',flex:1}}>FiFe App <Smiley style={{marginLeft:0}}/></MyText>
 
-        <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
-            {true&&<NewButton title="Tovább az alkalmazásba" color="#fdcf99" style={{padding:10}} onPress={()=>navigation.push('bejelentkezes')}/>}
-        </View>
+            <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+                {true&&<NewButton title="Tovább az alkalmazásba" color="#fdcf99" style={{padding:10}} onPress={()=>navigation.push('bejelentkezes')}/>}
+            </View>
         </Auto>
-        <View style={{marginHorizontal:small?0:100}}>
+        <View style={{marginHorizontal:small?0:100,flex:1}}>
             <MyText contained>
                     A mai elszigetelt világban szükség van egy olyan rendszerre, amely összehozza a jóérzésű embereket egy biztonságos közösségbe.
                 {'\n'}Ez a gondolat ihlette a Fiatal Felnőttek applikációt, amely sokrétű online felületet nyújt a nagyvárosban élőknek.

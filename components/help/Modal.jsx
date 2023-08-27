@@ -1,6 +1,6 @@
 import { Modal, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native"
 import { MyText, NewButton, Row } from "../Components"
-import CustomInput from "../CustomInput";
+import CustomInput from "../custom/CustomInput";
 import { useEffect, useState } from "react";
 
 const HelpModal = ({title,text,successText,actions,inputs=[],open,setOpen}) => {
@@ -10,6 +10,13 @@ const HelpModal = ({title,text,successText,actions,inputs=[],open,setOpen}) => 
     useEffect(() => {
       setSubmitted(null)
     }, [open]);
+
+
+    useEffect(() => {
+      return ()=> {
+        console.log('modal unmounted');
+      }
+    }, []);
 
     if (open)
     return (
@@ -25,18 +32,19 @@ const HelpModal = ({title,text,successText,actions,inputs=[],open,setOpen}) => 
                     {!submitted ? <><MyText title>{title}</MyText>
                     <MyText size={20}>{text}</MyText>
                         <ScrollView>
-                          {inputs.map(input=>{
+                          {inputs.map((input,ind)=>{
                               return (
-                                <View style={{padding:5}}>
+                                <View style={{padding:5}} key={'helpModal-'+ind}>
                                   <CustomInput {...input} style={[{padding:10},input.style]}/>
                                 </View>
                               )
                           })}
                         </ScrollView>
                     <Row>
-                        {actions.map(action=>{
+                        {actions.map((action,ind)=>{
                             return (
-                                <NewButton {...action} onPress={async ()=>{
+                                <NewButton {...action} key={'helpModalButton-'+ind}
+                                onPress={async ()=>{
                                   const res = await action.onPress()
                                   if (action.submit)
                                     setSubmitted(res)

@@ -13,12 +13,11 @@ import axios from "axios";
 import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
 import Select from "../../components/Select";
 import { config } from "../../firebase/authConfig";
-import { saleCategories } from '../../lib/categories';
+import { categories as cats } from '../../lib/categories';
 import { useNavigation } from '@react-navigation/native';
 
 
-const categories = saleCategories.map(c=>{return c.name});
-
+const categories = cats.sale.map(c=>{return c.name});
 
 const NewItem = ({route,data}) => {
     const uid = useSelector((state) => state.user.uid)
@@ -105,11 +104,11 @@ const NewItem = ({route,data}) => {
         const data = {
           descriptions: 
           uploadedImages.map((im)=>{
-            return imageTexts[im]
+            return imageTexts?.[im] || " "
           }),
           bookables: 
           uploadedImages.map((im)=>{
-            return imageBookable[im]
+            return imageBookable?.[im] || false
           })
         };
         console.log('uploadedimgs',uploadedImages);
@@ -141,11 +140,11 @@ const NewItem = ({route,data}) => {
         <View style={[{flexDirection: "row"}]}>
           <View style={{margin: 5,flex:1}}>
             <TextInput 
-              style={{fontSize:20, padding:5,
+              style={{fontSize:20, padding:5, borderRadius:8,
                       backgroundColor: loading ? 'gray' : '#fbf7f0',
                       cursor: loading ? 'not-allowed' : 'text'
                     }} 
-              placeholder="Cím"
+              placeholder="Cím, kulcsszavak"
               editable={!loading}
               selectTextOnFocus={!loading} 
               value={title}
@@ -153,7 +152,7 @@ const NewItem = ({route,data}) => {
 
             <Select
               list={categories}
-              style={{fontSize:20, padding:5,marginTop:5,borderWidth:0,
+              style={{fontSize:20, padding:5,marginTop:5,borderWidth:0, borderRadius:8,
                       backgroundColor: loading ? 'gray' : '#fbf7f0',
                       cursor: loading ? 'not-allowed' : 'pointer'
                     }} 
@@ -163,7 +162,7 @@ const NewItem = ({route,data}) => {
                   setCategory(index)
               }} />
             <TextInput multiline numberOfLines={5} 
-              style={{ marginVertical:5, padding:5,fontSize:20, 
+              style={{ marginVertical:5, padding:5,fontSize:20, borderRadius:8,
                       backgroundColor: loading ? 'gray' : '#fbf7f0',
                         cursor: loading ? 'not-allowed' : 'text'
                     }} 
@@ -241,7 +240,6 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,globalImageBookale,setG
   }
   return(
     <View  style={{width:'100%',marginHorizontal:5}}>
-      <MyText>Termékenként csak egy képet jelölj ,,Külön foglalható''-nak, hiába tartozik hozzá több kép.</MyText>
       {!!images.length && images.map((image,index)=>
       <View key={'image'+index} style={{flex:1}}>
         <View style={{flexDirection:'row',flex:1}}>
@@ -249,18 +247,12 @@ const ImageAdder = ({setGlobalImages,setGlobalImageTexts,globalImageBookale,setG
           <Pressable style={styles.close} onPress={()=>deleteImage(index)}><Icon name="close" size={20} color="white"/></Pressable>
           <View style={{flex:1}}>
             <TextInput onChangeText={text=>handleTextChange(text,index)} value={texts[index]}
-            style={{height:150,padding:10,backgroundColor:'#fff'}} multiline numberOfLines={3} placeholder={"Mondj valamit erről a képről"}/>
+            style={{height:150,padding:10,marginRight:10,backgroundColor:'#fff', borderTopRightRadius:8, borderBottomRightRadius:8}} multiline numberOfLines={3} placeholder={"Mondj valamit erről a képről"}/>
           </View>
-          <Pressable style={{justifyContent:'center',alignItems:'center',padding:10
-          ,backgroundColor:separate[index] ? '#ffe8ae' : '#fbf7f0d7'}}
-            onPress={()=>handleSeparate(index)}>
-            <MyText style={{textAlign:'center'}}>{separate[index] ? "Külön foglalható" : "Nem\nfoglalható külön"}</MyText>
-            <Icon name={separate[index] ? "cart" : "cart-outline"} size={30}/>
-          </Pressable>
         </View>
       </View>
         )}
-      <Pressable style={[styles.square,{}]} onPress={pickImage}>
+      <Pressable style={[styles.square,{borderRadius:8}]} onPress={pickImage}>
         <MyText style={{fontSize:20}}>+ Új kép</MyText>
       </Pressable>
 
@@ -272,7 +264,8 @@ const styles = StyleSheet.create({
   square: {
     width:150,
     height:150,
-    
+    borderTopLeftRadius:8,
+    borderBottomLeftRadius:8,
     justifyContent:'center',
     alignItems:'center',
     backgroundColor:'#f7f7f7'

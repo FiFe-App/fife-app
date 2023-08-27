@@ -14,7 +14,7 @@ import axios from 'axios';
 import { FirebaseContext } from '../../firebase/firebase';
 import { getDatabase, limitToFirst, onChildAdded, query, ref } from 'firebase/database';
 import { config } from '../../firebase/authConfig';
-import { saleCategories } from '../../lib/categories';
+import { categories } from '../../lib/categories';
 
 function Module(props) {
     const { firebasePath, serverPath } = props;
@@ -28,6 +28,7 @@ function Module(props) {
     const [data, setData] = useState([]);
     const fn = async () => {
       let resList
+      let collection = serverPath.split('/')[1]
       try {
         resList = (await axios.get(serverPath,config()))
           
@@ -45,18 +46,19 @@ function Module(props) {
         resList = await Promise.all(resList.data.map( async (el,i)=> {
           let image
           try {
-           image = await getUri('sale/'+el._id+'/'+0)
+           image = el?.image || await getUri(collection+'/'+el._id+'/'+0)
           } catch (error) {
-           image = await getUri(`profiles/${el.author}/profile.jpg`)
+            if (el?.author)
+              image = await getUri(`profiles/${el.author}/profile.jpg`)
           }
           return {
-            id:el._id,
-            title:el.title,
-            date:el.date,
-            image:image,
-            text:el.description,
-            category: saleCategories[el.category].name,
-            color: saleCategories[el.category].color
+            id:       el._id,
+            title:    el.title,
+            date:     el.date,
+            image:    image,
+            text:     el.description,
+            category: categories?.[collection]?.[el.category]?.name || el.category,
+            color:    categories?.[collection]?.[el.category]?.color || el.color
           }
         }))
         setData(resList)
@@ -83,11 +85,14 @@ function Module(props) {
 
     }
     useEffect(() => {
-      console.log('LOAD');
+      console.log('LOAD',props.link);
       if (firebasePath) 
         fn2() 
       else 
         fn()
+      return ()=> {
+        setData([])
+      }
     }, []);
     return (
         <View style={[homeDesign.moduleContainer,width>900 && {flex:1}]}>
@@ -101,7 +106,10 @@ function Module(props) {
             
               if (one)
               return (
-                  <TouchableRipple key={ind+'one'} style={homeDesign.module} onPress={()=>navigation.push(props.link,{id:one.id,data:one})}>
+                  <TouchableRipple key={ind+'one'} style={homeDesign.module} onPress={()=>{
+                    //console.log(props.link)
+                    navigation.push(props.link,{id:one.id})
+                  }}>
                       <><ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8}} 
                       source={{uri:one?.image}} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8}}>
                         <View style={{alignSelf: 'flex-start'}}>
@@ -110,7 +118,7 @@ function Module(props) {
                       </ImageBackground>
                       <View style={{}}>
                         <MyText style={[homeDesign.moduleText,{fontWeight:'bold'}]}>{one.title}</MyText>
-                        <MyText style={[homeDesign.moduleText,{maxHeight:20,overflow:'hidden',flex:1,borderBottomLeftRadius:8,borderBottomRightRadius:8}]}>
+                        <MyText style={[homeDesign.moduleText,{height:50,overflow:'hidden',flex:1,borderBottomLeftRadius:8,borderBottomRightRadius:8}]}>
                         {one.text}</MyText>
                       </View></>
                   </TouchableRipple>

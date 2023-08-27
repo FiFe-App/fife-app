@@ -1,5 +1,5 @@
 
-import { Professions, Links } from '../profile/EditOld';
+import { Links } from '../profile/EditOld';
 import { StyleSheet, View, Button, Platform,ScrollView, Pressable, Image, FlatList, Dimensions,  } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { MoreInfoForm, RegisterForm } from "../login/Login";
@@ -9,6 +9,7 @@ import { useRef } from 'react';
 import { useWindowDimensions } from 'react-native'
 import AmiKell from './AmiKell';
 import styles from '../../styles/pagesDesign';
+import Buziness from '../profileModules/Buziness';
 
 
 export const Pages = ({newData,setNewData,pageData, setPageData}) => {
@@ -156,7 +157,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
             <MyText style={styles.subTitle}>A te Bizniszeid azon hobbijaid, képességeid, vagy szakmáid listája, amelyeket meg szeretnél osztani másokkal is.
             Ha te mondjuk úgy gyártod a sütiket, mint egy gép, és ezt felveszed a bizniszeid közé, az appban megtalálható leszel, a süti kulcsszóval.</MyText>
             <MyText style={styles.subTitle}>Fontos, hogy kizárólag a megadott <B>kulcsszavak</B> alapján tudnak majd megtalálni </MyText>
-            <Professions data={data} setData={setData}/>
+            <Buziness data={data} setData={setData}/>
             
         </ScrollView>,
         <ScrollView key="Iranyelvek" style={[pageStyle,{backgroundColor:'#39c0db'}]} contentContainerStyle={{paddingBottom:160}}>
