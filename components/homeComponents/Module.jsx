@@ -15,6 +15,7 @@ import { FirebaseContext } from '../../firebase/firebase';
 import { getDatabase, limitToFirst, onChildAdded, query, ref } from 'firebase/database';
 import { config } from '../../firebase/authConfig';
 import { categories } from '../../lib/categories';
+import { getAuth } from 'firebase/auth';
 
 function Module(props) {
     const { firebasePath, serverPath } = props;
@@ -87,7 +88,7 @@ function Module(props) {
     useEffect(() => {
       console.log('LOAD',props.link);
       if (firebasePath) 
-        fn2() 
+        fn2()
       else 
         fn()
       return ()=> {
@@ -98,7 +99,7 @@ function Module(props) {
         <View style={[homeDesign.moduleContainer,width>900 && {flex:1}]}>
             <Row style={{paddingLeft:20,paddingBottom:10}}>
               <TouchableOpacity onPress={()=>onPress(props.link)}>
-                  <TextFor style={{ fontWeight: 'bold', fontSize:30 }} fixed text={props.title}/>
+                  <TextFor style={{ fontWeight: 'bold', fontSize:width>900?30:20 }} fixed text={props.title}/>
               </TouchableOpacity>
             </Row>
           <ScrollView horizontal style={{height:170}} contentContainerStyle={homeDesign.moduleScrollView}>

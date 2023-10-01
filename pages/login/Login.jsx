@@ -47,7 +47,6 @@ const LoginScreen = ({ navigation, route }) => {
         scrollView.scrollToEnd(true)
     }
   
-  
     let [fontsLoaded] = useFonts({
       AmaticSC_700Bold, Raleway_800ExtraBold
     });
@@ -171,7 +170,7 @@ const  LoginForm = () => {
     </View>
   )
 }
-export const RegisterForm = ({setData,dataToAdd}) => {
+export const RegisterForm = ({setData,dataToAdd,style}) => {
   const navigation = useNavigation()
   const [email, onChangeEmail] = React.useState("");
   const [password, onChangePassword] = React.useState("");
@@ -213,7 +212,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
     })
   }
   return (
-    <View style={{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,padding:20,width:'100%'}}>
+    <View style={[{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,margin:20,width:'100%'},style]}>
         <MyText>Email-cím</MyText>
         <TextInput
           style={styles.searchInput}
@@ -250,7 +249,7 @@ export const RegisterForm = ({setData,dataToAdd}) => {
   )
 }
 
-export const MoreInfoForm = ({setData}) => {
+export const MoreInfoForm = ({setData,style}) => {
   const navigation = useNavigation()
   const [name, onChangeName] = useState('');
   const [username, onChangeUsername] = useState('');
@@ -277,7 +276,7 @@ export const MoreInfoForm = ({setData}) => {
     setData({name,bio,username:usernameValid?username:null})
   }, [name,bio,username,usernameValid]);
   return (
-    <View style={{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,padding:20,width:'100%'}}>
+    <View style={[{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,margin:20,width:'100%'},style]}>
         <MyText>Neved, vagy ahogy szeretnéd, hogy szólítsanak:)</MyText>
         <TextInput
           style={styles.searchInput}

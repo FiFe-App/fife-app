@@ -100,7 +100,15 @@ router.post("/", async (req, res) => {
           }
         }
       }),
-      buziness: await getBuziness(key,myLocation)
+      buziness: myLocation ? await getBuziness(key,myLocation) : 
+      await prisma.buziness.findMany({
+        where: {
+          name: {
+            contains: key,
+            mode: 'insensitive',
+          }
+        }
+      })
     }
 
     /**

@@ -84,6 +84,8 @@ const Profile = ({ navigation, route }) => {
               dispatch(setTempData(res.data))
             
             var data = res.data;
+            navigation.setOptions({ title: 'Profil: '+data.name })
+
             setProfile(data);
           } else {
             if (myuid == uid)
@@ -124,11 +126,12 @@ const Profile = ({ navigation, route }) => {
   if (profile)
   return(
     <>
+    <meta name="title" content={profile.username}/>
     <BasePage full >
       <Auto style={{flex:'none'}}>
         <GoBack style={{marginLeft:20}}/>
         <View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:small?5:25,alignSelf:'center'}]}>
-          <ProfileImage uid={uid} size={150} style={[{paddingHorizontal:0,background:'none',borderRadius:8}]}/>
+          <ProfileImage modal uid={uid} size={150} style={[{paddingHorizontal:0,background:'none',borderRadius:8}]}/>
         </View>
         <View style={{flex:width <= 900 ? 'none' : 1,zIndex:10,elevation: 10}}>
           <View style={[localStyles.fcontainer,{marginLeft:small?5:25}]}><MyText style={localStyles.text}>{profile.name} <MyText light>{profile?.title}</MyText></MyText></View>
@@ -178,9 +181,9 @@ const Profile = ({ navigation, route }) => {
       <Auto style={{flex:1,zIndex:-1,elevation: -1}}>
         <View style={{flex:width <= 900 ? 'none' : 1}}>
           
-          <Section title="Helyzetem" flex={width <= 900 ? 'none' : 1}>
+          <Section title="Helyzetem" flex={1}>
             {profile.page?.location?.length ? (
-            (Platform.OS !== 'web') ? <MapView style={localStyles.map} />
+            (Platform.OS !== 'web') ? <MapView style={{flex:width <= 900 ? 'none' : 1}} />
             : <Map data={profile.page}/>)
             : <View style={{justifyContent:'center',alignItems:'center'}}>
               <MyText style={localStyles.subText}>Nincs megadva helyzeted</MyText>

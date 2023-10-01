@@ -16,6 +16,7 @@ import { config } from '../../firebase/authConfig';
 import UrlText from '../../components/tools/UrlText';
 import openMap from 'react-native-open-maps';
 import { MapContext } from './MapContext';
+import Comments from '../../components/tools/Comments';
 
 
 
@@ -66,10 +67,13 @@ export const getMaps = async (db) => {
     })*/
 }
 
-export const getPlaces = async (id) => {
+export const getPlaces = async (id,secure) => {
 
+  console.log('getPlaces',secure);
   try {
-    const data = await axios.get('/places/'+id,config())
+    const data = await axios.get('/places/'+id,{...config(),params:{
+      secure:secure
+    }})
     console.log('getPlaces',data);
     return data.data
   } catch (error) {
@@ -164,9 +168,9 @@ export const LocationData = (props) => {
     }
 
     return (
-      <ScrollView style={[styles.selectedLocation,{flex: width <= 900 ? 1 : 'none'} ]}>
+      <ScrollView style={[styles.selectedLocation,{flexGrow:1} ]}>
         <Row>
-          <MyText style={{fontSize:20,padding:10,flexGrow:1}}>{selectedPlace?.title}</MyText>
+          <MyText style={{fontSize:20,paddingHorizontal:10,flexGrow:1}}>{selectedPlace?.title}</MyText>
           <Pressable style={{paddingHorizontal:10}} onPress={()=>setSelectedPlace(null)}><MyText style={{fontSize:20}}>X</MyText></Pressable>
         </Row>
         <UrlText style={{padding:10}} text={selectedPlace?.description} />
@@ -185,6 +189,7 @@ export const LocationData = (props) => {
             <Icon name={"compass-outline"} size={25} color="blue" style={{paddingHorizontal:10}}/>
             <TextFor text="open_maps" />
         </TouchableOpacity>
+        <Comments path={"places/"+selectedPlace.id} />
         <AloneModal 
         modalVisible={helpModal} 
         setModalVisible={setHelpModal} 
@@ -197,11 +202,9 @@ export const LocationData = (props) => {
 const styles = StyleSheet.create({
   selectedLocation: {
     padding:10,
-    borderColor: '#f9f9f9',
     flex:1,
-    borderWidth:1,
     zIndex:10,
     width:'100%',
-    backgroundColor:'rgb(253, 238, 162)'
+    backgroundColor:'rgb(253, 245, 203)'
   }
 })

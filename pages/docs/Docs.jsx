@@ -68,7 +68,7 @@ const Docs = () => {
             <View style={{backgroundColor:'white',flex:1,minHeight:50}}><MyText size={30}>Írj te is cikket!</MyText></View>
         }>
             <TextInput
-              style={[{fontSize:16,padding:10,backgroundColor:'white',borderRadius:8,margin:4}]}
+              style={[{fontSize:16,padding:10,backgroundColor:'#ffffff',borderRadius:8,margin:4}]}
               returnKeyType="search"
               autoCapitalize='none'
               onChangeText={setSearchText}

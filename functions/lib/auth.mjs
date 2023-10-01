@@ -10,7 +10,6 @@ export function checkAuth(req, res, next) {
         const uid = token.uid;
         req.uid = uid;
 
-        getAuth().revokeRefreshTokens(uid)
         next()
       }).catch((err) => {
         console.log(err);

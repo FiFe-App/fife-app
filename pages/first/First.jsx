@@ -4,7 +4,7 @@ import { Pages } from "./pages";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useWindowDimensions } from 'react-native'
-import { MyText } from '../../components/Components';
+import { MyText, NewButton } from '../../components/Components';
 
 
 const First = ({scrollView}) => {
@@ -83,15 +83,20 @@ const First = ({scrollView}) => {
         <View style={{backgroundColor:'rgba(255,255,255,0.5)',width:percent/(allPages.length-1)*100+'%'}}/>
         <View style={{backgroundColor:'none',width:100-percent/(allPages.length-1)*100+'%'}}/>
       </View>
-      {page < allPages.length-1 &&<TouchableOpacity 
-        style={[styles.button,{right:10}]} 
-        onPress={()=>scrollView2.scrollTo({x:(page+1)*width,y:0,animated:true})}>
-        <MyText style={[styles.buttonText,width<450&&{fontSize:20}]}>{page > pages.lenght-1 ? 'Befejezés' : 'Tovább'}</MyText>
-      </TouchableOpacity>}
-      {<TouchableOpacity
-      style={[styles.button,{left:10},]} onPress={()=>backDisabled ? handleToHome() : scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})}>
-        <MyText style={[styles.buttonText,width<450&&{fontSize:20}]}>{backDisabled ? "Bejelentkezés" : "Vissza"}</MyText>
-      </TouchableOpacity>}
+      {page < allPages.length-1 &&<NewButton floating
+      color='#ffffff'
+        style={[styles.button,{right:10},width>=450&&{padding:40}]} 
+        onPress={()=>scrollView2.scrollTo({x:(page+1)*width,y:0,animated:true})} 
+          title={page > pages.lenght-1 ? 'Befejezés' : 'Tovább'}
+          textStyle={[styles.buttonText,width<450&&{fontSize:20}]}
+        />}
+      {<NewButton floating
+      color='#ffffff'
+      style={[styles.button,{left:10},width>=450&&{padding:40},]} onPress={()=>backDisabled ? handleToHome() : scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})} 
+        title={backDisabled ? "Bejelentkezés" : "Vissza"}
+        textStyle={[styles.buttonText,width<450&&{fontSize:20}]}
+      />
+      }
 
     </View>
   );
@@ -122,14 +127,12 @@ const styles = StyleSheet.create({
     position:'absolute',
     justifyContent:'center',
     alignItems:'center',
-    backgroundColor:'rgba(160, 160, 160,0.4)',
     padding:20,
     bottom:30
     
   },
   buttonText: {
-    fontSize:30,
-    color:'white'
+    fontSize:30
   },
   progressBar: {
     height: 12,

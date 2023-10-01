@@ -9,6 +9,7 @@ import { Smiley } from "./home/HomeScreenOld"
 import { useState } from 'react';
 import { getDatabase, push, ref, set } from 'firebase/database';
 import AuthoredImage from '../components/tools/AuthoredImage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const About = ({navigation}) => {
     const small = useWindowDimensions().width <= 900;
@@ -30,6 +31,12 @@ const About = ({navigation}) => {
             })
         }
     }
+
+    const next = () => {
+        navigation.push('bejelentkezes');
+        AsyncStorage.setItem('login',true)
+    }
+
     return (
     <BasePage style={styles.container} full>
         <Auto style={{flex:'none'}}>
@@ -37,7 +44,7 @@ const About = ({navigation}) => {
             <MyText size={50} style={{margin:20,textAlign:'center',flex:1}}>FiFe App <Smiley style={{marginLeft:0}}/></MyText>
 
             <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
-                {true&&<NewButton title="Tovább az alkalmazásba" color="#fdcf99" style={{padding:10}} onPress={()=>navigation.push('bejelentkezes')}/>}
+                {true&&<NewButton title="Tovább az alkalmazásba" color="#fdcf99" style={{padding:10}} onPress={next}/>}
             </View>
         </Auto>
         <View style={{marginHorizontal:small?0:100,flex:1}}>
@@ -98,7 +105,7 @@ const About = ({navigation}) => {
             <View style={{}}>
                 <MyText title>Küldjek emailt, ha elkészült az app?</MyText>
                 <Row>
-                    <TextInput style={{margin:5,padding:10,backgroundColor:'white',flexGrow:1}} 
+                    <TextInput style={{margin:5,padding:10,backgroundColor:'#ffffff',flexGrow:1}} 
                     value={!sent ? email : 'Köszi, megkaptam az email-címed!'} onChangeText={setEmail} disabled={sent} placeholder="Email-címed"/>
                     <NewButton title="Küldés" onPress={handleSend} disabled={!email || sent} style={{margin:5,minWidth:100}}/>
                 </Row>

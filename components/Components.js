@@ -19,6 +19,7 @@ import { isBright } from '../pages/home/HomeScreenOld';
 import { config } from '../firebase/authConfig';
 import axios from 'axios';
 import { Button, TouchableRipple } from 'react-native-paper';
+import ImageModal from 'react-native-image-modal';
 
 
 //Dimensions.get('window');
@@ -94,7 +95,7 @@ const getNameOf = async (uid) => {
 }
 
 
-const ProfileImage = ({uid,size=40,style,path}) => {
+const ProfileImage = ({uid,size=40,style,path,modal}) => {
   // eslint-disable-next-line no-undef
   const defaultUrl = require('../assets/profile.jpeg');
   const [url, setUrl] = React.useState(null);
@@ -115,45 +116,59 @@ const ProfileImage = ({uid,size=40,style,path}) => {
   }, [uid,path]);
 
   if (!url) return <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
-  return <ExpoFastImage style={[{width: size, height: size},style]}
+  return modal ? <ImageModal style={[size!=40&&{width: size, height: size},style]}
       cachePolicy='memory-disk'
+      modalImageResizeMode='contain'
       cacheKey={`${uid || path}-uid`}
       placeholderContent={( 
         <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
       )} 
-      source={{ uri: url }}  />
+      source={{ uri: url }}  />:
+      <Image style={[size!=40&&{width: size, height: size},style]}
+      cachePolicy='memory-disk'
+      modalImageResizeMode='contain'
+      cacheKey={`${uid || path}-uid`}
+      placeholderContent={( 
+        <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
+      )} 
+      source={{ uri: url }}/>
     
     
 }
 
-function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color = "#ffde7e",}) {
+function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color = "#ffde7e",info,loading=false}) {
   const ref = useRef();
-  const isHovered = false//useHover(ref);
+  const isHovered = useHover(ref);
 
   const [bgColor, setBgColor] = useState(icon ? 'transparent' : color);
 
   useEffect(() => {
-    setBgColor(shadeColor(color,isHovered*10))
-  }, [isHovered,color]);
-
-  useEffect(() => {
-    
-  }, [icon]);
+    setBgColor(color)
+  }, [color]);
 
   const handleFocus = () => {
     setBgColor(shadeColor(color,-10))
   }
   
-  return (
-    <TouchableRipple  onPressOut={()=>setBgColor(color)} onPressIn={()=>{setBgColor(color);handleFocus()}} 
-          style={[styles.newButton,
-          floating && {shadowColor: "#000",shadowOffset: {width: 4, height: 4 },shadowOpacity: 0.5,shadowRadius: 3,},
-          { backgroundColor: bgColor, opacity: disabled ? 0.2 : 1, height:50 },
-          icon && { width:50, borderRadius: 100 },
-          ,style]} 
-          onPress={onPress} disabled={disabled}>
-          <MyText style={[{ fontWeight: 'bold', color: isBright(bgColor) , fontSize:18, whiteSpace:'pre' },textStyle]}>{title}</MyText>
-    </TouchableRipple>
+  return (<>
+    <View  ref={ref} style={[style,{margin:0,width:'unset',height:'unset',alignItems:'unset',boxShadow:'unset'}]}>
+      <TouchableRipple onPressOut={()=>setBgColor(color)} onPressIn={()=>{setBgColor(color);handleFocus()}} 
+            style={[styles.newButton,
+            floating && {shadowColor: "#000",shadowOffset: {width: 4, height: 4 },shadowOpacity: 0.5,shadowRadius: 3,},
+            { backgroundColor: bgColor, opacity: disabled ? 0.2 : 1, height:50 },
+            icon && { width:50, borderRadius: 100 },
+            ,style,{}]} 
+            onPress={onPress} disabled={disabled}>
+            {!loading ? 
+              <MyText style={[{ fontWeight: 'bold', color: isBright(bgColor) , fontSize:18, whiteSpace:'pre' },textStyle]}>{title}</MyText>
+            : <ActivityIndicator color={isBright(bgColor)}/> }
+      </TouchableRipple>
+    </View>
+    {info && isHovered && <MyText 
+    style={{position:'absolute',backgroundColor:'white',borderWidth:1,borderRadius:8,marginTop:60,right:0,zIndex:100,padding:10}}>
+      {info}
+    </MyText>}
+    </>
   );
 }
 
@@ -190,6 +205,7 @@ class Slideshow extends React.Component {
                 <Image
                   key={'image'+i} // we will use i for the key because no two (or more) elements in an array will have the same index
                   style={{ width: this.width, height: this.width/2 }}
+                  resizeMode='cover'
                   source={source}
                 />
               );
@@ -221,7 +237,7 @@ class Slideshow extends React.Component {
         <View
           style={{ flexDirection: 'row',position:'absolute', bottom:10 }} // this will layout our dots horizontally (row) instead of vertically (column)
           >
-          {this.props.photos.map((_, i) => { // the _ just means we won't use that parameter
+          {this.props.photos.length >1 && this.props.photos.map((_, i) => { // the _ just means we won't use that parameter
             let opacity = position.interpolate({
               inputRange: [i - 1, i, i + 1], // each dot will need to have an opacity of 1 when position is equal to their index (i)
               outputRange: [0.3, 1, 0.3], // when position is not i, the opacity of the dot will animate to 0.3
@@ -354,23 +370,19 @@ function NewEventModal(params) {
 
 const SearchBar = (props) => {
   const {style} = props
-  const allMethods = useForm();
-  const { setFocus } = allMethods;
-  
+
   const navigation = useNavigation();
   const route = useRoute();
-  const { control, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: {
-      text: route?.params?.key || global.search || ''
-    }
-  });
-  const onSubmit = data => {
-    if (global.searchList.includes(data.text))
-      global.searchList.splice(global.searchList.indexOf(data.text), 1);
-    global.searchList.push(data.text);
-    global.search = data.text;
+  const [text, setText] = useState(route?.params?.key || global.search || '');
+
+  const onSubmit = () => {
+    if (global.searchList.includes(text))
+      global.searchList.splice(global.searchList.indexOf(text), 1);
+    global.searchList.push(text);
+    global.search = text;
     setShowHistory(false);
-    navigation.push("kereses", { key: data.text||'' });
+    console.log('search');
+    navigation.push("kereses", { key: text||'' });
   };
   const onBlur = () => {
     setShowHistory(false)
@@ -389,26 +401,20 @@ const SearchBar = (props) => {
   return (
     <View style={[{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:20,marginVertical:17,backgroundColor:'#FDEEA2'},style]}>
       <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
-        <Controller control={control} rules={{ required: true, }}
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              onLayout={e=>setRect(e.nativeEvent.layout)}
-              style={[newStyles.searchInput,{flex:1,fontSize:16,padding:10,marginLeft:20}]}
-              onBlur={onBlur}
-              returnKeyType="search"
-              autoCapitalize='none'
-              onChangeText={onChange}
-              placeholder={TextFor({pureText:true,text:'search_text'})}
-              placeholderTextColor="gray"
-              onSubmitEditing={handleSubmit(onSubmit)}
-              value={value}
-              onClick={()=>setShowHistory(true)}
-            />
-          )}
-          name="text"
+        <TextInput
+          onLayout={e=>setRect(e.nativeEvent.layout)}
+          style={[newStyles.searchInput,{flex:1,fontSize:16,padding:10,marginLeft:20,backgroundColor:'white'}]}
+          onBlur={onBlur}
+          returnKeyType="search"
+          autoCapitalize='none'
+          onChangeText={setText}
+          placeholder={TextFor({pureText:true,text:'search_text'})}
+          placeholderTextColor="gray"
+          onSubmitEditing={onSubmit}
+          value={text}
+          onClick={()=>setShowHistory(true)}
         />
-
-        <Pressable onPress={handleSubmit(onSubmit)} style={{width:30,marginLeft:-40}} >
+        <Pressable onPress={onSubmit} style={{width:30,marginLeft:-40}} >
           <Icon name="search-outline" size={25} color="black" />
         </Pressable>
       </View>
@@ -434,7 +440,7 @@ const OpenNav = ({open,children,style,height}) => {
       {
         toValue: height,
         duration: 500,
-        useNativeDriver: false
+        useNativeDriver: true
       }
     ).start();
     else
@@ -443,7 +449,7 @@ const OpenNav = ({open,children,style,height}) => {
       {
         toValue: -myHeight+60,
         duration: 500,
-        useNativeDriver: false
+        useNativeDriver: true
       }
     ).start();
 
@@ -486,8 +492,9 @@ const TextInput = React.forwardRef((props,ref) => {
       onLayout={props.onLayout}
       ref={ref}
       placeholderTextColor="#555"
-      style={[props.style,{fontFamily:'SpaceMono_400Regular'}, isFocused && 
-        {backgroundColor:'#fbf7f0'},Platform.OS === "web" && {outline: "none" }]}
+      style={[props.style,{fontFamily:'SpaceMono_400Regular'}, 
+      isFocused && {backgroundColor:shadeColor(props.style[0]?.backgroundColor||props.style[1]?.backgroundColor||'#ffffff',-10)},
+      Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => {
         setIsFocused(false)
         if (props.onBlur)
@@ -534,7 +541,7 @@ export const Openable = ({open,children,style}) => {
     Animated.timing(
       size,
       {
-        toValue: 250,
+        toValue: 200,
         duration: 100,
         useNativeDriver: false
       }

@@ -179,11 +179,11 @@ export const Map = ({data,setData,editable}) => {
       map.flyTo(location)
   }
 
-  return (<>
-    <NewButton title={<Icon name="location" size={30}/>} onPress={focus} 
-    floating style={{position:'absolute',zIndex:10,right:5,padding:10}}/><View>
-    <div id="map" style={{flex:small?'none':1,height:small?300:'none',marginTop:-2,marginBottom:5}}/>
-  </View></>)
+  return (<View style={{flex:1}}>
+      <NewButton title={<Icon name="location" size={30}/>} onPress={focus} 
+      floating style={{position:'absolute',zIndex:10,right:5,padding:10}}/>
+      <div id="map" style={{flex:small?'none':1,height:small?300:'none',marginTop:-2,marginBottom:5}}/>
+  </View>)
 }
 
 const Header = (props) => {

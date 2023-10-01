@@ -12,7 +12,7 @@ router.get("/", async (req, res) => {
   const db = await adb
   const sale = db.collection('sale')
   console.log(req.query);
-  const { author, search, minDate, maxDate, category, take=5, skip=0 } = req.query
+  const { author, search, minDate, maxDate, category, take=6, skip=0 } = req.query
   // query for movies that have a runtime less than 15 minutes
   
   let query = { 
@@ -54,7 +54,10 @@ router.get("/:id", async (req, res) => {
   const result = await prisma.sale.findFirst({
     where: {
       id: req.params.id
-    }
+    },
+    include: {
+      saleInterest: true,
+    },
   })
   if (!result) {
     res.send("Not found").status(404);
@@ -82,54 +85,24 @@ router.patch("/:id/images", async (req, res) => {
   else res.send(result).status(200);
 });
 
-router.patch("/:id/book", async (req, res) => {
+router.patch("/:id/interest", async (req, res) => {
   const { message } = req.body;
-  const updated = await prisma.sale.findFirst({
-    where: {
-      id: req.params.id,
-    },
-    select: {
-      author: true,
-      interestedBy: true
+  const id = req.params.id
 
-    },
-  })
-  const includes = updated.interestedBy.includes(req.uid)
-  const result = await prisma.sale.updateMany({
-    where: {
-        id: req.params.id
-    },
+  const result = await prisma.saleInterest.create({
     data:{
-      interestedBy: 
-      includes ?
-        updated.interestedBy.filter(e=>e!=req.uid)
-        : 
-        {push:req.uid}
+      author: req.uid,
+      message,
+      sale: {
+        connect: {
+          id
+        }
+      }
     }
   })
 
   if (!result) res.send("Not found").status(404);
-  else {
-
-    console.log(result);
-    if (message) {
-      await database().ref('users/'+updated.author+'/messages/'+req.uid).push({
-        text: message,
-        extra: req.params.id,
-        time: Date.now(),
-        uid: req.uid,
-        automated: true
-      })
-      await database().ref('users/'+req.uid+'/messages/'+updated.author).push({
-        text: message,
-        extra: req.params.id,
-        time: Date.now(),
-        uid: req.uid,
-        automated: true
-      })
-    }
-    res.send(!!includes).status(200)
-  };
+  res.send(result);
 });
 
 router.patch("/:id/book/:ind", async (req, res) => {

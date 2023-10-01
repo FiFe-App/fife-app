@@ -21,8 +21,10 @@ import { MapContext } from './MapContext';
 const MapElement = ({markers,center}) => {
     //#region state
 
+
+    const { width } = useWindowDimensions();
     const [map, setMap] = useState(null);
-    const {selected,setSelected,selectedPlace,setSelectedPlace,placeList,setPlaceList,search} = useContext(MapContext);
+    const {selectedPlace,setSelectedPlace,newPlace,newMarker,setNewMarker,open} = useContext(MapContext);
     const mapRef = useRef()
     mapRef.current = map;
     const [currentMarkers, setCurrentMarkers] = useState([]);
@@ -90,6 +92,24 @@ const MapElement = ({markers,center}) => {
         }, [])
     );
 
+    useEffect(() => {
+        if (map)
+            map.invalidateSize();
+    }, [width,newPlace,open,selectedPlace]);
+
+    // NEW PLACE MARKER
+    useEffect(() => {
+
+        //if (map)
+        if (newMarker)
+        if (newPlace) {
+          newMarker.addTo(map);
+          const popup = newMarker.bindPopup("<b>Ezzel be tudod jelölni az új helyet</b>").openPopup();
+          setTimeout(()=>popup.closePopup(), 10000)
+        } else {
+          map.removeLayer(newMarker)
+        }
+      }, [newMarker,newPlace]);
 
     // FLY TO SELECTED
     useEffect(()=>{
@@ -97,8 +117,18 @@ const MapElement = ({markers,center}) => {
           map.flyTo([center?.lat,center?.lng],16);
         }
     },[center])
-
+        
     useEffect(() => {
+
+        if (map && !newMarker) {
+            const newM = L.marker(map.getCenter())
+            console.log('on move');
+            map.on('move',()=>{
+              newM.setLatLng(map.getCenter())
+            })
+            setNewMarker(newM);
+  
+        }
         currentMarkers.forEach((m) =>map.removeLayer(m))
         
         if (markers?.length)
@@ -124,7 +154,7 @@ const MapElement = ({markers,center}) => {
 
                 let { status } = await Location.requestForegroundPermissionsAsync();
                 if (status !== 'granted') {
-                    setErrorMsg('Permission to access location was denied');
+                    //setErrorMsg('Permission to access location was denied');
                     return;
                 }
             
@@ -172,7 +202,8 @@ const MapElement = ({markers,center}) => {
                 <NewButton 
                     floating style={{position:'absolute',right:5,top:5,zIndex:100,width:50}}
                     onPress={()=>{map.flyTo(myLocation)}}
-                    title={<Icon size={30} name='navigate' />}
+                    info="Saját helyzetem"
+                    title={<Icon size={30} name='locate' />}
                 />
             }
         </>

@@ -50,7 +50,7 @@ const Search = ({ route, style }) => {
     });
     const [error, setError] = useState(null);
     const [progress, setProgress] = useState(0);
-    const [noResult, setNoResult] = useState(Object.entries(list).);
+    const [noResult, setNoResult] = useState();
     const ready = 1;
 
     const [myLocation, setMyLocation] = useState(null);
@@ -58,7 +58,7 @@ const Search = ({ route, style }) => {
     const getLocation = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          setErrorMsg('Permission to access location was denied');
+          setError('a kisfecskébe be nem teszem a lábam');
           return;
         }
   
@@ -123,22 +123,22 @@ const Search = ({ route, style }) => {
     }, [array]);
 
     //console.log(array);
-    const text = toldalek(route.params?.key||null,'ra')
+    const text = route.params?.key+" kifejezésre"//toldalek(route.params?.key||null,'ra')
 
     return(
         <BasePage style={{flex:1,backgroundColor:'#FDEEA2'}}>
             <MyText title>Keresés a fife appon</MyText>
             {width < 1340 && <SearchBar style={{flexGrow:0,flex:'none',width:'100%',marginRight:40}}/>}
-            <View style={{marginHorizontal:25,width:'100%'}}>
-                {route.params?.key ? <MyText title>Keresés {text}</MyText> :
+            <View style={{marginHorizontal:25,width:'90%'}}>
+                {!route.params?.key &&
                     <MyText>Keress profilokra, bizniszre, helyekre, cserebere cikkekre</MyText>}
             </View>
             <View style={{backgroundColor:'#FDEEA2',zIndex:-1}}>
                 <View style={{justifyContent:'center',width:'100%',flexWrap:small?'wrap':'none',flexDirection:'row',}}>
                     {Object.keys(categories).map((cat,ind) =>
                         {return <NewButton title={categories[cat].name} key={ind+"cat"} 
-                            color={categories[cat].active?'#ffdaad':'#fdf6d1'}
-                            style={{userSelect:'none',padding:20,width:small?'40%':'20%'}}
+                            color={categories[cat].active?'#ffdaad':'#FDEEA2'}
+                            style={{userSelect:'none',padding:3}}
                             onPress={()=>setCategories({...categories,[cat]:{...categories[cat],active:!categories[cat].active}})}/>}
                     )}
                 </View>
@@ -147,7 +147,7 @@ const Search = ({ route, style }) => {
                     {route.params?.key && <Loading color="#f5d761" />}
                     </>:
                     (
-                        ?   <View>
+                        error ?   <View>
                                 <TextFor style={styles.noResultText} text="no_result"/>
                                 <MyText style={styles.noResultSubText}>{error}</MyText>
                             </View>
@@ -219,7 +219,7 @@ function Item({data,cat}) {
                 setText(data.description)
                 setImage('profiles/'+data.uid+'/profile.jpg')
                 setLink('profil')
-                setParams({id:data.uid})
+                setParams({uid:data.uid})
                 setSortData(Math.round(data.distance?.[0]?.distance*10)/10)
                 break;
             case 'categories':

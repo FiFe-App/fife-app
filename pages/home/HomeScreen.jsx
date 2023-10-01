@@ -2,12 +2,12 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Image from 'expo-fast-image';
 import { child, get, getDatabase, onChildAdded, ref, set } from 'firebase/database';
 import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { Animated, Platform, Pressable, ScrollView, View, useWindowDimensions, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import { Auto, B, Col, MyText, NewButton, Row } from '../../components/Components';
 import HelpModal from '../../components/help/Modal';
-import Module from '../../components/homeComponents/Module';
+import Module from '../../components/homeComponents/ModuleNew';
 import { FirebaseContext } from '../../firebase/firebase';
 import { TextFor, getGreeting } from '../../lib/textService/textService';
 import { removeUnreadMessage, setTempData, setUnreadMessage } from '../../lib/userReducer';
@@ -15,6 +15,9 @@ import HomeBackground from './HomeBackground';
 import styles from '../../styles/homeDesign';
 import axios from 'axios';
 import { onAuthStateChanged } from 'firebase/auth';
+import { config } from '../../firebase/authConfig';
+import { categories } from '../../lib/categories';
+import { listToMatrix } from '../../lib/functions';
 
 
   const HomeScreen = () => {
@@ -25,70 +28,65 @@ import { onAuthStateChanged } from 'firebase/auth';
     const opacity2 = useRef(new Animated.Value(0)).current 
     const height = useRef(new Animated.Value(0)).current 
     const [searchText, setSearchText] = useState('');
+    const [textheight, setTextheight] = useState(0); 
     const { width } = useWindowDimensions();
     const small = width < 900;
     const [greeting, setGreeting] = useState(getGreeting);
     const [docsList, setDocsList] = useState([]);
-    const [filterModal, setFilterModal] = useState(false);
-    const [filter, setFilter] = useState({
-      sale: true,
-      work: true,
-      rent: false,
-      places: true
-    });
-    const [loggedIn, setLoggedIn] = useState(false);
-    useEffect(() => {
-      console.log('onAuthChanged');
-      onAuthStateChanged(auth,(user)=>{
-          setLoggedIn(!!user)
-          console.log('onAuthStateChanged',!!user);
-          //if (!user)
-          //logout()
-      })
-  
-      
-    }, []);
-
+    const [filterModal, setFilterModal] = useState(null);
+    const [filter, setFilter] = useState([]);
+    const [list, setList] = useState([null,null,null,null]);
 
     useFocusEffect(
       useCallback(() => {
+        console.log('HOMESCREEN RERENDER');
         dispatch(setTempData(null))
         const filterRef = ref(getDatabase(),'/users/'+uid+'/settings/homeFilter')
         get(filterRef).then(snapshot=>{
           if (snapshot.exists())
           setFilter(snapshot.val())
+          else 
+          setFilter({
+            sale: true,
+            work: true,
+            rent: false,
+            places: true
+          })
+        }).catch(err=>{
+          setFilter({
+            sale: true,
+            work: true,
+            rent: false,
+            places: true
+          })
+          
+        }).finally(()=>{
+          setFilterModal(false)
+          loadData();
         })
 
       }, [])
     );
 
-    const modules = {
-      sale: <Module title="Friss, ropogós cuccok" link="cserebere" params={{category:0}}
-        serverPath='/sale/latest?category=0'/>,
-      work:<Module title="Új munkák" link="cserebere" params={{category:5}} 
-        serverPath='/sale/latest?category=3'/>,
-      rent: <Module title="Új kiadó lakások" link="cserebere" params={{category:5}} 
-        serverPath='/sale/latest?category=2' />,
-      places: <Module title="Helyek amiket megismerhetsz!" link="terkep" 
-        serverPath='/places/latest'/>,
-    }
-
-    const newsModule =<Module title="Cikkek" link="cikkek"
-      serverPath='/docs/latest'
-    />
-    const [list, setList] = useState([]);
-
     useEffect(() => {
-      if (filter?.length) {
-        axios.get('/latest',{params:filter}).then(res=>{
-          setList(res)
-        })
+      if (filterModal == false) {
+        loadData()
       }
-    }, [filter]);
+    }, [filterModal]);
 
     useEffect(() => {
       console.log(list);
     }, [list]);
+
+    const loadData = () => {
+      console.log('load latest', filter);
+      if (!Object.entries(filter).length) return 
+      setList([null,null,null,null]);
+      axios.get('/all/latest',{...config(),params:filter}).then(res=>{
+        console.log(Object.values(res.data));
+        setList(Object.values(res.data))
+      })
+    }
 
     const save = () => {
       const saveRef = ref(getDatabase(),'users/'+uid+'/settings/homeFilter')
@@ -96,7 +94,6 @@ import { onAuthStateChanged } from 'firebase/auth';
         setFilterModal(false)
       })
     }
-
     return (
       <ScrollView style={{flex:1,backgroundColor:'#ffffd6',zIndex:0,elevation: 0,}} >
         <HomeBackground >
@@ -104,37 +101,38 @@ import { onAuthStateChanged } from 'firebase/auth';
             <Col style={{flex:width<=900?1:2,alignItems:'center',shadowOpacity:2,}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
                 <Stickers style={{flex:1}}/>
-                <Row style={{alignItems:'center',paddingHorizontal:20,paddingVertical:20}}>
-                  <MyText style={{fontSize:small?24:40,marginRight:30,backgroundColor:'white',borderWidth:2,borderRadius:100,padding:8}} bold>
+                <Row style={{alignItems:'center',textAlign:'center',paddingHorizontal:20,paddingVertical:20}}>
+                  <MyText 
+                  onLayout={e=>setTextheight(e.nativeEvent.layout.width)}
+                  style={{fontSize:small?24:40,marginRight:30,backgroundColor:'white',borderWidth:2,borderRadius:100,padding:8}} bold>
                     <TextFor text={greeting} embed={name}/>
-                    <View style={styles.bubble} />
                   </MyText>
+                    <View style={[styles.bubble,{marginLeft:textheight-5}]} />
                   <Smiley style={{marginTop:32}}/>
                 </Row>
               </Animated.View> 
             </Col>
-            <View style={{padding:10,alignItems:'center',justifyContent:'center'}}>
-              <NewButton icon title={<Icon name="options-outline" size={30} />} onPress={()=>setFilterModal(true)}/>
+            <View style={{padding:10,alignItems:'center',justifyContent:'center',zIndex:-1}}>
+              <NewButton icon title={<Icon name="options-outline" size={30} />} onPress={()=>setFilterModal(true)}
+                info="Beállítások"
+              />
             </View>
           </Row>
         </HomeBackground>
-          {width > 900 ? <>
-            <Auto >
+          <View style={{zIndex:-1}}>
+            {
+              width > 900 ? <>
               <View>
-                {<Module data={list?.[0]} />}
-                {<Module data={newsModule} />}
+                {listToMatrix(list,2).map(row=>{
+                  return <Row>
+                    {row.map(e=><Module  data={e} />)}
+                  </Row>
+                })}
               </View>
-              <View>
-                {<Module data={list?.[1]} />}
-                {<Module data={list?.[2]} />}
-              </View>
-            </Auto>
-          </> : <View>
-                {<Module data={list?.[0]} />}
-                {<Module data={list?.[1]} />}
-                {<Module data={list?.[2]} />}
-                {<Module data={newsModule} />}
-          </View> }
+            </> : <View>
+                  {list.map(e=><Module data={e} />)}
+            </View>}
+          </View>
           <HelpModal 
             title="Mi érdekel?"
             text={`Válaszd ki hogy mi jelenjen meg a főoldalon!`}
@@ -143,12 +141,9 @@ import { onAuthStateChanged } from 'firebase/auth';
               {title:'mentés',onPress:save,color:'#ff462b'}]}
             open={filterModal}
             setOpen={setFilterModal}
-            inputs={[
-              {type:'checkbox',attribute:'sale',label:'Eladó tárgyak',data:filter,setData:setFilter,style:{backgroundColor:'#fbf1e0'}},
-              {type:'checkbox',attribute:'work',label:'Elérhető munkák',data:filter,setData:setFilter,style:{backgroundColor:'#fbf1e0'}},
-              {type:'checkbox',attribute:'rent',label:'Kiadó lakások',data:filter,setData:setFilter,style:{backgroundColor:'#fbf1e0'}},
-              {type:'checkbox',attribute:'places',label:'Felfedezendő helyek',data:filter,setData:setFilter,style:{backgroundColor:'#fbf1e0'}}
-            ]}
+            inputs={categories.options.map((e,i)=>{
+              return {type:'checkbox',attribute:e.key,label:e.name,data:filter,setData:setFilter,style:{backgroundColor:e.color}}
+            })}
           />
       </ScrollView>
     );
@@ -175,59 +170,52 @@ import { onAuthStateChanged } from 'firebase/auth';
       console.log('remove');
     }
 
-    useFocusEffect(
-      useCallback(() => {
-        if (database) {
-          const dbRef = ref(database,`users/${uid}/messages`);
-          const userRef = ref(database,`users`);
-
-          console.log('onChilAdded attatched');
-
-          const getMessages = () => {
-            //dispatch(emptyUnreadMessages())
-            if (allMessages.includes('notifications')) {
-              setNotifications(old=>[...old,{
-                press: initMessaging,
-                title:'Értesítések',
-                key:'notifications',
-                text:'Hali! Ha szeretnéd, hogy értesülj a pajtásaid üzeneteiről, kapcsold be az értesítéseket, úgy, hogy rám kattintasz!'
-              }])
-            }
-            onChildAdded(dbRef, (childSnapshot) => {
-              const childKey = childSnapshot.key;
-              const read = childSnapshot.child('read').exists()
-              const last = childSnapshot.child('last').val() 
-              if (!allMessages.includes(childKey))
-              if (!read && last?.from != uid) {
-                get(child(userRef,childKey+'/data/name')).then((snapshot) => {
-                    const name = snapshot.val()
-                    setNotifications(old=>[...old,{
-                      link:'beszelgetes',
-                      params:{uid:childKey},
-                      title:'Új üzenet '+name+'tól',
-                      key:childKey,
-                      text:last?.message}])
-                  });
-                  dispatch(setUnreadMessage(childKey))
-              }
-          });
-
-          setTimeout(() => {
-            //getMessages()
-          }, 1000)
-          } 
-          getMessages()
-        }
-
-        if (Platform.OS == 'web' && Notification.permission === 'default') {
-          dispatch(setUnreadMessage('notifications'))
-        } else {
-          dispatch(removeUnreadMessage('notifications'))
-        }
-      },[])
-    )
 
     useEffect(() => {
+      if (database) {
+        const dbRef = ref(database,`users/${uid}/messages`);
+        const userRef = ref(database,`users`);
+
+        console.log('onChilAdded attatched');
+
+        const getMessages = () => {
+          //dispatch(emptyUnreadMessages())
+          if (allMessages.includes('notifications')) {
+            setNotifications(old=>[...old,{
+              press: initMessaging,
+              title:'Értesítések',
+              key:'notifications',
+              text:'Hali! Ha szeretnéd, hogy értesülj a pajtásaid üzeneteiről, kapcsold be az értesítéseket, úgy, hogy rám kattintasz!'
+            }])
+          }
+          onChildAdded(dbRef, (childSnapshot) => {
+            const childKey = childSnapshot.key;
+            const read = childSnapshot.child('read').exists()
+            const last = childSnapshot.child('last').val() 
+            if (!allMessages.includes(childKey))
+            if (!read && last?.from != uid) {
+              get(child(userRef,childKey+'/data/name')).then((snapshot) => {
+                  const name = snapshot.val()
+                  setNotifications(old=>[...old,{
+                    link:'beszelgetes',
+                    params:{uid:childKey},
+                    title:'Új üzenet '+name+'tól',
+                    key:childKey,
+                    text:last?.message}])
+                });
+                dispatch(setUnreadMessage(childKey))
+            }
+        });
+
+        } 
+        getMessages()
+      }
+
+      if (Platform.OS == 'web' && Notification.permission === 'default') {
+        dispatch(setUnreadMessage('notifications'))
+      } else {
+        dispatch(removeUnreadMessage('notifications'))
+      }
     }, []);
 
     useEffect(() => {
@@ -308,40 +296,6 @@ import { onAuthStateChanged } from 'firebase/auth';
       </Pressable>
     </Animated.View>
     )
-  }
-  const Help = () => {
-    function MouseOver(event) {
-      event.target.style.backgroundColor = '#fff';
-    }
-
-    function MouseOut(event) {
-      event.target.style.backgroundColor = '#ff9a9c';
-    }
-    return (
-      <View onMouseOver={MouseOver} onMouseOut={MouseOut} 
-      style={{position:'absolute',bottom:-370,left:0,width:'100%', height:400,backgroundColor: '#ff9a9c'}}>
-      </View>
-    )
-  }
-
-  const PopUps = () => {
-
-
-    return (
-      <View>
-        {
-        popups.map((popup,index)=>
-        
-          <Popup 
-            title={popup.name + ' üzenetet küldött neked!'} 
-            description={popup.text}
-            key={index} 
-            index={index}
-            handleClose={()=>removePopup(index)}
-            handlePress={()=>console.log('clicked')}
-          />)
-        }
-      </View>)
   }
 
   const Popup = ({title,description,handlePress,handleClose,index}) => {

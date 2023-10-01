@@ -53,10 +53,10 @@ const PostForm = ({style,path,placeholder}) => {
                 {loading && <Loading />}
                 <View style={{flexGrow:1}}>
                     <MyText>{(placeholder && name) ? placeholder : "Poszt írása mint "+name}</MyText>
-                    {!name && <TextInput style={{margin:5,padding:10,backgroundColor:'white'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
-                    <TextInput style={{flex:1,margin:5,marginBottom:0,padding:10,backgroundColor:'white'}} multiline numberOfLines={1} value={category} onChangeText={setCategory} 
+                    {!name && <TextInput style={{margin:5,padding:10,backgroundColor:'#ffffff'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
+                    <TextInput style={{flex:1,margin:5,marginBottom:0,padding:10,backgroundColor:'#ffffff'}} multiline numberOfLines={1} value={category} onChangeText={setCategory} 
                     placeholder={"Kategória: Cipő"}/>
-                    <TextInput style={{flex:4,margin:5,marginBottom:0,padding:10,backgroundColor:'white'}} multiline numberOfLines={5} value={text} onChangeText={setText} 
+                    <TextInput style={{flex:4,margin:5,marginBottom:0,padding:10,backgroundColor:'#ffffff'}} multiline numberOfLines={5} value={text} onChangeText={setText} 
                     placeholder={'Keresek valakit aki megjavítja a cipőmet!'}/>
                 </View>
                 <NewButton title="Posztolás" onPress={handleSend} disabled={!author || !text} style={{height:'100%',margin:5,minWidth:100}}/>

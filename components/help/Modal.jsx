@@ -3,59 +3,49 @@ import { MyText, NewButton, Row } from "../Components"
 import CustomInput from "../custom/CustomInput";
 import { useEffect, useState } from "react";
 
-const HelpModal = ({title,text,successText,actions,inputs=[],open,setOpen}) => {
-    const [submitted, setSubmitted] = useState(null);     
+const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen}) => {
     const small = useWindowDimensions().width <= 900;
 
     useEffect(() => {
-      setSubmitted(null)
+      console.log('open',open,open!='submitted');
     }, [open]);
-
-
-    useEffect(() => {
-      return ()=> {
-        console.log('modal unmounted');
-      }
-    }, []);
 
     if (open)
     return (
         <Modal
         animationType='fade'
         transparent={true}
-        visible={open}
+        visible={true}
         onRequestClose={() => {
           setOpen(false);
         }}>
         <View style={styles.centeredView}>
             <View style={[styles.modalView,{maxWidth:small?'95%':'70%'}]}>
-                    {!submitted ? <><MyText title>{title}</MyText>
+                    {open!='submitted' ? <><MyText title>{title}</MyText>
                     <MyText size={20}>{text}</MyText>
-                        <ScrollView>
-                          {inputs.map((input,ind)=>{
-                              return (
-                                <View style={{padding:5}} key={'helpModal-'+ind}>
-                                  <CustomInput {...input} style={[{padding:10},input.style]}/>
-                                </View>
-                              )
-                          })}
-                        </ScrollView>
+                    <ScrollView style={{flex:1}}>
+                      {inputs.map((input,ind)=>{
+                          return (
+                            <View style={{padding:0}} key={'helpModal-'+ind}>
+                              <CustomInput {...input} style={[{padding:10},input.style]}/>
+                            </View>
+                          )
+                      })}
+                    </ScrollView>
                     <Row>
                         {actions.map((action,ind)=>{
                             return (
                                 <NewButton {...action} key={'helpModalButton-'+ind}
                                 onPress={async ()=>{
                                   const res = await action.onPress()
-                                  if (action.submit)
-                                    setSubmitted(res)
                                 }} style={[{padding:10},action.style]}/>
                             )
                         })}
                     </Row></>
-                    : <><MyText title>{submitted.title}</MyText>
-                    <MyText size={20}>{submitted.text}</MyText>
+                    : <><MyText title>{success?.title}</MyText>
+                    <MyText size={20}>{success?.text}</MyText>
                     <Row>
-                        {submitted.action}
+                      <NewButton title="Bezárom" onPress={()=>setOpen(null)}/>
                     </Row></>}
             </View>
         </View>

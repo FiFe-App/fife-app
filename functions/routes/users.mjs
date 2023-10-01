@@ -192,4 +192,17 @@ router.get("/name/:uid", async (req, res) => {
 
 });
 
+router.patch("/friend/:uid", async (req, res) => {
+  
+
+  if (!result) {
+    res.send("Not found").status(404);
+    return
+  }
+  res.send(JSON.parse(JSON.stringify(result)))
+  return "hello"; 
+
+});
+
+
 export default router;

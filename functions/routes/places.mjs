@@ -48,6 +48,22 @@ router.get("/latest", async (req, res) => {
 });
 
 // search by id
+router.get("/search", async (req, res) => {
+  const {key,secure} = req.params;
+
+  const result = await prisma.place.groupBy({
+    by: ['category'],
+    where: {
+      title: {
+        contains: key,
+      },
+    },
+  })  
+  if (!result) res.send("Not found").status(404);
+  else res.send(result)
+
+});
+
 router.get("/:id/search", async (req, res) => {
 
   const result = await prisma.place.findFirst({
@@ -63,21 +79,43 @@ router.get("/:id/search", async (req, res) => {
 // Get a single post
 router.get("/:id", async (req, res) => {
 
+  const {secure} = req.query;
+  console.log(req.params);
   const result = await prisma.place.findMany({
-    where: {
+    where: secure=='true' ? {
+      category: Number(req.params.id),
+      like: {
+        some: {}
+      }
+    }:{
       category: Number(req.params.id)
     }
   })  
+  console.log(true ? 'false' : 'true');
+  console.log('secure',secure,secure ? {
+    category: Number(req.params.id),
+    like: {
+      some: {}
+    }
+  }:{
+    category: Number(req.params.id)
+  },result.length);
   if (!result) res.send("Not found").status(404);
   else res.send(result)
 
 });
 
+
 // Add a new document to the collection
 router.post("/:id", async (req, res) => {
   console.log('create',req.body);
   const cat = Number(req.params.id)
-  if (!(cat >= 0 && cat < categories.length)) return 
+  if (!(cat >= 0 && cat < categories.length)) {
+    res.send({
+      error:'Category not allowed!'
+    }).status(401)
+    return 
+  }
 
   const result = await prisma.place.create({
     data: {

@@ -88,7 +88,7 @@ const Admin = ({navigation,route}) => {
           if (error?.response?.data == 'Token expired') {
             console.log('Token expired');
             api.logout();
-            return
+            return []
           }
           console.log('server not reachable',error);
         }

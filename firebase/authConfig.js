@@ -6,8 +6,9 @@ import { Platform } from "react-native";
 
 export const config = () => {
     const data = store.getState()
-    const user = getAuth().currentUser
-    user?.getIdToken().then(token=>{
+
+    //const user = getAuth().currentUser
+    /*user?.getIdToken().then(token=>{
       store.dispatch(setUserData({
           authtoken:token,
           email:user.email,
@@ -20,14 +21,14 @@ export const config = () => {
 
     }).catch(err=>{
       console.log(err);
-    })
+    })*/
     return ({
       baseURL: 
       (process.env.NODE_ENV=='development' && Platform.OS == 'web' 
        ? 'http://localhost:8888' : 'https://fifeapp.hu')
       +'/.netlify/functions/index',
       headers: {
-        'authtoken': data.user.userData.authtoken,
+        'authtoken': data?.user?.userData?.authtoken,
 
 
       }

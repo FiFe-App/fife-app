@@ -10,8 +10,7 @@ const styles = StyleSheet.create({
       textAlign:'left',
       padding:20,
       marginBottom: 10,
-      backgroundColor:'white',
-      opacity: 0.8
+      backgroundColor:'#ffffff99',
     },
     list: {
       fontSize:20,
@@ -64,7 +63,7 @@ const styles = StyleSheet.create({
       whiteSpace: 'break-space'
     },
     input:{
-      backgroundColor:'white',
+      backgroundColor:'#ffffff',
       padding:10,
       fontSize:22,
       letterSpacing:-1,

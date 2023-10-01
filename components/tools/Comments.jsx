@@ -49,18 +49,19 @@ const Comments = ({style,path,placeholder}) => {
         return (()=>{
             off(ref(db,path),'child_added')
         })
-    }, []);
+    }, [path]);
 
     return (
         <View style={[{flex:1},style]}>
             <Row style={{flex:1}}>
-                {loading && <Loading />}
                 <View style={{flexGrow:1}}>
-                    {!name && <TextInput style={{margin:5,padding:10,backgroundColor:'white'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
-                    <TextInput style={{flex:1,margin:5,marginBottom:0,padding:10,backgroundColor:'white'}} multiline numberOfLines={5} value={text} onChangeText={setText} 
+                    {!name && <TextInput style={{margin:5,padding:10,backgroundColor:'#ffffff'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
+                    <TextInput style={{flex:1,margin:5,marginBottom:0,padding:10,backgroundColor:'#ffffff'}} multiline numberOfLines={5} value={text} onChangeText={setText} 
                     placeholder={(placeholder && name) ? placeholder : "Komment írása mint "+name}/>
                 </View>
-                <NewButton title="Küldés" onPress={handleSend} disabled={!author || !text} style={{height:'100%',margin:5,minWidth:100}}/>
+                <NewButton title="Küldés" onPress={handleSend} disabled={!author || !text} style={{height:'100%',margin:5}}
+                    loading={loading}
+                />
             </Row>
             <MyText size={20} style={{marginLeft:10,marginTop:10}}>Kommentek:</MyText>
             <View style={{flexWrap:'wrap',flexDirection:'row',margin:10,marginRight:15}}>

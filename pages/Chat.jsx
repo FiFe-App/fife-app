@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
         padding: 10,
         margin:5,
         fontSize:20,
-        backgroundColor: 'white'
+        backgroundColor: '#ffffff'
     },
     textButton: {
         width: 40,

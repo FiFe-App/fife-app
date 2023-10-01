@@ -154,17 +154,17 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
         </ScrollView>,
         <ScrollView key="Biznisz" style={[pageStyle,{backgroundColor:'#ffd2c2'}]} contentContainerStyle={{paddingBottom:160}}>
             <MyText style={titleStyle}>Bizniszek</MyText>
-            <MyText style={styles.subTitle}>A te Bizniszeid azon hobbijaid, képességeid, vagy szakmáid listája, amelyeket meg szeretnél osztani másokkal is.
+            <MyText style={styles.text}>A te Bizniszeid azon hobbijaid, képességeid, vagy szakmáid listája, amelyeket meg szeretnél osztani másokkal is.
             Ha te mondjuk úgy gyártod a sütiket, mint egy gép, és ezt felveszed a bizniszeid közé, az appban megtalálható leszel, a süti kulcsszóval.</MyText>
-            <MyText style={styles.subTitle}>Fontos, hogy kizárólag a megadott <B>kulcsszavak</B> alapján tudnak majd megtalálni </MyText>
+            <MyText style={styles.text}>Fontos, hogy kizárólag a megadott <B>kulcsszavak</B> alapján tudnak majd megtalálni </MyText>
             <Buziness data={data} setData={setData}/>
             
         </ScrollView>,
         <ScrollView key="Iranyelvek" style={[pageStyle,{backgroundColor:'#39c0db'}]} contentContainerStyle={{paddingBottom:160}}>
             <MyText style={titleStyle}>Irányelveink</MyText>
-            <MyText style={styles.subTitle}>Ha ennek az online közösségnek tagja szeretnél lenni, komolyan kell venned az irányelveinket: </MyText>
-            <Col style={{alignSelf:'flex-start',marginHorizontal:30}}>
-              <FlatList style={styles.list}
+            <MyText style={styles.text}>Ha ennek az online közösségnek tagja szeretnél lenni, komolyan kell venned az irányelveinket: </MyText>
+            <Col style={{alignSelf:'flex-start',marginTop:20,width:'100%'}}>
+              <FlatList style={[styles.text,{}]}
                 data={[
                   {key: 'Nem leszek rosszindulatú senkivel'},
                   {key: 'Mindenkihez egyformán bizalommal fordulok'},
@@ -178,7 +178,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 </MyText>}
               />
             </Col>
-            <View style={{margin:20}}>
+            <View style={{marginVertical:20}}>
               <MyText style={styles.text}>Ha be fogod tartani ezeket, gépeld be a következő szöveget:</MyText>
               <Pressable style={styles.inputView} onPress={()=>textInput.current.focus()}>
                 <MyText style={styles.absolute} onLayout={(e)=> {console.log('number of lines',setNumberOfLines((e.nativeEvent.layout.height-20)/26))}} >{textToType}</MyText>
@@ -193,10 +193,10 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
         </ScrollView>,
         <ScrollView key="Adatok" style={[pageStyle,{backgroundColor:'#ff668b'}]} contentContainerStyle={{paddingBottom:160,alignItems:'center'}}>
             <MyText style={titleStyle}>Mindjárt kész is vagy!</MyText>
-            <MyText style={styles.subTitle}>Add meg kérlek még az néhány adatod, az email-címed, és a jelszavad a befejezéshez.</MyText>
+            <MyText style={styles.text}>Add meg kérlek még az néhány adatod, az email-címed, és a jelszavad a befejezéshez.</MyText>
             <Auto style={{justifyContent:'center',alignItems:small?'center':null}}>
-              <MoreInfoForm data={data.moreInfo} setData={(newData)=>setData({...data,name:newData.name,username:newData.username})} />
-              <RegisterForm dataToAdd={data}/>
+              <MoreInfoForm style={styles.text} data={data.moreInfo} setData={(newData)=>setData({...data,name:newData.name,username:newData.username})} />
+              <RegisterForm style={styles.text} dataToAdd={data}/>
             </Auto>
             {false && <><MyText style={titleStyle}>Még nem tudsz regisztrálni, gyere vissza később:)</MyText>
             <Auto style={{flex:'none'}}>
@@ -214,7 +214,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
             <View style={{}}>
                 <MyText title>Küldjek emailt, ha elkészült az app?</MyText>
                 <Row>
-                    <TextInput style={{margin:5,padding:10,backgroundColor:'white',flexGrow:1}} 
+                    <TextInput style={{margin:5,padding:10,backgroundColor:'#ffffff',flexGrow:1}} 
                     value={!sent ? email : 'Köszi, megkaptam az email-címed!'} onChangeText={setEmail} disabled={sent} placeholder="Email-címed"/>
                     <NewButton title="Küldés" onPress={handleSend} disabled={!email || sent} style={{margin:5,minWidth:100}}/>
                 </Row>

@@ -394,7 +394,7 @@ const localStyles = {
     searchInput: {
         margin: 5,
         borderColor: "black",
-        backgroundColor: "white",
+        backgroundColor: "#ffffff",
         padding: 10,
         fontWeight: "bold",
         maxWidth: 500,
@@ -448,7 +448,7 @@ const localStyles = {
       borderRadius: 0,
       marginBottom:5,
       color:'black',
-      backgroundColor:'white',
+      backgroundColor:'#ffffff',
       fontWeight: "600",
       padding: 10,
       paddingVertical:10

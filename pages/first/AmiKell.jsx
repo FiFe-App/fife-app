@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { Auto, MyText } from "../../components/Components";
 import CustomInput from "../../components/custom/CustomInput";
+import { categories } from "../../lib/categories";
 
 const modules = [
     [
@@ -18,11 +19,12 @@ const modules = [
 
 const AmiKell = ({data,setData}) => {
     const { width } = useWindowDimensions()
-    const inputs = [
-        {type:'checkbox',attribute:'sale',label:'Eladó tárgyak',data:data,setData:setData,style:{backgroundColor:'#fbf1e0'}},
-        {type:'checkbox',attribute:'work',label:'Elérhető munkák',data:data,setData:setData,style:{backgroundColor:'#fbf1e0'}},
-        {type:'checkbox',attribute:'places',label:'Kiadó lakások',data:data,setData:setData,style:{backgroundColor:'#fbf1e0'}}
-      ]
+
+    const inputs = categories.options.map((e,i)=>{
+        return {type:'checkbox',attribute:i,label:e.name,data:data,setData:setData,style:{backgroundColor:e.color}}
+    })
+    const half = Math.ceil(inputs.length / 2);    
+
     const titleStyleW = {
         color:'white',
         fontSize: width > 900 ? 50 : 30,
@@ -40,10 +42,10 @@ const AmiKell = ({data,setData}) => {
         </MyText>
         <Auto>
             <View style={{flex:width<=900?'none':3}}>
-                {inputs.map((input,ind)=><CustomInput {...input} key={'inp'+ind} style={[{padding:10,margin:5},input.style]}/>)}
+                {inputs.slice(0,half).map((input,ind)=><CustomInput {...input} key={'inp'+ind} style={[{padding:10,margin:5},input.style]}/>)}
             </View>
             <View style={{flex:width<=900?'none':3}}>
-                {[].map((input,ind)=><CustomInput {...input} key={'inp2'+ind}  style={[{padding:10,margin:5},input.style]}/>)}
+                {inputs.slice(half).map((input,ind)=><CustomInput {...input} key={'inp2'+ind}  style={[{padding:10,margin:5},input.style]}/>)}
             </View>
         </Auto>
 
@@ -78,10 +80,11 @@ const styles = StyleSheet.create({
     },
     text: {
       fontSize:22,
-      color: 'white',
       textAlign:'left',
-      paddingLeft:60,
-      marginBottom: 10
+      padding:20,
+      marginBottom: 10,
+      backgroundColor:'white',
+      opacity: 0.8
     },
 });
 

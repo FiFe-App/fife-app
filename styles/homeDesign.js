@@ -34,7 +34,6 @@ const styles = StyleSheet.create({
         borderWidth:2,
         borderLeftWidth:0,
         marginLeft:5,
-        marginTop:14,
         width:30,
         height:30,
         position:'absolute',

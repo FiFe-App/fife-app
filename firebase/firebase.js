@@ -8,6 +8,7 @@ import {
     fetchSignInMethodsForEmail,
     getAuth,
     inMemoryPersistence,
+    onAuthStateChanged,
     sendPasswordResetEmail,
     setPersistence,
     signInWithEmailAndPassword,
@@ -17,7 +18,7 @@ import {
 import React, { createContext, useEffect, useState } from 'react';
 import firebaseConfig from './firebaseConfig';
 
-import { initializeApp } from 'firebase/app';
+import { getApp, initializeApp } from 'firebase/app';
 import { get, getDatabase, ref, set } from "firebase/database";
 import { Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,12 +35,22 @@ const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check"
 const FirebaseContext = createContext(null)
 export { FirebaseContext };
 
-const app = initializeApp(firebaseConfig)
+
 
 export default ({ children }) => {
     const dispatch = useDispatch()
     const [messaging, setMessaging] = useState(null);
     const uid = useSelector((state) => state.user.uid);
+
+    const app = () => {
+        let app;
+        try {
+            app = getApp()
+        } catch (error) {
+            app = initializeApp(firebaseConfig)
+        }
+        return app;
+    }
 
     useEffect(() => {
 
@@ -50,15 +61,25 @@ export default ({ children }) => {
 
             console.log("INIT");
 
-            //const appNew = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-
+            // Initialize Firebase
+            initializeApp(firebaseConfig);
             appCheck()
-            //setDatabase(getDatabase(app))
-            //setFirestore(getFirestore(app))
-            //setStorage(getStorage(app))
-            //console.log('auth.currentUser',getAuth(app)?.currentUser);
-            //setAuth(getAuth(app))
-            return //getAuth(app);
+
+            // Adding listener for firebase auth
+            const unsubscribe = onAuthStateChanged(getAuth(),async (user) => {
+            if (user) {
+                setTimeout(async () => {
+                }, 10000);
+                console.log('FIREBASE user already loggen in')
+                console.log(user);
+                dispatch(sliceLogin(user.uid))
+            } else {
+                console.log('FIREBASE user not logged in')
+                dispatch(sliceLogout())
+            }
+            });
+
+            return unsubscribe
         }
     }
 
@@ -105,7 +126,7 @@ export default ({ children }) => {
 
         // Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
         // key is the counterpart to the secret key you set in the Firebase console.
-        try{const appCheckObj = initializeAppCheck(app, {
+        try{const appCheckObj = initializeAppCheck(getApp(), {
         provider: new ReCaptchaV3Provider('6LcSls0bAAAAAKWFaKLih15y7dPDqp9qMqFU1rgG'),
 
         // Optional argument. If true, the SDK automatically refreshes App Check
@@ -117,7 +138,7 @@ export default ({ children }) => {
     }
 
     const forgotPassword = async (email) => {
-        const retApp = await init()
+        const retApp = getApp()
         const a = getAuth(retApp)
         if (!email || email == '') return 'Email nélkül nem tudjuk visszaállítani a jelszavad'
         return sendPasswordResetEmail(a,email).then(res=>{
@@ -154,10 +175,10 @@ export default ({ children }) => {
         let newPass = password
         let response = null
         
-        await signInWithEmailAndPassword(getAuth(app), newEmail, newPass)
+        await signInWithEmailAndPassword(getAuth(getApp()), newEmail, newPass)
         .then(async (userCredential) => {
             const user = userCredential.user
-            await user.getIdToken(true).then(token=>{
+            await user.getIdToken(false).then(token=>{
                 console.log(token);
 
                 dispatch(setUserData({
@@ -168,12 +189,10 @@ export default ({ children }) => {
                     createdAt:user.createdAt,
                     lastLoginAt:user.lastLoginAt
                 }))
-
             })
-            dispatch(sliceLogin(user.uid))
 
             if (firstLogin) {
-                const user = getAuth(retApp).currentUser;
+                const user = getAuth(getApp()).currentUser;
                 console.log(user);
                 if (user == null) {
                     console.log('USER NULL');
@@ -194,14 +213,14 @@ export default ({ children }) => {
             console.log(userCredential);
 
 
-            const dbRef = ref(getDatabase(retApp),'users/' + user.uid + "/settings");
+            const dbRef = ref(getDatabase(getApp()),'users/' + user.uid + "/settings");
             get(dbRef).then((snapshot) => {
             if (snapshot.exists()) {
                 dispatch(setSettings(snapshot.val()))
             }
             
             })
-            const nameRef = ref(getDatabase(retApp),'users/' + user.uid + "/data/name");
+            const nameRef = ref(getDatabase(getApp()),'users/' + user.uid + "/data/name");
             get(nameRef).then((snapshot) => {
             if (snapshot.exists()) {
                 dispatch(setName(snapshot.val()))
@@ -321,9 +340,16 @@ export default ({ children }) => {
     }
 
     return (
-        <FirebaseContext.Provider value={{app,auth:getAuth(app),database:getDatabase(app),api:{
-            login,register,facebookLogin,logout,forgotPassword
-        },messaging,initMessaging}}>
+        <FirebaseContext.Provider value={{
+            app:app(),
+            auth:getAuth(app()),
+            database:getDatabase(app()),
+            api:{
+                login,register,facebookLogin,logout,forgotPassword
+            },
+            messaging,
+            initMessaging
+        }}>
             {children}
         </FirebaseContext.Provider>
     )

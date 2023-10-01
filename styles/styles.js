@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
         margin: 5,
         borderColor: "black",
         borderRadius: 8,
-        backgroundColor: "white",
+        backgroundColor: "#ffffff",
         padding: 10,
         fontSize:20,
         fontWeight: "500",
@@ -118,9 +118,9 @@ export const styles = StyleSheet.create({
     },
     list: {
         alignItems: "center",
+        flex:1,
         borderBottomWidth: 0,
         borderTopWidth: 0,
-        padding: 12,
         marginTop: -1,
         margin: 6,
         borderRadius: 8

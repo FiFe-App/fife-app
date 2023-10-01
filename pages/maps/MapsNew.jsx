@@ -19,6 +19,7 @@ import { Checkbox } from 'react-native-paper';
 import { categories } from '../../lib/categories';
 import { MapContext } from './MapContext';
 import { MapList } from '../../components/MapList';
+import HelpModal from '../../components/help/Modal';
 
 const Maps = ({navigation, route}) => {
     //#region state
@@ -29,7 +30,7 @@ const Maps = ({navigation, route}) => {
     const [open, setOpen] = useState(true);
 
     const [search, setSearch] = useState('');
-    const [secureOnly, setSecureOnly] = useState(true);
+    const [secure, setSecure] = useState(true);
 
     const [categoryList, setCategoryList] = useState([]);
 
@@ -37,6 +38,10 @@ const Maps = ({navigation, route}) => {
     const [selectedPlace, setSelectedPlace] = useState(null);
 
     const [placeList, setPlaceList] = useState([]);
+    const [newPlace, setNewPlace] = useState(null);
+    const [newMarker, setNewMarker] = useState(null);
+
+    const [newCategory, setNewCategory] = useState(null);
 
     //#endregion
 
@@ -49,42 +54,51 @@ const Maps = ({navigation, route}) => {
     useEffect(() => {
         if (id)
         (async () => {
+      console.log('ID');
             const place = await getPlaceById(id);
             setSelectedPlace(place);
             setSelected({id:place.category-1,name:categories.places[place.category-1].name})
         })()
     }, [id]);
 
-    const menu = <>
-    <ScrollView>
-      <TextInput
-        style={localStyles.searchInput}
-        onChangeText={setSearch}
-        editable
-        placeholder="Keress helyekre, kategóriákra"
-      />
+    useEffect(() => {
+      if (search)
+      axios.get('places/search',{...config(),params:{
+        key: search,
+        secure: secure
+      }}).then(res=>{
+        console.log("search",res);
+      })
+    }, [search]);
 
-      <View style={{marginHorizontal:30,marginVertical:5}}>
-        <Checkbox.Item label={<MyText>Csak ellenőrzött helyek mutatása</MyText>} 
-          color="#000" style={[]} 
-          labelStyle={{fontFamily:'SpaceMono_400Regular', letterSpacing:-1}}
-          status={secureOnly?'checked':'unchecked'} onPress={v=>setSecureOnly(!secureOnly)} />
-        
-      </View>
-      {categoryList.map((cat,ind) => {
-        return <MapList map={{name:cat,id:ind}} key={ind} />
-      })}
-    </ScrollView>
-    {width > 900 && (selectedPlace &&        
-      <LocationData />
-    )}      
+    const menu = <>
+      <Row style={{zIndex:10}}>
+        <TextInput
+          style={localStyles.searchInput}
+          onChangeText={setSearch}
+          editable
+          placeholder="Keress helyekre, kategóriákra"
+        />
+        <NewButton info={secure?"BE: Csak ellenőrzött helyek mutatása":"KI: Minden hely mutatása"}
+        icon onPress={()=>setSecure(!secure)} title={<Icon size={30} name={secure?'flask':'flask-outline'}/> }/>
+      </Row>
+      <ScrollView style={{flexGrow:0}}>
+        {categoryList.map((cat,ind) => {
+          if (selected.id == null || selected.id==ind)
+          return <MapList map={{name:cat,id:ind}} key={ind} />
+        })}
+      </ScrollView>
+      {!selected.id && <NewButton title="Új kategória ajánlása" onPress={()=>setNewCategory(true)} />}
+      {width > 900 && (selectedPlace &&        
+        <LocationData />
+      )}      
     </>
 
     return (
-        <MapContext.Provider value={{selected,setSelected,setSelectedPlace,selectedPlace,search,placeList,setPlaceList}}>
+        <MapContext.Provider value={{selected,setSelected,setSelectedPlace,selectedPlace,search,placeList,setPlaceList,newPlace,setNewPlace,newMarker, setNewMarker,secure:secure,open}}>
             <Auto style={{flex:1,backgroundColor:'#FDEEA2'}}>
                 {width <= 900 ?
-                <Openable open={open} style={[localStyles.side,{flex: width <= 900 ? 2 : 1,minWidth:300,backgroundColor:'#FDEEA2'}]}>
+                <Openable open={open} style={[localStyles.side,{flex: 1,minWidth:300,backgroundColor:'#FDEEA2'}]}>
                 {menu}
                 </Openable>: <View
                 style={[localStyles.side,{flex: width <= 900 ? 2 : 1,minWidth:300,backgroundColor:'#FDEEA2'}]}
@@ -99,27 +113,50 @@ const Maps = ({navigation, route}) => {
                     <MapElement markers={placeList} center={{lat:selectedPlace?.lat,lng:selectedPlace?.lng}}/>
                 </View>
 
-                {!selected.id && false && <NewPlace selectedMap={selected}/>}
+                {<NewPlace selected={selected}/>}
                 {width <= 900 && (selectedPlace &&
                         <LocationData />
                     )}
             </Auto>
+            <HelpModal
+              title="Új térkép kategória ajánlása"
+              inputs={[
+                {label:'Kategória neve',type:'text-input',attribute:'name',data:newCategory,setData:setNewCategory},
+                {label:'Leírása, miért van szükség rá?',type:'text-input',attribute:'description',data:newCategory,setData:setNewCategory,lines:2}
+              ]}
+              actions={[
+                {title:'Beküldés',
+                color:'#006aff',onPress:()=>{
+                  push(ref(database,'maps/categories'),newCategory).then(res=>{
+                    setNewCategory('submitted');
+                  })
+                }},
+                {title:'Mégsem',onPress:()=>{
+                  setNewCategory(null);
+                }}
+              ]}
+              success={{
+                text: 'Köszi, hogy részt veszel a FiFe App fejlesztésében:)',
+                title:'Sikeres beküldés!'
+              }}
+              setOpen={setNewCategory}
+              open={newCategory}/>
         </MapContext.Provider>
     )
 }
 
 const NewPlace = () => {
-  const [open, setOpen] = useState(false);
-  const { api } = useContext(FirebaseContext);
-  const {selected,setSelected,selectedPlace,setSelectedPlace,placeList,setPlaceList,search} = useContext(MapContext);
+  const {selected,newMarker, setNewMarker,newPlace,setNewPlace} = useContext(MapContext);
+  const open = !!newPlace;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [statusText, setStatusText] = useState('Feltöltöm!');
 
   useEffect(() => {
-      //setNewPlace(open)
-  }, [open]);
+      if (!newPlace)
+      setNewMarker(null)
+  }, [newPlace]);
 
   useEffect(() => {
     if (title || description)
@@ -127,14 +164,15 @@ const NewPlace = () => {
   }, [description,title]);
 
   const send = () => {
-    if (title && description && selectedMap.name && newPlace) {
+    if (title && description && selected.name && newMarker) {
       setLoading(true);
       setStatusText('Kérlek várj...')
-      axios.post('places/'+selectedMap.id,{
+      console.log(selected);
+      axios.post('places/'+(Number(selected.id)+1),{
         description,
         title,
-        lat: newPlace._latlng.lat,
-        lng: newPlace._latlng.lng
+        lat: newMarker._latlng.lat,
+        lng: newMarker._latlng.lng
       },config()).then(e=> {
         setTitle('');
         setDescription('')
@@ -144,17 +182,17 @@ const NewPlace = () => {
     }
   }
 
-  if (!open) return <NewButton title="Tudok egy új helyet!" floating onPress={()=>setOpen(true)} style={{borderWidth:0,position:'absolute',right:5,bottom:5,padding:10,zIndex:5}}/>
+  if (!open) return <NewButton title="Tudok egy új helyet!" floating onPress={()=>setNewPlace(true)} style={{borderWidth:0,position:'absolute',right:5,bottom:5,padding:10,zIndex:5}}/>
   else return (
     <View style={{margin:10}}>
       <Row style={{flex:1,padding:10}}>
         <MyText style={{flexGrow:1}}>Új hely</MyText>
-        <Pressable onPress={()=>{setOpen(false)}} style={{}}><MyText>Mégse</MyText></Pressable>
+        <Pressable onPress={()=>{setNewPlace(null)}} style={{}}><MyText>Mégse</MyText></Pressable>
       </Row>
       <TextInput style={localStyles.input} placeholder='Hely neve' onChangeText={setTitle} value={title} disabled={loading}/>
       <TextInput style={localStyles.input} placeholder='A helyről' onChangeText={setDescription} value={description} disabled={loading}/>
-      <MyText style={localStyles.input}>{selectedMap ? "Kategória: "+(selectedMap.name||'Válassz egyet') : "Válassz ki egy kategóriát fent"}</MyText>
-      <NewButton title={statusText} onPress={send} disabled={!(title && description && selectedMap) || loading}/>
+      <MyText style={localStyles.input}>{selected ? "Kategória: "+(selected.name||'Válassz egyet') : "Válassz ki egy kategóriát fent"}</MyText>
+      <NewButton title={statusText} onPress={send} disabled={!(title && description && selected) || loading}/>
     </View>
   )
 }
@@ -189,10 +227,11 @@ const localStyles = {
     searchInput: {
         margin: 5,
         borderColor: "black",
-        backgroundColor: "white",
+        backgroundColor: "#ffffff",
         padding: 10,
         fontWeight: "bold",
         maxWidth: 500,
+        flexGrow:1
     },
     selected: {
       borderColor: 'red',
@@ -244,7 +283,7 @@ const localStyles = {
       borderRadius: 0,
       marginBottom:5,
       color:'black',
-      backgroundColor:'white',
+      backgroundColor:'#ffffff',
       fontWeight: "600",
       padding: 10,
       paddingVertical:10

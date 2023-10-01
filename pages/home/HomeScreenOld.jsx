@@ -22,7 +22,8 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
     const dispatch = useDispatch()
     const opacity = useRef(new Animated.Value(1)).current 
     const opacity2 = useRef(new Animated.Value(0)).current 
-    const height = useRef(new Animated.Value(0)).current 
+    const height = useRef(new Animated.Value(0)).current
+    const [textheight, setTextheight] = useState(0); 
     const [searchText, setSearchText] = useState('');
     const { width } = useWindowDimensions();
     const small = width < 900;
@@ -35,18 +36,6 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
       rent: false,
       places: true
     });
-    const [loggedIn, setLoggedIn] = useState(false);
-    useEffect(() => {
-      console.log('onAuthChanged');
-      onAuthStateChanged(getAuth(),(user)=>{
-          setLoggedIn(!!user)
-          console.log('onAuthStateChanged',!!user);
-          //if (!user)
-          //logout()
-      })
-  
-      
-    }, []);
 
     useFocusEffect(
       useCallback(() => {
@@ -131,16 +120,17 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
             <Col style={{flex:width<=900?1:2,alignItems:'center',shadowOpacity:2,}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
                 <Stickers style={{flex:1}}/>
-                <Row style={{alignItems:'center',paddingHorizontal:20,paddingVertical:20}}>
-                  <MyText style={{fontSize:small?24:40,marginRight:30,backgroundColor:'white',borderWidth:2,borderRadius:100,padding:8}} bold>
+                <Row style={{alignItems:'center',textAlign:'center',paddingHorizontal:20,paddingVertical:20}}>
+                  <MyText 
+                  onLayout={e=>setTextheight(e.nativeEvent.layout.width)}
+                  style={{fontSize:small?24:40,marginRight:30,backgroundColor:'white',borderWidth:2,borderRadius:100,padding:8}} bold>
                     <TextFor text={greeting} embed={name}/>
-                    <View style={styles.bubble} />
                   </MyText>
+                    <View style={[styles.bubble,{marginLeft:textheight-5}]} />
                   <Smiley style={{marginTop:32}}/>
                 </Row>
               </Animated.View> 
             </Col>
-            {!loggedIn && <MyText size={40}>!</MyText>}
             <View style={{padding:10,alignItems:'center',justifyContent:'center'}}>
               <NewButton icon title={<Icon name="options-outline" size={30} />} onPress={()=>setFilterModal(true)}/>
             </View>

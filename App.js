@@ -4,7 +4,7 @@ import { Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // routes
-const HomeScreen = React.lazy(()=>import("./pages/home/HomeScreenOld"))
+const HomeScreen = React.lazy(()=>import("./pages/home/HomeScreen"))
 const LogoTitle = React.lazy(()=>import("./components/LogoTitle").then(module=>({default:module.LogoTitle})))
 const LoginScreen = React.lazy(()=>import("./pages/login/Login"))
 const Search = React.lazy(()=>import("./pages/Search"))
@@ -56,12 +56,26 @@ import { Helmet } from 'react-helmet';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onMessage } from "firebase/messaging";
 import { Loading, MyText } from './components/Components';
+import firebaseConfig from './firebase/firebaseConfig';
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Stack = createNativeStackNavigator();
 const prefix = Linking.createURL('/');
+  const config = {
+    screens: {
+      Home:  'fooldal',
+      Login: 'bejelentkezes',
+      Sale:  'cserebere',
+      Map:   'terkep',
+      About:  'asd',
+      NotFound: '*',
+    },
+  };
 
 export default function App(props) {
-  const linking = useState({prefixes: [prefix]})
+  const linking = useState({prefixes: [prefix],config})
 
   let [fontsLoaded] = useFonts({
     AmaticSC_700Bold,Poppins_400Regular,SpaceMono_400Regular
@@ -73,22 +87,21 @@ export default function App(props) {
           <Provider store={store}>
             <MetaHeader />
             <SnowfallWrap />
-              <FirebaseProvider>
             <PersistGate loading={<MyText>Loading...</MyText>} persistor={persistor}>
+              <FirebaseProvider>
                 <Messaging/>
                 <SafeAreaProvider>
                   <StatusBar style="dark" translucent/>
                   <Suspense fallback={<View style={{flex:1,backgroundColor:'#fcf3d4'}}><Loading/></View>}>
                     <NavigationContainer linking={linking} 
-                    
                       fallback={<LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />}>
                       {fontsLoaded ? ( <Navigator/> ) : (<></>)}
                     </NavigationContainer>
                   </Suspense>
                 </SafeAreaProvider>
-            </PersistGate>
               </FirebaseProvider>
-        </Provider>
+            </PersistGate>
+          </Provider>
     );
 }
 
@@ -132,11 +145,20 @@ const SnowfallWrap = () => {
 
 const Navigator = () => {
   const user = useSelector((state) => state.user);
+  const [login, setLogin] = useState(null);
+
   useEffect(() => {
-    console.log('user.uid',user);
+    (async ()=>{
+      console.log('LOGIN');
+      setLogin(await AsyncStorage.getItem('login') || false);
+    })()
+  }, []);
+  useEffect(() => {
+    console.log('user',user);
   }, [user]);
+  if (login==null) return null;
   return (
-    <Stack.Navigator initialRouteName="rolunk" 
+    <Stack.Navigator  initialRouteName={login?"bejelentkezes":"rolunk"} 
     
     fallback={<View style={{backgroundColor:'#FDEEA2',flex:1}}></View>} 
     screenOptions={{ header: () => <LogoTitle />,headerStyle:{zIndex:100,elevation:100,position:'absolute'}, title:"FiFe App",}}>
@@ -147,14 +169,8 @@ const Navigator = () => {
           <Stack.Screen name="regisztracio" component={First} options={{ headerShown: false, title:'Regisztráció' }} />
           <Stack.Screen name="elfelejtett-jelszo" component={Forgot} options={{ headerShown: false, title:'Új jelszó' }} />
           </>
-          //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
           }
-          { user?.uid == '26jl5FE5ZkRqP0Xysp89UBn0MHG3' && <>
-          <Stack.Screen name="admin" component={AdminScreen} options={{ headerShown: false, title:'Admin' }} />
-          </>
-          //  <Stack.Screen name="firebase-messaging-sw.js" component={ServiceWorkerRegistration} options={{ headerShown: false }} />
-          }
-            {user?.uid && <>
+            {!!user?.uid && <>
           <Stack.Screen name="fooldal" component={HomeScreen} options={{title:'FiFe Főoldal'}} />
           <Stack.Screen name="kereses" component={Search} options={{title:'FiFe Keresés'}} />
 
@@ -177,9 +193,14 @@ const Navigator = () => {
           <Stack.Screen name="cikkek" component={Document} options={{ title: "Cikkek" }} />
           <Stack.Screen name="test-es-lelek" component={BodyAndSoul} options={{ title: "Test és lélek" }} />
           <Stack.Screen name="custom" component={CustomPage} options={{ title: "Teszt" }} />
+          <Stack.Screen name="*" component={CustomPage} options={{ title: "Teszt" }} />
           
-
           </>}
+
+          { user?.uid == '26jl5FE5ZkRqP0Xysp89UBn0MHG3' && <>
+          <Stack.Screen name="admin" component={AdminScreen} options={{ headerShown: false, title:'Admin' }} />
+          </>
+          }
           <Stack.Screen name="adatvedelem" component={PrivacyPolicy} options={{ headerShown: false }} />
           <Stack.Screen name="hasznalati-feltetelek" component={TermsAndServices} options={{ headerShown: false }} />
         </>
