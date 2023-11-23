@@ -55,7 +55,12 @@ export const styles = StyleSheet.create({
         fontSize:20,
         fontWeight: "500",
         width:'100%',
-        borderRadius:8
+        borderRadius:8,
+    },
+    searchList: {
+        flexDirection:'row',
+        alignItems:'center',
+        zIndex:10
     },
     fixToText: {
         flexDirection: 'row',
@@ -79,17 +84,19 @@ export const styles = StyleSheet.create({
     },
     error: {
         textAlign: 'center', // <-- the magic
+        backgroundColor:'#fdf4c8',
+        bottom:0,
+        padding:8,
         fontWeight: 'bold',
         fontSize: 25,
-        color: "red",
-        borderColor:'red',
+        borderRadius:8,
+        backgroundColor:'#ffc795',
         alignSelf:'center',
-        width:'100%',
         margin: 5
     },
     listIcon: {
         borderRadius: 8,
-        marginRight: 8
+        marginRight: 8,
     },
     menuLink: {
         justifyContent:'center',
@@ -105,8 +112,8 @@ export const styles = StyleSheet.create({
     },
     number: {
         position:'absolute',
-        right:20,
-        top:30,
+        right:0,
+        top:0,
         textAlignVertical: 'center',
         marginHorizontal: 12,
         fontSize:15,
@@ -118,6 +125,7 @@ export const styles = StyleSheet.create({
     },
     list: {
         alignItems: "center",
+        padding:10,
         flex:1,
         borderBottomWidth: 0,
         borderTopWidth: 0,

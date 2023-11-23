@@ -1,14 +1,14 @@
 
 import { AntDesign } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Auto, MyText, NewButton, Openable, Row, TextInput } from '../../components/Components';
 
 
 import * as Location from 'expo-location';
-import { push, ref, set } from 'firebase/database';
+import { get, push, ref, set } from 'firebase/database';
 import { useWindowDimensions } from 'react-native';
 import { FirebaseContext } from '../../firebase/firebase';
 import { getMaps, getPlaceById, getPlaces, LocationData } from "./mapService";
@@ -20,19 +20,24 @@ import { categories } from '../../lib/categories';
 import { MapContext } from './MapContext';
 import { MapList } from '../../components/MapList';
 import HelpModal from '../../components/help/Modal';
+import { useSelector } from 'react-redux';
+import { arraysEqual, deepEqual } from '../../lib/functions';
+import BottomSheet from '@gorhom/bottom-sheet';
 
 const Maps = ({navigation, route}) => {
     //#region state
     
-    const [id, setId] = useState(route?.params?.id || null);
+    const uid = useSelector((state) => state.user.uid)
+    const {id,category} = route?.params || {}
     const {database} = useContext(FirebaseContext);
     const { width } = useWindowDimensions();
     const [open, setOpen] = useState(true);
 
     const [search, setSearch] = useState('');
-    const [secure, setSecure] = useState(true);
+    const [secure, setSecure] = useState(false);
 
     const [categoryList, setCategoryList] = useState([]);
+    const [nearby, setNearby] = useState([]);
 
     const [selected, setSelected] = useState({name:null,id:null});
     const [selectedPlace, setSelectedPlace] = useState(null);
@@ -42,24 +47,62 @@ const Maps = ({navigation, route}) => {
     const [newMarker, setNewMarker] = useState(null);
 
     const [newCategory, setNewCategory] = useState(null);
+    const [starred, setStarred] = useState([]);
+    const [oldStarred, setOldStarred] = useState([]);
+    
+    const sheetRef = React.useRef(null);
+    const snapPoints = useMemo(() => ['1%', '50%'], []);
+    const handleSheetChanges = useCallback((index) => {
+      console.log('handleSheetChanges', index);
+    }, []);
 
     //#endregion
 
-    useEffect(() => {
+    useFocusEffect(
+      useCallback(() => {
         (async () => {
-            setCategoryList(await getMaps(database));
-        })()
-    }, []);
+          setCategoryList(await getMaps(database));
+          const getL = (await get(ref(database,'users/'+uid+'/data/mapLikes'))).val()
+          console.log('getL',getL)
+          setStarred(getL || [])
+          setOldStarred(getL || [])
+      })()
+      (async () => {
+        setNearby(await axios.get('places/'));
+    })()
+      }, [])
+    );
+
+    useEffect(() => {
+      console.log('star log',starred,oldStarred,!arraysEqual(starred,oldStarred));
+      if (!arraysEqual(starred,oldStarred)) {
+        console.log('upload',starred)
+        set(ref(database,'users/'+uid+'/data/mapLikes'),starred);
+      }
+    }, [starred])
 
     useEffect(() => {
         if (id)
         (async () => {
       console.log('ID');
             const place = await getPlaceById(id);
+            if (!place) return
+            console.log(place);
             setSelectedPlace(place);
             setSelected({id:place.category-1,name:categories.places[place.category-1].name})
         })()
     }, [id]);
+
+    useEffect(() => {
+      console.log('cat',categories.places[category]);
+      if (category)
+      setSelected({name:categories.places[category].name,id:category})
+    }, [category]);
+    
+    useEffect(() => {
+      console.log('setParams cat',selected,selectedPlace);
+      navigation.setParams({category:Number(selected?.id) || undefined,id:selectedPlace?.id || undefined})
+    }, [selected,selectedPlace]);
 
     useEffect(() => {
       if (search)
@@ -71,52 +114,72 @@ const Maps = ({navigation, route}) => {
       })
     }, [search]);
 
-    const menu = <>
-      <Row style={{zIndex:10}}>
+    const menu = <View style={{}}>
+      {selected.id == null && <><Row style={{zIndex:10}}>
         <TextInput
           style={localStyles.searchInput}
           onChangeText={setSearch}
           editable
           placeholder="Keress helyekre, kategóriákra"
         />
-        <NewButton info={secure?"BE: Csak ellenőrzött helyek mutatása":"KI: Minden hely mutatása"}
-        icon onPress={()=>setSecure(!secure)} title={<Icon size={30} name={secure?'flask':'flask-outline'}/> }/>
       </Row>
-      <ScrollView style={{flexGrow:0}}>
-        {categoryList.map((cat,ind) => {
-          if (selected.id == null || selected.id==ind)
-          return <MapList map={{name:cat,id:ind}} key={ind} />
-        })}
-      </ScrollView>
-      {!selected.id && <NewButton title="Új kategória ajánlása" onPress={()=>setNewCategory(true)} />}
-      {width > 900 && (selectedPlace &&        
-        <LocationData />
-      )}      
-    </>
+      <MyText bold style={{paddingLeft:10}}>Kategóriák #</MyText></>}
+      {selectedPlace == null && <>
+        <ScrollView horizontal style={{height:selected?.id==null?150:'none'}} contentContainerStyle={{flexWrap:'wrap',flexDirection:'column',flex:1}}>
+          {categoryList.map((cat,ind) => {
+            if (selected.id == null || selected.id==ind)
+            return <MapList map={{name:cat.name,id:ind}} key={ind} />
+          })}
+
+        </ScrollView>
+        <MyText bold style={{paddingLeft:10}}>Közelemben $</MyText>
+        <ScrollView horizontal style={{height:selected?.id==null?150:'none'}} contentContainerStyle={{flexWrap:'wrap',flexDirection:'column',flex:1}}>
+          {nearby.map((place,index2) => {
+            return <Pressable style={[localStyles.mapLink,{borderWidth:selectedPlace?.id==place.id ? 2 : 0}]} 
+                              key={"place"+index2} onPress={()=>{
+                                  if (selectedPlace?.id==place.id) {
+                                    setSelectedPlace(null)
+                                  }
+                                  else {
+                                    setSelectedPlace(place);
+                                  }
+                                }}>
+                      <MyText>{place.title}</MyText>
+                    </Pressable>
+          })}
+
+        </ScrollView>
+      </>}
+        {false&&!selected.id && <NewButton title="Új kategória ajánlása"  style={{order:2}} onPress={()=>setNewCategory(true)} />}
+      
+      {selectedPlace && <LocationData />}
+    </View>
 
     return (
-        <MapContext.Provider value={{selected,setSelected,setSelectedPlace,selectedPlace,search,placeList,setPlaceList,newPlace,setNewPlace,newMarker, setNewMarker,secure:secure,open}}>
-            <Auto style={{flex:1,backgroundColor:'#FDEEA2'}}>
-                {width <= 900 ?
-                <Openable open={open} style={[localStyles.side,{flex: 1,minWidth:300,backgroundColor:'#FDEEA2'}]}>
-                {menu}
-                </Openable>: <View
-                style={[localStyles.side,{flex: width <= 900 ? 2 : 1,minWidth:300,backgroundColor:'#FDEEA2'}]}
+        <MapContext.Provider value={{selected,setSelected,setSelectedPlace,selectedPlace,search,placeList,setPlaceList,newPlace,setNewPlace,newMarker, setNewMarker,secure:secure,open,starred,setStarred}}>
+            <Auto style={{flex:1,backgroundColor:'#ffffd6'}}>
+                {width > 900 && <View
+                style={[localStyles.side,{flex: width <= 900 ? 2 : 1,minWidth:300,backgroundColor:'#ffffd6'}]}
                 >{menu}</View>
                 }
-                {width <= 900 &&
-                <Pressable style={{borderBottomWidth:2,backgroundColor:'#FFC372',padding:5,alignItems:'center',justifyContent:'center'}}
-                    onPress={()=>setOpen(!open)}>
-                    <AntDesign name={!open ? 'caretdown' : 'caretup'} size={20}/>
-                </Pressable>}
-                <View style={{flex:3,backgroundColor:'#FDEEA2'}}>
-                    <MapElement markers={placeList} center={{lat:selectedPlace?.lat,lng:selectedPlace?.lng}}/>
+                <View style={{flex:3,backgroundColor:'#ffffd6'}}>
+                    <MapElement markers={placeList} center={{lat:selectedPlace?.lat,lng:selectedPlace?.lng}} index='0'/>
                 </View>
 
+                {width <= 900 && <BottomSheet
+                  ref={sheetRef}
+                  index={1}
+                  snapPoints={snapPoints}
+                  backgroundStyle={{backgroundColor:'#ffffd6'}}
+                  onChange={handleSheetChanges}
+                >
+                  {menu}
+                </BottomSheet>}
+                {false && <Openable open={open} style={[localStyles.side,{flex: 1,backgroundColor:'#ffffd6'}]}>
+                {menu}
+                </Openable>}
+
                 {<NewPlace selected={selected}/>}
-                {width <= 900 && (selectedPlace &&
-                        <LocationData />
-                    )}
             </Auto>
             <HelpModal
               title="Új térkép kategória ajánlása"
@@ -136,7 +199,7 @@ const Maps = ({navigation, route}) => {
                 }}
               ]}
               success={{
-                text: 'Köszi, hogy részt veszel a FiFe App fejlesztésében:)',
+                text: 'Köszi, hogy részt veszel a fife app fejlesztésében:)',
                 title:'Sikeres beküldés!'
               }}
               setOpen={setNewCategory}
@@ -146,7 +209,7 @@ const Maps = ({navigation, route}) => {
 }
 
 const NewPlace = () => {
-  const {selected,newMarker, setNewMarker,newPlace,setNewPlace} = useContext(MapContext);
+  const {selected,setSelected,newMarker, setSelectedPlace,setNewMarker,newPlace,setNewPlace} = useContext(MapContext);
   const open = !!newPlace;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -177,6 +240,12 @@ const NewPlace = () => {
         setTitle('');
         setDescription('')
         setLoading(false);
+        const s = selected;
+        setSelected({name:null,id:null});
+        setTimeout(() => {
+          setSelected(s)
+          setSelectedPlace({id:e.data})
+        }, 100);
         setStatusText('Feltöltve!')
       });
     }
@@ -252,7 +321,10 @@ const localStyles = {
       zIndex:100,
       //borderWidth:2,
       marginTop: -2,
-      cursor: 'default'
+      cursor: 'default',
+      shadowColor: "#000",
+      shadowOffset: {width: 4, height: 4 },
+      shadowOpacity: 0.2,shadowRadius: 1
     },
     mapLink: {
       padding: 5,
@@ -262,7 +334,7 @@ const localStyles = {
       borderWidth:1,
       flexDirection: 'row',
       justifyContent: 'start',
-      alignItems: 'center'
+      alignItems: 'center',
     },
     filterList: {
       padding:5,

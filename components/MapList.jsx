@@ -5,22 +5,22 @@ import { Pressable, ScrollView, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { AutoPrefix } from '../lib/textService/textService';
 import { getPlaces } from '../pages/maps/mapService';
-import { Loading, MyText, NewButton } from './Components';
+import { Loading, MyText, NewButton, Row } from './Components';
 import { MapContext } from '../pages/maps/MapContext';
 
 export const MapList = ({map}) => {
     //const placeList = [];
-    const {selected,setSelected,selectedPlace,setSelectedPlace,placeList,setPlaceList,setNewPlace,secure} = useContext(MapContext);
-    const db = getDatabase()
+    const {selected,setSelected,selectedPlace,setSelectedPlace,placeList,setPlaceList,setNewPlace,secure,starred,setStarred} = useContext(MapContext);
     const [loading, setLoading] = useState(false);
+    const thisStarred = starred.find(e=>e==map.id)!=undefined;
 
     useEffect(() => {
       if (selected.id == map.id)
         getData()
     }, [selected]);
+;
 
     const getData = async () => {
-      console.log('get data');
       setLoading(true);
       try {
         const locations = Object.values(await getPlaces(selected.id+1,secure));
@@ -46,22 +46,35 @@ export const MapList = ({map}) => {
         setSelected(map);
       }
     }
-
-    useEffect(() => {
-      console.log('SELECTED',selected);
-    }, [selected]);
-
     return (
-      <View key={map?.id} style={{justifyContent:'flex-end',backgroundColor:'#FDEEA2'}}>
-          <Pressable onPress={press}
-            style={[localStyles.mapLink,{borderWidth:selected?.id==map.id ? 2 : 0}]}>
-              <MyText style={selected.id==map.id ?  {color:map.color} : {}}>{map.name}</MyText>
-              <Icon style={{ marginHorizontal: 12, flex:1, textAlign:'right' }} name={selected.id==map.id ? 'chevron-down-outline' : 'chevron-forward-outline'} size={25} color={selected.id==map.id ?  map.color : "#000"} />
-          </Pressable>
+      <View key={map?.id} style={{justifyContent:'flex-end',backgroundColor:'#ffffd6',order:thisStarred?0:1}}>
+          <Row>
+            {selected?.id==map.id &&
+            <Pressable onPress={press} style={{alignItems:'center',justifyContent:'center',width:30}}>
+              <Icon name="chevron-back-outline" size={30} color='black'/>
+            </Pressable>}
+            <Pressable onPress={press}
+              style={[localStyles.mapLink]}>
+            
+                <MyText style={[selected.id==map.id ?  {color:map.color} : {},{flexGrow:1}]}>{map.name}</MyText>
+                <Pressable
+                style={{ marginHorizontal: 12, textAlign:'right' }}
+                onPress={()=>{
+                  console.log('star',map.id,starred?.[map?.id])
+                  starred.find(e=>e==map.id) != undefined ?
+                  setStarred(starred.filter(e=>e!=map.id))
+                  :
+                  setStarred(old=>[...old,map.id])
+            
+                }}>
+                  <Icon name={thisStarred?"star":"star-outline"} size={20} color={thisStarred?'#e7c73d':'#988328'}/>
+                </Pressable>
+            </Pressable>
+          </Row>
           {selected.id == map.id && <>
             {loading ?
             <Loading color="#fff" />
-             : <ScrollView >
+              :<View style={{flexWrap:'wrap',flexDirection:'row',flex:1}}>
               {!placeList?.length ? 
                 <View style={{marginLeft:50,width:'70%'}}>
                   <MyText><AutoPrefix text={selected.name}/> kategória üres még!</MyText>
@@ -69,27 +82,24 @@ export const MapList = ({map}) => {
                 </View> :
                 placeList.map((place,index2)=>{
                   return (
-                    <Pressable style={[localStyles.mapLink,{left:10,marginHorizontal:40,borderWidth:selectedPlace?.id==place.id ? 2 : 0}]} 
+                    <Pressable style={[localStyles.mapLink,{borderWidth:selectedPlace?.id==place.id ? 2 : 0}]} 
                               key={"place"+index2} onPress={()=>{
                                   if (selectedPlace?.id==place.id) {
                                     setSelectedPlace(null)
                                   }
                                   else {
                                     setSelectedPlace(place);
-                                    //setIds({...ids,locationId:placeList.find(e=>e.title==place.title).key})
                                   }
                                 }}>
                       <MyText style={{color:selected==place ? map.color : 'black'}}>{place.title}</MyText>
                     </Pressable>)
                   })}
-                  <NewButton title="Új hely feltöltése"
-                  style={{}}
-                    onPress={()=>{
-                      setNewPlace(true)
-                    }}
-                  />
-            </ScrollView>}
+            </View>}
+
           </>}
+            {false&&<NewButton title="+ Új hely" style={{backgroundColor:'#FDEEA2'}}
+                  onPress={()=>{setNewPlace(true)}}
+                  />}
       </View>
     )
 }
@@ -99,12 +109,12 @@ const localStyles = {
     mapLink: {
       padding: 5,
       margin: 5,
-      marginHorizontal: 30,
       backgroundColor: 'white',
       borderRadius:8,
       borderColor:'black',
       flexDirection: 'row',
       justifyContent: 'start',
-      alignItems: 'center'
+      alignItems: 'center',
+      flexGrow:1
     },
   }

@@ -7,7 +7,7 @@ const Section = (props) => {
     if (props?.children)
     return(
       <View style={[localStyles.container,{flex:props?.flex,padding:small?5:20,marginLeft:small?5:25},props.style,]}>
-        <View style={[{height:50}]}>
+        <View style={[{}]}>
           <MyText style={localStyles.sectionText}>{props.title}</MyText>
         </View>
           <Animated.View style={[{ paddingHorizontal:0, flex: props?.flex, height: props.height }]} >

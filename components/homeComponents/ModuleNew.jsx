@@ -3,19 +3,14 @@ import { Animated, Easing, ImageBackground, ScrollView, TouchableOpacity, View }
 
 import { useNavigation } from '@react-navigation/native';
 import homeDesign from '../../styles/homeDesign';
-import { MyText, ProfileBackground, ProfileImage, Row, getUri } from '../Components';
+import { MyText, Row, getUri } from '../Components';
 
 
+import { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
-import { TextFor } from '../../lib/textService/textService';
-import { useContext, useEffect, useRef, useState } from 'react';
 import { TouchableRipple } from 'react-native-paper';
-import axios from 'axios';
-import { FirebaseContext } from '../../firebase/firebase';
-import { getDatabase, limitToFirst, onChildAdded, query, ref } from 'firebase/database';
-import { config } from '../../firebase/authConfig';
 import { categories } from '../../lib/categories';
-import { getAuth } from 'firebase/auth';
+import { TextFor } from '../../lib/textService/textService';
 
 function Module(props) {
     const { title, link, list, params, data, id } = props?.data || {};
@@ -28,17 +23,12 @@ function Module(props) {
     const [images, setImages] = useState({});
 
     useEffect(() => {
-      console.log(title,'images',images);
-    }, [images]);
-
-    useEffect(() => {
       let resList
       if (data?.length)
       {
         (async ()=>{
         resList = await Promise.all(data.map( async (el,i)=> {
           let image
-          console.log(el);
           try {
            image = el?.image || await getUri(id+'/'+el._id+'/'+0)
           } catch (error) {
@@ -54,7 +44,6 @@ function Module(props) {
           }
           return image
         }))
-        console.log('resList',resList);
         setImages(resList)
       })()
 }
@@ -75,7 +64,7 @@ function Module(props) {
             {data?.length ? data?.map((one,ind)=>{
             
               if (one){
-                const category = one.category?.length ? {name:one.category} : categories?.[id]?.[one.category]
+                const category = one.category?.length ? {name:one.category} :  categories?.[id]?.[(id=='places'?one.category-1:one.category)]
                 return (
                   <TouchableRipple key={ind+'one'} style={homeDesign.module} onPress={()=>{
                     navigation.push(link,{id:one._id})
@@ -83,7 +72,7 @@ function Module(props) {
                       <><ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8}} 
                       source={{uri:images?.[ind]}} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8}}>
                         <View style={{alignSelf: 'flex-start'}}>
-                          <MyText style={{margin:10,backgroundColor:(category?.color||'#fff'),padding:5,borderRadius:8}}>{category?.name}</MyText>
+                          <MyText style={{margin:10,backgroundColor:(category?.color||one?.color||'#fff'),padding:5,borderRadius:8}}>{category?.name}</MyText>
                         </View>
                       </ImageBackground>
                       <View style={{}}>

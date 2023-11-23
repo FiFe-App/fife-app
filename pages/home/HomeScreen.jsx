@@ -5,11 +5,11 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState }
 import { Animated, Platform, Pressable, ScrollView, View, useWindowDimensions, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
-import { Auto, B, Col, MyText, NewButton, Row } from '../../components/Components';
+import { Auto, B, Col, MyText, NewButton, Row, getNameOf } from '../../components/Components';
 import HelpModal from '../../components/help/Modal';
 import Module from '../../components/homeComponents/ModuleNew';
 import { FirebaseContext } from '../../firebase/firebase';
-import { TextFor, getGreeting } from '../../lib/textService/textService';
+import { TextFor, elapsedTime, getGreeting } from '../../lib/textService/textService';
 import { removeUnreadMessage, setTempData, setUnreadMessage } from '../../lib/userReducer';
 import HomeBackground from './HomeBackground';
 import styles from '../../styles/homeDesign';
@@ -18,6 +18,9 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { config } from '../../firebase/authConfig';
 import { categories } from '../../lib/categories';
 import { listToMatrix } from '../../lib/functions';
+import Error from '../../components/tools/Error';
+import MessageModal from '../../components/help/MessageModal';
+import Posting from '../../components/homeComponents/Posting';
 
 
   const HomeScreen = () => {
@@ -28,18 +31,19 @@ import { listToMatrix } from '../../lib/functions';
     const opacity2 = useRef(new Animated.Value(0)).current 
     const height = useRef(new Animated.Value(0)).current 
     const [searchText, setSearchText] = useState('');
-    const [textheight, setTextheight] = useState(0); 
+    const [textWidth, setTextWidth] = useState(0); 
     const { width } = useWindowDimensions();
     const small = width < 900;
     const [greeting, setGreeting] = useState(getGreeting);
     const [docsList, setDocsList] = useState([]);
+    const [mailModal, setMailModal] = useState(null);
     const [filterModal, setFilterModal] = useState(null);
     const [filter, setFilter] = useState([]);
     const [list, setList] = useState([null,null,null,null]);
+    const [number, setNumber] = useState(0);
 
     useFocusEffect(
       useCallback(() => {
-        console.log('HOMESCREEN RERENDER');
         dispatch(setTempData(null))
         const filterRef = ref(getDatabase(),'/users/'+uid+'/settings/homeFilter')
         get(filterRef).then(snapshot=>{
@@ -83,10 +87,29 @@ import { listToMatrix } from '../../lib/functions';
       if (!Object.entries(filter).length) return 
       setList([null,null,null,null]);
       axios.get('/all/latest',{...config(),params:filter}).then(res=>{
-        console.log(Object.values(res.data));
-        setList(Object.values(res.data))
+        setList(Object.values(res.data.latest))
+        setNumber(res.data.notifications)
+      }).catch(err=>{
+        setList({error:err})
       })
     }
+
+    useEffect(() => {
+      if (mailModal == true)
+      axios.get('all/notifications',config()).then(async (res)=>{
+        const data = await Promise.all(res.data.map(async ({uid,author,id,created_at})=>{
+          const name = await getNameOf(uid||author)
+          return {
+            text: author?
+            'Szuper! '+name+' érdeklődik csereberéd iránt!'
+            :'Jó hír! '+name+' bejelölt a pajtásának!',
+            uid:author||uid,
+            created_at:elapsedTime(created_at)
+          }
+        }))
+        setMailModal(data)
+      })
+    }, [mailModal]);
 
     const save = () => {
       const saveRef = ref(getDatabase(),'users/'+uid+'/settings/homeFilter')
@@ -100,28 +123,43 @@ import { listToMatrix } from '../../lib/functions';
           <Row style={{flex:3,zIndex:0,elevation: 0,justifyContent:'center'}}>
             <Col style={{flex:width<=900?1:2,alignItems:'center',shadowOpacity:2,}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
-                <Stickers style={{flex:1}}/>
-                <Row style={{alignItems:'center',textAlign:'center',paddingHorizontal:20,paddingVertical:20}}>
+                {false&&<Stickers style={{flex:1}}/>}
+                {<Row style={{alignItems:'center',textAlign:'center',paddingHorizontal:20,paddingVertical:20,opacity:textWidth}}>
                   <MyText 
-                  onLayout={e=>setTextheight(e.nativeEvent.layout.width)}
-                  style={{fontSize:small?24:40,marginRight:30,backgroundColor:'white',borderWidth:2,borderRadius:100,padding:8}} bold>
+                  onLayout={e=>setTextWidth(e.nativeEvent.layout.width)}
+                  style={{fontSize:small?20:40,marginRight:30,backgroundColor:'white',borderWidth:2,borderRadius:100,padding:8}} bold>
                     <TextFor text={greeting} embed={name}/>
                   </MyText>
-                    <View style={[styles.bubble,{marginLeft:textheight-5}]} />
+                  <View style={[styles.bubble,{marginLeft:textWidth-5}]} />
                   <Smiley style={{marginTop:32}}/>
-                </Row>
+                </Row>}
               </Animated.View> 
             </Col>
-            <View style={{padding:10,alignItems:'center',justifyContent:'center',zIndex:-1}}>
+            <Auto style={{padding:10,alignItems:'center',justifyContent:'center',zIndex:-1,width:'auto',flex:'none'}} >
+              <View>
+
+                <NewButton icon title={<Icon name={number?"notifications":"notifications-outline"} size={30} />} onPress={()=>setMailModal(true)}
+                  info="Értesítések"
+                />
+                {!!number && <MyText style={{
+                  position:'absolute',top:0,right:0,
+                  borderRadius:10,color:'white',backgroundColor:'black',width:20,height:20,alignItems:'center',textAlign:'center'}}>
+                {number}
+                </MyText>}
+              </View>
               <NewButton icon title={<Icon name="options-outline" size={30} />} onPress={()=>setFilterModal(true)}
                 info="Beállítások"
               />
-            </View>
+            </Auto>
           </Row>
+          <Posting />
         </HomeBackground>
           <View style={{zIndex:-1}}>
             {
-              width > 900 ? <>
+              list?.error ?
+              <Error text={list?.error?.response?.data}/>
+              :
+              <>{width > 900 ? <>
               <View>
                 {listToMatrix(list,2).map(row=>{
                   return <Row>
@@ -131,19 +169,37 @@ import { listToMatrix } from '../../lib/functions';
               </View>
             </> : <View>
                   {list.map(e=><Module data={e} />)}
-            </View>}
+            </View>}</>}
           </View>
           <HelpModal 
             title="Mi érdekel?"
-            text={`Válaszd ki hogy mi jelenjen meg a főoldalon!`}
+            text={`Válaszd ki hogy mi jelenjen meg a főoldalon!
+Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
             actions={[
               {title:'mégse',onPress:()=>setFilterModal(false)},
               {title:'mentés',onPress:save,color:'#ff462b'}]}
             open={filterModal}
             setOpen={setFilterModal}
-            inputs={categories.options.map((e,i)=>{
-              return {type:'checkbox',attribute:e.key,label:e.name,data:filter,setData:setFilter,style:{backgroundColor:e.color}}
-            })}
+            inputs={categories.options.reduce((r, e) => r.push(
+              {type:'checkbox',attribute:e.key,label:e.name,data:filter,setData:setFilter,style:{backgroundColor:e.color}},  
+              {type:'null',attribute:e.key+'key',placeholder:'kulcs',data:filter,setData:setFilter,render:e.key,style:{marginBottom:16}},
+            ) && r, [])}
+          />
+          <HelpModal 
+            title="Értesítések"
+            actions={[
+              {title:'bezár',onPress:()=>setMailModal(false)}
+            ]}
+            open={mailModal}
+            setOpen={setMailModal}
+            inputs={
+              mailModal?.length ?
+              mailModal?.map((e,i)=>{
+                return {type:'item',attribute:e.uid,label:e.text,text:e.created_at,setData:()=>{setMailModal(false)}}
+              }) : []
+            }
+          />
+          <MessageModal
           />
       </ScrollView>
     );
@@ -170,8 +226,8 @@ import { listToMatrix } from '../../lib/functions';
       console.log('remove');
     }
 
-
     useEffect(() => {
+      
       if (database) {
         const dbRef = ref(database,`users/${uid}/messages`);
         const userRef = ref(database,`users`);
@@ -210,7 +266,7 @@ import { listToMatrix } from '../../lib/functions';
         } 
         getMessages()
       }
-
+      
       if (Platform.OS == 'web' && Notification.permission === 'default') {
         dispatch(setUnreadMessage('notifications'))
       } else {
@@ -222,6 +278,7 @@ import { listToMatrix } from '../../lib/functions';
       if (Platform.OS == 'web' && Notification.permission !== 'default')
         setNotifications(notifications.filter(n=>n.key!='notifications'))
     }, [allMessages]);
+
     return (
       <View style={style}>
           {notifications.length ? notifications.map(

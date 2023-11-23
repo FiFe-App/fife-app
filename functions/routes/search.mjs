@@ -26,7 +26,6 @@ const getBuziness = async (key,myLocation) => {
       
             includeLocs: "location",
             spherical: true,
-            //query: {'$$name':{$regex: key}}
           }
         },
         { $match:
@@ -45,7 +44,7 @@ const getBuziness = async (key,myLocation) => {
       $sort : { "distance.0.distance" : 1 } 
     },
     { 
-      $limit : 10
+      $limit : 1000000
     },{ 
       $match: { 
         name: { $regex: key}

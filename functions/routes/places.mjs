@@ -6,33 +6,6 @@ import { PrismaClient } from "@prisma/client";
 const router = express.Router();
 const prisma = new PrismaClient()
 
-const categories = [
-  "Adományboltok",
-  "Turik",
-  "Nyilvános vécék",
-  "Ivóvíz lelőhelyek",
-  "FiFe kocsmák",
-  "Csomagolásmentes boltok",
-  "Piacok",
-  "Bulihelyek",
-  "Ruhaleadó helyek",
-  "Szelektív gyűjtők",
-  "Komposztok",
-  "Közösségi helyek, kertek",
-  "Fotóboltok",
-  "Biszbasz boltok, régiség boltok",
-  "Galériák",
-  "Művészmozik",
-  "Kifőzdék",
-  "Biztonságos biciklitárolók"
-]
-
-// Get a list of 50 posts
-router.get("/", async (req, res) => {
-  res.send(JSON.parse(JSON.stringify(categories))).status(200);
-  return "HELO"
-});
-
 router.get("/latest", async (req, res) => {
   const db = await adb
   let collection = await db.collection("place");
@@ -110,7 +83,7 @@ router.get("/:id", async (req, res) => {
 router.post("/:id", async (req, res) => {
   console.log('create',req.body);
   const cat = Number(req.params.id)
-  if (!(cat >= 0 && cat < categories.length)) {
+  if (!(cat >= 0 && cat <= 20)) {
     res.send({
       error:'Category not allowed!'
     }).status(401)
@@ -125,7 +98,7 @@ router.post("/:id", async (req, res) => {
     },
   })
   console.log(result);
-  res.send(result).status(204);
+  res.send(result.id)
 });
 
 router.get("/:id/like", async (req, res) => {

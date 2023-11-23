@@ -11,7 +11,7 @@ import { FirebaseContext } from '../../firebase/firebase';
 import { useWindowDimensions } from 'react-native';
 import { useHover } from 'react-native-web-hooks';
 import GoBack from '../../components/Goback';
-import { Map } from './EditOld';
+import Map from '../maps/MapElement';
 import BasePage from "../../components/BasePage"
 
 
@@ -155,7 +155,7 @@ const Profile = ({ navigation, route }) => {
           //await set(databaseRef(database, 'usernames/' + newData.username), {owner:uid})
         }
         console.log("data to upload:", {
-          data:newData,
+          data:{...newData,friendship:undefined},
           buziness: page.buziness?.map(bu=>{
             if (bu?.id == null && bu?.removed == true) return
             return {
@@ -166,7 +166,7 @@ const Profile = ({ navigation, route }) => {
           page:page
         });
         axios.patch('users',{
-          data:newData,
+          data:{...newData,friendship:undefined},
           page:{
               ...page,
               buziness: page.buziness?.map(bu=>{
@@ -272,9 +272,6 @@ const Profile = ({ navigation, route }) => {
         <View style={{flex:width <= 900 ? 'none' : 1,zIndex:10,elevation: 10}}>
           <Input attribute="name" name="Név" 
             helpText='Írd ide, hogy hogyan szeretnéd hogy szólítsanak mások:)'
-            small={small} setNewData={setNewData} newData={newData} data={data} saving={saving}/>
-          <Input attribute="full-name" name="Teljes név" 
-            helpText='Ha szeretnéd, hogy a teljes neved alapján megtaláljanak, írd ide!'
             small={small} setNewData={setNewData} newData={newData} data={data} saving={saving}/>
           <Input attribute="title" name="Titulus" 
             helpText='Megadhatod, hogy mi a te fő bizniszed'

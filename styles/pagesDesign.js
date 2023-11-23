@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
       flexDirection:'column'
     },
     listItem: {
+      alignItems:'center',
       fontSize:20,
       margin:5
     },

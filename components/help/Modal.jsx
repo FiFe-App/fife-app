@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen}) => {
     const small = useWindowDimensions().width <= 900;
+    const height = useWindowDimensions().height
 
     useEffect(() => {
       console.log('open',open,open!='submitted');
@@ -20,10 +21,10 @@ const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen}) => {
           setOpen(false);
         }}>
         <View style={styles.centeredView}>
-            <View style={[styles.modalView,{maxWidth:small?'95%':'70%'}]}>
+            <ScrollView style={[styles.modalView,{maxWidth:small?'95%':'70%',maxHeight:height*0.8,flexGrow:0}]}>
                     {open!='submitted' ? <><MyText title>{title}</MyText>
                     <MyText size={20}>{text}</MyText>
-                    <ScrollView style={{flex:1}}>
+                    <ScrollView style={{}}>
                       {inputs.map((input,ind)=>{
                           return (
                             <View style={{padding:0}} key={'helpModal-'+ind}>
@@ -47,7 +48,7 @@ const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen}) => {
                     <Row>
                       <NewButton title="Bezárom" onPress={()=>setOpen(null)}/>
                     </Row></>}
-            </View>
+            </ScrollView>
         </View>
         </Modal>
     )

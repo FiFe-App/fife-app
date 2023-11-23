@@ -18,7 +18,7 @@ import { SaleContext } from "./SaleContext";
 
 
 export const Item = ({data,toLoadId}) => {
-    const { selected,setSelected,deleteItem,interestModal,setInterestModal, IList, setIList } = useContext(SaleContext);
+    const { selected,setSelected,setDeleteModal,setToEdit,interestModal,setInterestModal, IList, setIList } = useContext(SaleContext);
     const uid = useSelector((state) => state.user.uid)
     const {api} = useContext(FirebaseContext);
     const navigation = useNavigation();
@@ -69,6 +69,19 @@ export const Item = ({data,toLoadId}) => {
       }, [toLoadId])
     );
 
+    const edit = () => {
+      if (width <= 900)
+        navigation.push('uj-cserebere',{toEdit:id});
+      else
+        setToEdit(id)
+    }
+
+    const del = () => {
+      setSelected(id);
+      setDeleteModal(true)
+    }
+
+
     const handleInterest = async (toInterest) => {
       const newInterested = setInterestModal({id})
       console.log(newInterested);
@@ -84,21 +97,22 @@ export const Item = ({data,toLoadId}) => {
 
     return (
       <>
-      <GoBack breakPoint={10000} text={null} 
-      previous={'cserebere'} floating style={{backgroundColor:'#FFC372'}} color='black'/>
       {!loading ?
       <ScrollView style={{flex:1,padding:0,backgroundColor:'rgb(253, 245, 203)',paddingHorizontal:width>400?20:5}}>
         { loadData ? <>
-          {images.length?<Slideshow 
-            photos={images.length ? images : []}
-            style={{backgroundColor:'rgb(253, 245, 203)',paddingHorizontal:width>400?-20:-5,maxHeight:400}}
-          />:<ProfileImage uid={author} style={{width:'100%',height:300}}/>}
-          
-          <Auto style={{flex:'none'}}>
-            <MyText title style={{marginTop:0}}>{title}</MyText>
-            <View style={{alignSelf: 'flex-start',marginTop:5}}>
+          <View style={{minHeight:100}}>
+            {images.length?<Slideshow
+              photos={images.length ? images : []}
+              style={{backgroundColor:'rgb(253, 245, 203)',paddingHorizontal:width>400?-20:-5,maxHeight:400,zIndex:0}}
+            />:<ProfileImage uid={author} style={{width:'100%',height:300}}/>}
+
+            <View style={{position:'absolute',bottom:5,left:-25,alignSelf: 'flex-start',marginTop:5,zIndex:1}}>
               <MyText size={24} style={{marginHorizontal:10,backgroundColor:categories.sale[category].color,padding:5}}>{categories.sale[category].name}</MyText>
             </View>
+          </View>
+          
+          <Auto style={{flex:'none'}}>
+            <MyText size={30} style={{marginTop:0}}>{title}</MyText>
           </Auto>
           {uid!=author && 
             <MyText style={[styles.author,{}]}>{'Ezt '}
@@ -113,10 +127,10 @@ export const Item = ({data,toLoadId}) => {
               />
             {' töltötte fel '}<MyText bold>{elapsed}</MyText></MyText>
           }
-          {author == uid && false &&
+          {author == uid &&
           <Row style={{}}>
-              <NewButton style={{marginBottom:20,fontSize:25,padding:10,flex:1}} title='szerkesztés' />
-              <NewButton style={{marginBottom:20,fontSize:25,padding:10}} title='törlés' color='#aa2786' onPress={deleteItem}/>
+              <NewButton style={{marginBottom:5,fontSize:25,padding:10,flex:1}} title='szerkesztés'  color='#27aa38' onPress={edit}/>
+              <NewButton style={{marginBottom:5,fontSize:25,padding:10,flex:1}} title='törlés' color='#aa2786' onPress={del}/>
             </Row>}
 
           {uid!=author ?
@@ -151,7 +165,12 @@ export const Item = ({data,toLoadId}) => {
             )}
           </ScrollView>}
           <Comments path={'sale/'+id+'/comments'}/>
-        </> : <MyText>Nem jött adat :(</MyText>}
+        </> : <View style={{backgroundColor:'rgb(253, 245, 203)',alignSelf:'center',alignItems:'center',marginTop:100,maxWidth:'80%'}}>
+        <Icon name="alert-circle" size={100}/>
+        <MyText size={30}>Bakfitty!</MyText>
+        <MyText>Nincs itt semmi! Lehet törölték a posztot, vagy valami hiba történt.</MyText>
+        <NewButton title="Próbáld újra" onPress={()=>location.reload()} style={{padding:10}}/>
+      </View>}
         
       </ScrollView>
       :<View style={{flex:1,backgroundColor:'rgb(253, 245, 203)'}}>

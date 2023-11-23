@@ -59,20 +59,24 @@ const Document = ({navigation,route}) => {
 
       if (!id) return <Docs/>
 
-    if (loading) return <View style={{flex:1,backgroundColor:'#FDEEA2'}}><Loading color="#fff"/></View>
-    return (<ScrollView style={{backgroundColor:'#FDEEA2'}}>
-        <ImageBackground source={{uri:url}} resizeMode="cover"  style={{height:300,width:'100%',backgroundPosition:'bottom'}} >
-            <GoBack text="Vissza" previous="fooldal" breakPoint={10000} 
-            style={{backgroundColor:'transparent',padding:20,paddingVertical:40}}/>
-        </ImageBackground>
-        <View style={{padding:20}}>
-            <MyText title>{data?.title}</MyText>
+    if (loading) return <View style={{flex:1,backgroundColor:'#ffffd6'}}><Loading color="#fff"/></View>
+    return (
+    <View style={{flex:1}}>
+    <GoBack breakPoint={10000} previous="cikkek" text={null}  floating style={{backgroundColor:'#FFC372'}} color='black'/>
+    <ScrollView style={{backgroundColor:'#ffffd6',flex:1}}>
+        <Image source={{uri:url}} resizeMode={"cover"}  style={[
+            {height:300,width:'100%',backgroundPosition:'bottom',backgroundColor:'#ffffd6',alignSelf:'center'},
+            width>900&&{maxWidth:900}
+            ]} />
+        <View style={{padding:20,maxWidth:900,alignSelf:'center',backgroundColor:'#ffffd6',flex:1}}>
+            <MyText size={24} bold>{data?.title}</MyText>
             <MyText size={20} >{data?.text}</MyText>
-            <View style={{margin:width <= 900 ? 5 : 30}}>
+            <View style={{marginTop:width <= 900 ? 5 : 30}}>
                 {data?.forms.map((f)=> <CustomInput {...f} setData={setInput} data={input} />)}
             </View>
         </View>
-    </ScrollView>)
+    </ScrollView>
+    </View>)
 }
 
 export default Document;

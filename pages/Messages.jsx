@@ -164,7 +164,7 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
     return (
         <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fdf8d9' : '#fff'},
             {shadowOffset: {width: 2, height: 4},shadowOpacity: 0.2,shadowRadius: 1,}]}>
-            <ProfileImage style={styles.listIcon} uid={uid}/>
+            <ProfileImage style={styles.listIcon} size={50} uid={uid}/>
             <View style={{marginLeft: 5,flexGrow:1}}>
               <MyText style={{ fontWeight: 'bold',flex: 1, }}>{title}</MyText>
               <MyText style={{ flex:2, }}>{last?.message}<MyText style={{color:'grey'}}> - {elapsed}</MyText></MyText>

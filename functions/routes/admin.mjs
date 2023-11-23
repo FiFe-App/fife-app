@@ -3,25 +3,35 @@ import adb from "../db/conn.mjs";
 import { ObjectId } from "mongodb";
 import { PrismaClient } from "@prisma/client";
 import { getAuth } from "firebase-admin/auth";
+import { auth } from "firebase-admin";
 
 const router = express.Router();
 const prisma = new PrismaClient()
 
 router.get("/users", async (req, res) => {
 
+
+  /*auth().updateUser('26jl5FE5ZkRqP0Xysp89UBn0MHG3',{
+    emailVerified: false
+  }).then(e=>{
+    console.log('EMAIL UNVERIFIED');
+  }).catch(err=>{
+    console.log(err);
+  })
   if (req.uid != '26jl5FE5ZkRqP0Xysp89UBn0MHG3') {
     res.send({error:'You are not an admin'})
     return
-  }
+  }*/
+  console.log(await getAllEmail());
 
   const match = {
     sale: req?.query?.category != undefined ? { category: Number(req?.query?.category) } : null,
     places: null
   }
 
-  const u = await listAllUsers()
-  console.log(u);
-  res.send(u)
+  //const u = await listAllUsers()
+  //console.log(u);
+  res.send('u')
   return "gello"
   const results = await Promise.all(req.body.map(async data=>{
     let collection = await db.collection('users');
@@ -43,6 +53,7 @@ router.get("/docs", async (req, res) => {
     return
   }
 
+
   const results = await prisma.document.findMany({
   })
   res.send(results)
@@ -58,4 +69,14 @@ const listAllUsers = async (nextPageToken) => {
     .catch((error) => {
       console.log('Error listing users:', error);
     })).users;
+};
+const getAllEmail = async () => {
+  // List batch of users, 1000 at a time.
+  return (await getAuth()
+    .listUsers(1000)
+    .catch((error) => {
+      console.log('Error listing users:', error);
+    })).users.map(e=>{
+      return e.email;
+    });
 };

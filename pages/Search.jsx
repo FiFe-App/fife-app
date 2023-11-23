@@ -12,6 +12,7 @@ import { TouchableRipple } from 'react-native-paper';
 import * as Location from 'expo-location';
 
 import { categories as allCategories } from "../lib/categories";
+import { listToMatrix } from '../lib/functions';
 
 const Search = ({ route, style }) => {
     const { api } = useContext(FirebaseContext);
@@ -19,27 +20,30 @@ const Search = ({ route, style }) => {
     const small = width <= 900;
     const key = route.params?.key || null;
     const [categories, setCategories] = useState({
+        all: {
+            name:'Minden',
+            active:true
+        },
         sale: {
             name:'Cserebere',
-            active:true
+            active:false
         },
         users: {
             name:'Felhasználók',
-            active:true
+            active:false
         },
         maps: {
             name:'Helyek',
-            active:true
+            active:false
         },
         buziness: {
             name:'Biznisz',
-            active:true
-        },
-        categories: {
-            name:'Kategóriák',
-            active:true
+            active:false
         }
     });
+    const [selected, setSelected] = useState(0);
+    const itemsPerRow = width < 900 ? Math.round(width/200) : 4;
+    //const itemsPerRow = preItemsPerRow == 1 ? 2 : preItemsPerRow
     
     const [array, setArray] = React.useState({
         sale: [],
@@ -58,7 +62,8 @@ const Search = ({ route, style }) => {
     const getLocation = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          setError('a kisfecskébe be nem teszem a lábam');
+          //setError('Nincs megosz');
+          setMyLocation(null)
           return;
         }
   
@@ -68,12 +73,14 @@ const Search = ({ route, style }) => {
         return [location.coords.latitude, location.coords.longitude]
     }
 
+    useEffect(() => {
+        console.log('search',key);
+    }, [key]);
 
     useFocusEffect(
         useCallback(() => {
             (async()=>{
-                const loc = (await getLocation());
-                handleSearch2(loc)
+                handleSearch2(myLocation)
             })()
             //if (array.length == 0)
             //handleSearch()
@@ -89,6 +96,7 @@ const Search = ({ route, style }) => {
         }, [route.params])
       );
     const handleSearch2 = (loc) => {
+        if (!myLocation) getLocation()
 
         if (key) {
             axios.post('/search',{
@@ -126,51 +134,72 @@ const Search = ({ route, style }) => {
     const text = route.params?.key+" kifejezésre"//toldalek(route.params?.key||null,'ra')
 
     return(
-        <BasePage style={{flex:1,backgroundColor:'#FDEEA2'}}>
-            <MyText title>Keresés a fife appon</MyText>
+        <BasePage style={{backgroundColor:'#FDEEA2'}}>
             {width < 1340 && <SearchBar style={{flexGrow:0,flex:'none',width:'100%',marginRight:40}}/>}
-            <View style={{marginHorizontal:25,width:'90%'}}>
-                {!route.params?.key &&
-                    <MyText>Keress profilokra, bizniszre, helyekre, cserebere cikkekre</MyText>}
+
+            <View style={{justifyContent:'center',width:'100%',flexWrap:small?'wrap':'none',flexDirection:'row',zIndex:-1}}>
+                        {Object.keys(categories).map((cat,ind) =>
+                            {
+                                if(array[cat]?.length || selected == ind || ind==0 || progress== 0)
+                                return <NewButton title={categories[cat].name} key={ind+"cat"}
+                                color={selected==ind?'#fdf6d1':'#FDEEA2'}
+                                style={{userSelect:'none',padding:small?3:8,marginBottom:0,borderBottomLeftRadius:0,borderBottomRightRadius:0}}
+                                textStyle={{fontSize:small?11:18,fontWeight:'400'}}
+                                onPress={()=>setSelected(ind)}/>}
+                        )}
             </View>
-            <View style={{backgroundColor:'#FDEEA2',zIndex:-1}}>
-                <View style={{justifyContent:'center',width:'100%',flexWrap:small?'wrap':'none',flexDirection:'row',}}>
-                    {Object.keys(categories).map((cat,ind) =>
-                        {return <NewButton title={categories[cat].name} key={ind+"cat"} 
-                            color={categories[cat].active?'#ffdaad':'#FDEEA2'}
-                            style={{userSelect:'none',padding:3}}
-                            onPress={()=>setCategories({...categories,[cat]:{...categories[cat],active:!categories[cat].active}})}/>}
-                    )}
+            <ScrollView style={{backgroundColor:'#fdf6d1',borderRadius:8,padding:16,flex:1,zIndex:-1}}>
+                <View style={{marginHorizontal:25,width:'90%'}}>
+                    {!route.params?.key &&
+                        <MyText>Keress profilokra, bizniszre, helyekre, cserebere cikkekre</MyText>}
                 </View>
-                {progress < ready ?
-                    <>
-                    {route.params?.key && <Loading color="#f5d761" />}
-                    </>:
-                    (
-                        error ?   <View>
-                                <TextFor style={styles.noResultText} text="no_result"/>
-                                <MyText style={styles.noResultSubText}>{error}</MyText>
-                            </View>
-                        :   <ScrollView contentContainerStyle={{alignItems:'center'}}>
-                                    {Object.keys(categories).map((cat,ind) =>{
-                                        if (categories[cat].active && array[cat]?.length)
-                                        return <View style={{width:'100%'}}>
-                                            <MyText title>{categories[cat].name}</MyText>
-                                            <View style={{alignItems:'center'}}>
-                                                {array[cat].map((item,ind)=>{
-                                                    if (item)
-                                                return <Item key={'sale'+ind} cat={cat} data={item}  />
-                                                })}
-                                            </View>
-                                        </View>
-                                    })}
-                            </ScrollView>)
+                {myLocation==null && progress>0 && array && 
+                <MyText>Ha szeretnél távolság alapján rendezett találatokat, engedélyezd a hozzáférést a helyadatokhoz.</MyText>
                 }
-                {false&&<View>
-                    <MyText>Nem találod amit keresel? Írj posztot!</MyText>
-                    <PostForm />
-                </View>}
-            </View>
+                <View style={{backgroundColor:'#fdf6d1',zIndex:-1}}>
+                    
+                    {progress < ready ?
+                        <>
+                        {route.params?.key && <Loading color="#f5d761" />}
+                        </>:
+                        (
+                            error ?   <View>
+                                    <TextFor style={styles.noResultText} text="no_result"/>
+                                    <MyText style={styles.noResultSubText}>{error}</MyText>
+                                </View>
+                            :   <View contentContainerStyle={{alignItems:'center',flex:1}}>
+                                        {Object.keys(categories).map((cat,ind) =>{
+                                            if ((selected == 0 || selected==ind))
+                                            if (array[cat]?.length)
+                                            return <View style={{width:'100%'}}>
+                                                <MyText title>{categories[cat].name}</MyText>
+                                                <View style={{marginTop:16}}>
+                                                {!!array[cat]?.length && listToMatrix(array[cat],itemsPerRow).map((row,i)=>{
+                                                    return (
+                                                        <Row style={{marginBottom:8}}>
+                                                            {row.map((item,ind,rowL)=>
+                                                            {if (item)
+                                                                return<Item key={'sale'+ind+'r'+i} cat={cat} data={item}  />
+                                                            })}
+                                                            <View style={{flex:itemsPerRow-row?.length}}/>
+                                                        </Row>
+                                                    )
+                                                })}
+
+                                                </View>
+                                            </View>
+                                            if (false) return <View style={{marginLeft:ind*20}}>
+                                                        <MyText size={24}>Nincs találat!</MyText>
+                                                    </View>
+                                        })}
+                                </View>)
+                    }
+                    {false&&<View>
+                        <MyText>Nem találod amit keresel? Írj posztot!</MyText>
+                        <PostForm />
+                    </View>}
+                </View>
+            </ScrollView>
         </BasePage>
     )
 }
@@ -184,7 +213,6 @@ function Item({data,cat}) {
     const [link, setLink] = useState(null);
     const [params, setParams] = useState(null);
     const [sortData, setSortData] = useState(null);
-
 
 
     const onPress = () => {
@@ -205,7 +233,7 @@ function Item({data,cat}) {
                 setTitle(data.title)
                 setImage('sale/'+data.id+'/0')
                 setText(data.description)
-                setLink(cat)
+                setLink('cserebere')
                 setParams({id:data.id})
                 break;
             case 'maps':
@@ -235,18 +263,27 @@ function Item({data,cat}) {
         }
     }, [cat]);
     return (
-        <TouchableRipple onPress={onPress} style={{width:'100%',borderRadius:8, maxWidth:500,}}>
-            <View style={[styles.list,{flexDirection: "row"}]}>
-                {image && <ProfileImage style={styles.listIcon} path={image}/>}
-                <View style={{marginLeft: 5,flexGrow:1}}>
-                <MyText style={{ fontWeight: 'bold',flex: 1, }}>{title}</MyText>
-                <MyText style={{ flex:1,maxHeight:20,overflow:'hidden' }}>{text}</MyText>
-                </View>
-                <View style={{marginLeft: 5}}>
-                <MyText style={{ flex:1,maxHeight:20,overflow:'hidden' }}>{!!sortData && sortData+" km"}</MyText>
-                </View>
-            </View>
-        </TouchableRipple>
+        <View style={[styles.list, { aspectRatio:1/1}]}>
+        <TouchableOpacity onPress={onPress}  style={{width:'100%'}}>
+                {image ? <ProfileImage path={image} style={{flex:1,aspectRatio: 1/1,margin:0,borderRadius:8}}/>
+                : <ProfileImage uid={data?.author} style={{flex:1,aspectRatio: 1/1,margin:0,borderRadius:8}}/>}
+                    <View style={{position:'absolute',bottom:0,backgroundColor:'#ffffff',padding:4,width:'100%',borderRadius:8}}>
+                        
+                                        <View style={{marginLeft: 5}}>
+                        <MyText style={{ fontWeight: 'bold',fontSize:14 }}>{title}</MyText>
+                        <MyText style={{ flex:1,maxHeight:20,overflow:'hidden' }}>{text}</MyText>
+                                        </View>
+                                        <View style={{marginLeft: 5}}>
+                        <MyText style={{ flex:1,maxHeight:20,overflow:'hidden' }}>{!!sortData && sortData+" km"}</MyText>
+                                        </View>
+                    </View>
+                
+                
+        </TouchableOpacity>
+        { false &&
+            <MyText style={{marginRight:5,position:'absolute',padding:5}}>{}</MyText>
+            }
+        </View>
     );
     
   }
@@ -255,14 +292,12 @@ const styles = StyleSheet.create({
 
     list: {
         alignItems: "center",
-        borderColor: "rgb(240,240,240)",
-        backgroundColor: 'white',
-        width:'100%',
-        borderBottomWidth: 2,
-        borderTopWidth: 1,
-        padding: 12,
+        flex:1,
+        borderBottomWidth: 0,
+        borderTopWidth: 0,
         marginTop: -1,
-        borderRadius:8
+        margin: 6,
+        borderRadius: 8
     },
     noResultText: {
         fontSize: 30,

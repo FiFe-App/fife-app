@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cross-env NODE_ENV=test jest --testTimeout=5000",
     "lint": "eslint .",
     "format": "prettier --single-quote --check .",
     "prepare": "cd ../ && husky install server/.husky",
@@ -14,18 +14,21 @@
   "dependencies": {
     "@prisma/client": "^5.0.0",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "dotenv": "^8.2.0",
     "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
     "firebase-admin": "^11.5.0",
+    "jest": "^29.7.0",
     "mongodb": "^4.13.0",
-    "netlify-cli": "^15.9.1",
-    "netlify-lambda": "^2.0.16"
+    "netlify-lambda": "^2.0.16",
+    "supertest": "^6.3.3"
   },
   "devDependencies": {
     "eslint": "^8.0.0",
     "husky": "^7.0.2",
     "lint-staged": "^11.2.3",
+    "netlify-cli": "^17.7.0",
     "nodemon": "^2.0.12",
     "prettier": "^2.4.1",
     "prisma": "^5.0.0"
@@ -40,5 +43,9 @@
       "prettier --single-quote --write",
       "eslint --fix"
     ]
+  },
+  "volta": {
+    "node": "16.17.0",
+    "yarn": "3.7.0"
   }
 }

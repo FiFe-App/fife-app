@@ -41,7 +41,7 @@ const About = ({navigation}) => {
     <BasePage style={styles.container} full>
         <Auto style={{flex:'none'}}>
             <View style={{flex:1}}/>
-            <MyText size={50} style={{margin:20,textAlign:'center',flex:1}}>FiFe App <Smiley style={{marginLeft:0}}/></MyText>
+            <MyText size={50} style={{margin:20,textAlign:'center',flex:1}}>fife app <Smiley style={{marginLeft:0}}/></MyText>
 
             <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
                 {true&&<NewButton title="Tovább az alkalmazásba" color="#fdcf99" style={{padding:10}} onPress={next}/>}
@@ -94,7 +94,7 @@ const About = ({navigation}) => {
                 <Image source={require('../assets/en.jpeg')} resizeMode="cover" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
                 <MyText contained>
                 <MyText title>Rólam</MyText>{'\n'}
-                Kristóf Ákos vagyok, én találtam ki és fejlesztem egyedül a FiFe Appot. Ez egy olyan projekt, 
+                Kristóf Ákos vagyok, én találtam ki és fejlesztem egyedül a fife appot. Ez egy olyan projekt, 
                 amibe szívemet-lelkemet bele tudom rakni, értetek, és egy jobb világért dolgozom rajta. 
                 Az oldal fenntartásához, fejlesztéséhez sok idő és pénz is kell, éppen ezért kérem a támogatásotokat. 
                 Ha neked is fontos a projekt célja, és szívesen használnád az appot, kérlek 

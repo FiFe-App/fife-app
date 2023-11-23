@@ -9,6 +9,13 @@ const styles = StyleSheet.create({
         //backgroundColor: '#f1f1f1',
         borderTopWidth:0,
         margin:0,
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 10,
+          height: 0,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
     }
 })
 

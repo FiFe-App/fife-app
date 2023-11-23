@@ -2,7 +2,7 @@ import { ref } from "firebase/database";
 import { useContext, useEffect, useState } from "react";
 import { Searchbar, TouchableRipple } from "react-native-paper";
 import { FirebaseContext } from "../../firebase/firebase";
-import { ActivityIndicator, FlatList, ImageBackground, ScrollView, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, FlatList, ImageBackground, Pressable, ScrollView, View, useWindowDimensions } from "react-native";
 import BasePage from "../../components/BasePage";
 import axios from "axios";
 import { config } from "../../firebase/authConfig";
@@ -10,6 +10,7 @@ import { Auto, Loading, MyText, Row, SearchBar, TextInput } from "../../componen
 import { useNavigation } from "@react-navigation/native";
 import homeDesign from '../../styles/homeDesign';
 import { TextFor } from "../../lib/textService/textService";
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Docs = () => {
 
@@ -27,7 +28,9 @@ const Docs = () => {
             params: {
                 q: searchText
             }
-        })  
+        }).catch(err=>{
+            setLoading(false)
+        })
         setData(result.data)
         setLoading(false)
         
@@ -67,8 +70,9 @@ const Docs = () => {
         <BasePage left={
             <View style={{backgroundColor:'white',flex:1,minHeight:50}}><MyText size={30}>Írj te is cikket!</MyText></View>
         }>
+        <Row style={{alignItems:'center'}}>
             <TextInput
-              style={[{fontSize:16,padding:10,backgroundColor:'#ffffff',borderRadius:8,margin:4}]}
+              style={[{fontSize:16,padding:10,backgroundColor:'#ffffff',borderRadius:8,margin:4,flexGrow:1}]}
               returnKeyType="search"
               autoCapitalize='none'
               onChangeText={setSearchText}
@@ -76,6 +80,10 @@ const Docs = () => {
               placeholderTextColor="gray"
               onSubmitEditing={() => firstSearch()}
             />
+            <Pressable 
+            onPress={firstSearch}
+            style={{padding:10}}><Icon name='search' size={30}/></Pressable>
+        </Row>
             <FlatList
                 renderItem={renderItem}
                 data={data}
@@ -83,7 +91,8 @@ const Docs = () => {
                 enableEmptySections={true}
                 ListFooterComponent={
             <View style={{width:'100%',alignItems:'center'}}>
-                <TouchableRipple onPress={()=>navigation.push('cikkek',{id:'new'})}>
+            {!data?.length&&!loading&&<MyText>Nincs találat</MyText>}
+                <TouchableRipple onPress={()=>navigation.push('cikkek',{id:'64bd12b7590741c9b1fae8d6'})}>
                     <MyText bold>Írj te is egy cikket!</MyText>
                 </TouchableRipple>
             </View>}

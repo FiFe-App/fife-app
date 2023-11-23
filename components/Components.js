@@ -5,7 +5,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from "react-hook-form";
 import { ActivityIndicator, Animated, Dimensions, Easing, Modal, Platform, Pressable, TextInput as RNTextInput, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { global } from '../lib/global';
 import { styles as newStyles } from '../styles/styles';
 
 
@@ -14,17 +13,19 @@ import ExpoFastImage from 'expo-fast-image';
 import { child, get, getDatabase, ref } from 'firebase/database';
 import { useHover } from 'react-native-web-hooks';
 import { shadeColor } from '../lib/functions';
-import { TextFor } from '../lib/textService/textService';
+import { TextFor, elapsedTime } from '../lib/textService/textService';
 import { isBright } from '../pages/home/HomeScreenOld';
 import { config } from '../firebase/authConfig';
 import axios from 'axios';
 import { Button, TouchableRipple } from 'react-native-paper';
 import ImageModal from 'react-native-image-modal';
+import { useDispatch, useSelector } from 'react-redux';
+import { push } from '../lib/searchReducer';
 
 
 //Dimensions.get('window');
 
-const Loading = ({color='#ffde7e'}) => {
+const Loading = ({color='#ffde7e',style}) => {
   /*const sweepAnim = useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
   const fadeAnim = useRef(new Animated.Value(1)).current  // Initial value for opacity: 0
 
@@ -57,7 +58,7 @@ const Loading = ({color='#ffde7e'}) => {
     </View>
   );*/
   return (
-    <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+    <View style={[{flex:1,alignItems:'center',justifyContent:'center'},style]}>
       <ActivityIndicator color={color} size={'large'} />
     </View>
   )
@@ -66,10 +67,7 @@ const Loading = ({color='#ffde7e'}) => {
 const getUri = async (path) => {
   const storage = getStorage();
   const imgRef = sRef(storage, path);
-  //console.log('path',path);
-  console.log(path);
   const url = await getDownloadURL(imgRef)
-  console.log(url);
   return url
 } 
 
@@ -103,6 +101,7 @@ const ProfileImage = ({uid,size=40,style,path,modal}) => {
 
   useEffect(() => {
     if (uid || path){
+
       getDownloadURL(sRef(storage, path || `profiles/${uid}/profile.jpg`))
       .then((url) => {
         setUrl(url);
@@ -115,30 +114,58 @@ const ProfileImage = ({uid,size=40,style,path,modal}) => {
     }
   }, [uid,path]);
 
-  if (!url) return <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
+  const loading = <View style={{alignItems:'center',justifyContent:'center'}}>
+    <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,1)' />
+  </View>
+
+  if (!url) return loading
   return modal ? <ImageModal style={[size!=40&&{width: size, height: size},style]}
       cachePolicy='memory-disk'
       modalImageResizeMode='contain'
       cacheKey={`${uid || path}-uid`}
+
       placeholderContent={( 
-        <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
+        loading
       )} 
       source={{ uri: url }}  />:
       <Image style={[size!=40&&{width: size, height: size},style]}
       cachePolicy='memory-disk'
+      onError={()=>{
+        console.log('eerr')
+        setUrl(defaultUrl)
+        }
+      }
       modalImageResizeMode='contain'
       cacheKey={`${uid || path}-uid`}
       placeholderContent={( 
-        <ActivityIndicator style={{width: size, height: size}} color='rgba(255,175,0,0.7)' />
+        loading
       )} 
       source={{ uri: url }}/>
     
     
 }
+const ProfileName = ({uid,style}) => {
+  // eslint-disable-next-line no-undef
+  const [name, setName] = useState(null);
+
+  useEffect(() => {
+    (async ()=>{
+      setName(await getNameOf(uid));
+    })()
+  }, [uid]);
+
+  if (!name) return null
+  return <MyText style={style}>{name}</MyText>
+    
+    
+}
+
 
 function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color = "#ffde7e",info,loading=false}) {
   const ref = useRef();
   const isHovered = useHover(ref);
+  const [rect, setRect] = useState(null);
+  const width = useWindowDimensions().width;
 
   const [bgColor, setBgColor] = useState(icon ? 'transparent' : color);
 
@@ -149,9 +176,16 @@ function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color =
   const handleFocus = () => {
     setBgColor(shadeColor(color,-10))
   }
-  
+  useEffect(() => {
+    if (rect)
+    console.log('rect',rect.x,width);
+  }, [rect]);
   return (<>
-    <View  ref={ref} style={[style,{margin:0,width:'unset',height:'unset',alignItems:'unset',boxShadow:'unset'}]}>
+    <View  ref={ref} 
+    onLayout={(event) => {
+      //setRect(event.nativeEvent.layout.)
+  }}
+    style={[style,{margin:0,padding:0,width:'unset',height:'unset',alignItems:'unset',boxShadow:'unset'}]}>
       <TouchableRipple onPressOut={()=>setBgColor(color)} onPressIn={()=>{setBgColor(color);handleFocus()}} 
             style={[styles.newButton,
             floating && {shadowColor: "#000",shadowOffset: {width: 4, height: 4 },shadowOpacity: 0.5,shadowRadius: 3,},
@@ -164,8 +198,12 @@ function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color =
             : <ActivityIndicator color={isBright(bgColor)}/> }
       </TouchableRipple>
     </View>
-    {info && isHovered && <MyText 
-    style={{position:'absolute',backgroundColor:'white',borderWidth:1,borderRadius:8,marginTop:60,right:0,zIndex:100,padding:10}}>
+    {info && rect && isHovered && <MyText 
+    style={{position:'absolute',backgroundColor:'white',borderWidth:1,borderRadius:8,
+      marginTop:rect.height+10,
+      left: (width/2 > rect.x ? rect.x : undefined),
+      right:(width/2 <=rect.x ? width-rect.x : undefined),
+      zIndex:100,padding:10}}>
       {info}
     </MyText>}
     </>
@@ -278,7 +316,11 @@ function Auto({children,style,breakPoint=900,reverse}) {
   
   const width = useWindowDimensions().width;
   return (
-    <View style={[{flexDirection: width <= breakPoint ? 'column' : 'row',width:'100%',flex: width <= breakPoint ? 'none' : 1},style]}>
+    <View style={[{
+      flexDirection: reverse ? 
+      width > breakPoint ? 'column' : 'row':
+      width <= breakPoint ? 'column' : 'row'
+      ,width:'100%',flex: width <= breakPoint ? 'none' : 1},style]}>
       {children}
     </View>
   )
@@ -371,31 +413,31 @@ function NewEventModal(params) {
 const SearchBar = (props) => {
   const {style} = props
 
+  const dispatch = useDispatch();
+  const history = [...useSelector((state) => state.search.history)]
+
   const navigation = useNavigation();
   const route = useRoute();
-  const [text, setText] = useState(route?.params?.key || global.search || '');
+  const [text, setText] = useState(route?.params?.key || '');
 
-  const onSubmit = () => {
-    if (global.searchList.includes(text))
-      global.searchList.splice(global.searchList.indexOf(text), 1);
-    global.searchList.push(text);
-    global.search = text;
+  const onSubmit = (newText=text) => {
+    dispatch(push(newText))
     setShowHistory(false);
-    console.log('search');
-    navigation.push("kereses", { key: text||'' });
+    console.log('search submit');
+    console.log('search',newText);
+    navigation.push("kereses", { key: newText||'' });
   };
   const onBlur = () => {
     setShowHistory(false)
   } 
   const [showHistory,setShowHistory] = React.useState(false);
   const [rect, setRect] = useState(null);
-  const listItems = global.searchList.reverse().map((element) =>
-    <Pressable key={element.toString()} onPress={() => onSubmit()} 
+  console.log('history',history);
+  const listItems = history.reverse().map((element) =>
+    <Pressable key={'search'+element} onPress={()=>onSubmit(element)} 
       style={[newStyles.searchList,{width:rect?.width}]}>
-      <Row >
-        <Icon name="time-outline" size={25} color="black" style={{ marginHorizontal: 5 }} />
+        <Icon name="time-outline" size={25} color="black" style={{ margin: 5 }} />
         <MyText>{element}</MyText>
-      </Row>
     </Pressable>
   );
   return (
@@ -404,23 +446,36 @@ const SearchBar = (props) => {
         <TextInput
           onLayout={e=>setRect(e.nativeEvent.layout)}
           style={[newStyles.searchInput,{flex:1,fontSize:16,padding:10,marginLeft:20,backgroundColor:'white'}]}
-          onBlur={onBlur}
+
           returnKeyType="search"
           autoCapitalize='none'
           onChangeText={setText}
           placeholder={TextFor({pureText:true,text:'search_text'})}
           placeholderTextColor="gray"
-          onSubmitEditing={onSubmit}
+          onSubmitEditing={()=>onSubmit()}
+
           value={text}
-          onClick={()=>setShowHistory(true)}
+
+          onMouseDown={(e) => {
+            console.log('onMouseDown')
+            //e.preventDefault()
+          }}
+          onBlur={()=>{
+            console.log('onBlur')  
+            onBlur()
+          }}
+          onClick={()=>{
+            console.log('onClick')
+            setShowHistory(true)
+          }}
         />
-        <Pressable onPress={onSubmit} style={{width:30,marginLeft:-40}} >
+        <Pressable onPress={()=>onSubmit()} style={{width:30,marginLeft:-40}} >
           <Icon name="search-outline" size={25} color="black" />
         </Pressable>
       </View>
-        <ScrollView contentContainerStyle={{justifyContent:'flex-start'}} 
-        style={{position:"absolute",width:rect?.width,top:rect?.y+40,zIndex:10,left:rect?.x,backgroundColor:'#fbf7f0',borderBottomLeftRadius:8,borderBottomRightRadius:8}}>
-          {(showHistory && global.searchList.length > 0) && listItems}
+        <ScrollView contentContainerStyle={{justifyContent:'flex-start',zIndex:10}} 
+        style={{position:"absolute",width:rect?.width,top:rect?.y+40,zIndex:10,left:rect?.x,backgroundColor:'#fbf7f0',borderBottomLeftRadius:8,borderBottomRightRadius:8,zIndex:20}}>
+          {(showHistory && history.length > 0) && listItems}
         </ScrollView>
     </View>
   );
@@ -432,6 +487,11 @@ const OpenNav = ({open,children,style,height}) => {
   const width = useWindowDimensions().width;
   const size = useRef(new Animated.Value(-390)).current 
   const [myHeight, setMyHeight] = useState(0);
+
+  useEffect(() => {
+    console.log('navbar open:',height);
+  }, [height]);
+
 
   useEffect(() => {
     if (open)
@@ -455,6 +515,7 @@ const OpenNav = ({open,children,style,height}) => {
 
   }, [open,height]);
 
+  if (width > 900) return null
   return (
     <View style={{zIndex:0,elevation: 0}}>
       <View style={{height:height,top:-520,width:'100%',backgroundColor:'#FDEEA2',position:'absolute',zIndex:10,elevation: 10}}></View>
@@ -473,7 +534,7 @@ export const MyText = (props) => {
   return <Text  {...props} style={[{
     fontFamily:'SpaceMono_400Regular',
     letterSpacing:-1
-    },title && {fontSize:32,marginTop:14},
+    },title && {fontSize:22,marginTop:14},
     contained && {padding:8,borderRadius:8,backgroundColor:'white',fontSize:20,marginTop:14},
     bold && {fontWeight:'bold'},
     light && {fontWeight:'200',color:'gray'},
@@ -493,7 +554,7 @@ const TextInput = React.forwardRef((props,ref) => {
       ref={ref}
       placeholderTextColor="#555"
       style={[props.style,{fontFamily:'SpaceMono_400Regular'}, 
-      isFocused && {backgroundColor:shadeColor(props.style[0]?.backgroundColor||props.style[1]?.backgroundColor||'#ffffff',-10)},
+      isFocused && {backgroundColor:'#eae6ff'},
       Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => {
         setIsFocused(false)
@@ -533,7 +594,8 @@ export const Popup = ({children,style,popup,popupStyle}) => {
 
 export const Openable = ({open,children,style}) => {
 
-  const width = useWindowDimensions().width;
+  const WHeight = useWindowDimensions().height;
+  const [height, setHeight] = useState(1000);
   const size = useRef(new Animated.Value(-390)).current 
 
   useEffect(() => {
@@ -541,7 +603,7 @@ export const Openable = ({open,children,style}) => {
     Animated.timing(
       size,
       {
-        toValue: 200,
+        toValue: WHeight/2-50,
         duration: 100,
         useNativeDriver: false
       }
@@ -558,17 +620,20 @@ export const Openable = ({open,children,style}) => {
 
   }, [open]);
 
+
+  
   return (
     <>
-      <Animated.View style={style && {height:size,width:'100%',zIndex:30,elevation: 30}}>
-        {children}
+      <Animated.View style={style && {height:size,maxHeight:WHeight/2-50,width:'100%',zIndex:30,elevation: 30}}>
+        {React.cloneElement(children, { onLayout: (e)=>{
+        } })}
       </Animated.View>
     </>
   )
 }
 
 export {
-  Auto, B, Col, FAB, Loading, NewButton, OpenNav, ProfileImage, Row, SearchBar, Slideshow, TextInput, getNameOf, getUri
+  Auto, B, Col, FAB, Loading, NewButton, OpenNav, ProfileImage, Row, SearchBar, Slideshow, TextInput, getNameOf, getUri, ProfileName
 };
 
 const styles = StyleSheet.create({
@@ -612,6 +677,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: "center",
     borderRadius: 8,
+    paddingHorizontal:20,
     margin:5,
   },
 });

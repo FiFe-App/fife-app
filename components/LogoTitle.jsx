@@ -51,7 +51,7 @@ export function LogoTitle() {
           <meta name="theme-color" content="#FDEEA2"/>
         </Helmet>
         <SafeAreaView>
-          <OpenNav height={height} open={open && width <= 900} style={{width:'100%',zIndex: 13000,elevation: 10030}}>
+          <OpenNav height={height} open={open} style={{width:'100%',zIndex: 13000,elevation: 10030}}>
             <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
             <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
             <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
@@ -116,8 +116,10 @@ export function LogoTitle() {
             setOpen(false)
         }}>
 
-          <TextFor style={{fontWeight:'bold',letterSpacing:0}} fixed text={title}/>
-          {!!number && <MyText style={[styles.number,{right:50,top:60}]}>{number}</MyText>}
+          <TextFor style={{fontWeight:'bold',letterSpacing:0}} fixed text={title}>
+          {!!number && <MyText style={[styles.number,{top:0,right:width<900?'unset':-10}]}>{number}</MyText>}
+
+          </TextFor>
       </Pressable>
     )
   }

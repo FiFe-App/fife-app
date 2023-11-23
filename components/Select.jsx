@@ -6,7 +6,7 @@ const Select = ({list,defaultValue,placeholder,onSelect,style}) => {
         <SelectDropdown
                 data={list}
                 defaultValueByIndex={defaultValue}
-                buttonStyle={[{backgroundColor:'#fbf7f0',padding:10,borderWidth:2,marginTop:-2,borderColor:'black',width:'100%'},style]}
+                buttonStyle={[{backgroundColor:'#fbf7f0',padding:10,borderWidth:2,borderColor:'black',width:'95%'},style]}
                 buttonTextStyle={{fontFamily:'SpaceMono_400Regular',fontSize:20,}}
                 rowTextStyle={{fontFamily:'SpaceMono_400Regular',fontSize:20}}
                 selectedRowStyle={{backgroundColor:'#fbdaa1'}}

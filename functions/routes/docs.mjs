@@ -40,22 +40,22 @@ router.get("/latest", async (req, res) => {
 router.get("/", async (req, res) => {
     const db = await adb
     const document = db.collection('document')
-    const {q,skip,take} = req;
+    const {q='',skip,take} = req.query;
     let query = { 
-      title: {$regex: q || ''},
+      title: {$regex: q},
       active: true
     }
-    const results = await document.find(query)
+    const results = await document.find(query,{})
     .sort({created_at:-1})
     .skip( Number(skip) )
     .limit( Number(take) ).toArray();
+    console.log(results.length);
 
     if (!results) {
         res.send("Not found").status(404);
         return
     }
     res.send(results)
-    return "hello"; 
 
 });
 

@@ -1,11 +1,11 @@
 import { ProfileImage, Loading, Row, MyText } from '../../components/Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useContext, useState, useRef } from 'react';
 
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
-import { Pressable, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Pressable, StyleSheet, TouchableOpacity, ScrollView, Animated, PanResponder, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import { TextFor } from "../../lib/textService/textService";
@@ -17,64 +17,25 @@ import UrlText from '../../components/tools/UrlText';
 import openMap from 'react-native-open-maps';
 import { MapContext } from './MapContext';
 import Comments from '../../components/tools/Comments';
+import { categories } from '../../lib/categories';
 
 
 
 export const getMaps = async (db) => {
     try {
-      
-      return [
-        "Adományboltok",
-        "Turik",
-        "Nyilvános vécék",
-        "Ivóvíz lelőhelyek",
-        "FiFe kocsmák",
-        "Csomagolásmentes boltok",
-        "Piacok",
-        "Bulihelyek",
-        "Ruhaleadó helyek",
-        "Szelektív gyűjtők",
-        "Komposztok",
-        "Közösségi helyek, kertek",
-        "Fotóboltok",
-        "Biszbasz boltok, régiség boltok",
-        "Galériák",
-        "Művészmozik",
-        "Kifőzdék",
-        "Biztonságos biciklitárolók",
-        "Jó szpotok"
-      ]
+      return categories.places;
     } catch (error) {
       console.log(error);
       return null
     }
-    /*return get(ref(db,'maps')).then(snapshot => {
-      const data = (snapshot.val())
-                  .filter(e=>!!e)
-                  .map((e,i)=>{
-                    const keys = Object.keys(e?.locations || [])
-                    const locations = Object.values(e?.locations || []).map((l,li)=>{
-                      l.key = keys[li];
-                      return l;
-                    })
-                    console.log(locations)
-                    return {
-                      ...e,
-                      locations:locations,
-                      color:'#'+Math.floor(Math.random()*16777215).toString(16)}
-                  })
-      return(data)
-    })*/
 }
 
 export const getPlaces = async (id,secure) => {
 
-  console.log('getPlaces',secure);
   try {
     const data = await axios.get('/places/'+id,{...config(),params:{
       secure:secure
     }})
-    console.log('getPlaces',data);
     return data.data
   } catch (error) {
     console.log(error);
@@ -132,7 +93,7 @@ export const helpLocation = async (db,uid,mapId,locationId,toHelp) => {
 }
 
 export const LocationData = (props) => {
-    const { width } = useWindowDimensions();
+
     const {database} = useContext(FirebaseContext);
     const {selectedPlace,setSelectedPlace} = useContext(MapContext);
     const uid = useSelector((state) => state.user.uid)
@@ -140,6 +101,7 @@ export const LocationData = (props) => {
     const [hearted, setHearted] = useState(false);
     const [help, setHelp] = useState(false);
     const [helpModal, setHelpModal] = useState(false);
+
 
     useEffect(() => {
       console.log('locationLIke',selectedPlace.id);
@@ -168,43 +130,53 @@ export const LocationData = (props) => {
     }
 
     return (
-      <ScrollView style={[styles.selectedLocation,{flexGrow:1} ]}>
-        <Row>
-          <MyText style={{fontSize:20,paddingHorizontal:10,flexGrow:1}}>{selectedPlace?.title}</MyText>
-          <Pressable style={{paddingHorizontal:10}} onPress={()=>setSelectedPlace(null)}><MyText style={{fontSize:20}}>X</MyText></Pressable>
-        </Row>
-        <UrlText style={{padding:10}} text={selectedPlace?.description} />
-        <TouchableOpacity onPress={handleHeart} style={{flexDirection:'row',alignItems:'center'}}>
-            <Icon name={hearted ? "heart" : "heart-outline"} size={25} color="red" style={{paddingHorizontal:10}}/>
-            <TextFor text="heart" />
-        </TouchableOpacity>
+        <ScrollView style={[styles.selectedLocation,{flexGrow:1} ]}>
+          {false&&<View style={styles.draggable}/>}
+          <Row>
+            <Pressable style={{paddingHorizontal:10,justifyContent:'center'}} onPress={()=>setSelectedPlace(null)}><Icon size={25} name="chevron-back-outline"/></Pressable>
+            <MyText style={{fontSize:20,paddingHorizontal:10,flexGrow:1}}>{selectedPlace?.title}</MyText>
+          </Row>
+          <UrlText style={{padding:10}} text={selectedPlace?.description} />
+          <TouchableOpacity onPress={handleHeart} style={{flexDirection:'row',alignItems:'center'}}>
+              <Icon name={hearted ? "heart" : "heart-outline"} size={25} color="red" style={{paddingHorizontal:10}}/>
+              <TextFor text="heart" />
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={()=>openMap({ 
-          latitude: selectedPlace.lat, 
-          longitude: selectedPlace.lng,
-          query: selectedPlace.title,
-          end: selectedPlace.title,
-        }) } 
-        style={{flexDirection:'row',alignItems:'center'}}>
-            <Icon name={"compass-outline"} size={25} color="blue" style={{paddingHorizontal:10}}/>
-            <TextFor text="open_maps" />
-        </TouchableOpacity>
-        <Comments path={"places/"+selectedPlace.id} />
-        <AloneModal 
-        modalVisible={helpModal} 
-        setModalVisible={setHelpModal} 
-        locationName={selectedPlace?.name}
-        handleOK={handleHelp}/>
-      </ScrollView>
+          <TouchableOpacity onPress={()=>openMap({ 
+            latitude: selectedPlace.lat, 
+            longitude: selectedPlace.lng,
+            query: selectedPlace.title,
+            end: selectedPlace.title,
+          }) } 
+          style={{flexDirection:'row',alignItems:'center'}}>
+              <Icon name={"compass-outline"} size={25} color="blue" style={{paddingHorizontal:10}}/>
+              <TextFor text="open_maps" />
+          </TouchableOpacity>
+          <Comments path={"places/"+selectedPlace.id} />
+          <AloneModal 
+          modalVisible={helpModal} 
+          setModalVisible={setHelpModal} 
+          locationName={selectedPlace?.name}
+          handleOK={handleHelp}/>
+        </ScrollView>
     )
   }
 
 const styles = StyleSheet.create({
   selectedLocation: {
     padding:10,
+    bottom:0,
     flex:1,
     zIndex:10,
     width:'100%',
-    backgroundColor:'rgb(253, 245, 203)'
+    backgroundColor:'#ffffd6'
+  },
+  draggable: {
+    backgroundColor:'black',
+    borderRadius:8,
+    alignSelf:'center',
+    width:30,
+    height:5,
+    margin:5
   }
 })

@@ -1,10 +1,11 @@
 import { View, useWindowDimensions } from "react-native"
 import { Checkbox, TouchableRipple } from "react-native-paper";
-import { MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from "../Components";
+import { Col, MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from "../Components";
 import { useNavigation } from "@react-navigation/native";
 import UserElement from "../tools/UserElement";
+import { MyImagePicker } from '../../components/tools/MyImagePicker';
 
-const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style}) => {
+const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,placeholder,render,text}) => {
     const navigation = useNavigation()
     const { width } = useWindowDimensions();
     const defStyle = {
@@ -16,11 +17,14 @@ const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style}) =
         backgroundColor: '#fbf7f0',
         //textAlignVertical: "center",
     }
-    const LabelElement = <MyText style={{marginLeft:32,fontSize:20}}>{label}</MyText>
+    if (render && !data[render]) return null;
+    const LabelElement = <MyText style={[{marginLeft:0,fontSize:20}]}>{label}</MyText>
     if (type == 'text')
     return LabelElement
     if (type == 'text-input')
-    return (<>{LabelElement}<TextInput style={[defStyle,style]} multiline numberOfLines={lines} onChangeText={v=>setData({...data,[attribute]:v})} /></>)
+    return (<>{LabelElement}<TextInput style={[defStyle,style]} multiline
+        placeholder={placeholder}
+     numberOfLines={lines} onChangeText={v=>setData({...data,[attribute]:v})} /></>)
     if (type == 'checkbox')
     return (<Checkbox.Item label={label} 
         color="#000" style={[defStyle,style]} 
@@ -32,11 +36,29 @@ const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style}) =
     {
         return <UserElement uid={attribute} text={label} setData={setData} style={style}/>
     }
+    if (type == 'item') {
+        return <TouchableRipple 
+        style={{padding:8,borderRadius:8,}}
+        onPress={()=>{
+            setData()
+            navigation.push('profil',{uid:attribute})
+        }}>
+            <Row style={{width:'100%'}}>
+                <ProfileImage uid={attribute} size={50}/>
+                <Col style={{justifyContent:'center'}}>
+                    <MyText style={{marginLeft:16}}>{text}</MyText>
+                    <MyText bold style={{marginLeft:16}}>{label}</MyText>
+                </Col>
+            </Row>
+        </TouchableRipple>
+    }
     if (type=='rich-text')
     return (<RichEditor
         initialContentHTML={'Hello <b>World</b> <p>this is a new paragraph</p> <p>this is another new paragraph</p>'}
         editorInitializedCallback={() => this.onEditorInitialized()}
       />)
+    if (type='image') return <MyImagePicker />
+    if (type=='null') return  null;
     return (<MyText>{LabelElement} Nincs ilyen típus {type}</MyText>)
 }
 

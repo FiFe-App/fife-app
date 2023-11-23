@@ -11,7 +11,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
 import Icon from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from "../../components/DateTimePicker";
-import CloseModal, { UserModal } from "../../components/Modal";
+import DeleteModal, { UserModal } from "../../components/Modal";
 import Select from "../../components/Select";
 import { config } from "../../firebase/authConfig";
 import { deepEqual, listToMatrix } from "../../lib/functions";
@@ -20,6 +20,8 @@ import { SaleListItem } from "./SaleListItem";
 import { categories as cats } from "../../lib/categories";
 import HelpModal from "../../components/help/Modal";
 import { SaleContext } from './SaleContext';
+import BasePage from "../../components/BasePage";
+import GoBack from "../../components/Goback";
 
 
 const categories = ['Kategória: Minden',...cats.sale.map(c=>{return c.name})];
@@ -33,23 +35,26 @@ const Sale = ({ navigation, route }) => {
     const {database, storage, api, auth, firestore} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
     const { width } = useWindowDimensions();
-    const itemsPerRow = width < 900 ? 2 : Math.round(width/2/300);
+    const [saleWidth, setWidth] = useState(600);
+    const itemWidth = 200
+    const itemsPerRow = Math.round(saleWidth/itemWidth);
     const scrollView = useRef()
 
-    const [settings, setSettings] = useState({
+    const [settings, setSettings] = useState({...{
         synonims: false,
         category: Number(category),
         author: null,
         minDate: null,
         maxDate: null,
         skip: 0,
-        take: itemsPerRow*3
-    });
+        take: itemsPerRow*3,
+        searchText: null
+    },...route.params });
     const [moreFilter, setMoreFilter] = useState(true);
     const [changed, setChanged] = useState(false);
     const [keys, setKeys] = useState([]);
 
-    const [closeModal, setCloseModal] = useState(false);
+    const [deleteModal, setDeleteModal] = useState(false);
     const [userModal, setUserModal] = useState(false);
     const [interestModal, setInterestModal] = useState(null);
     const [IList, setIList] = useState(null);
@@ -58,6 +63,7 @@ const Sale = ({ navigation, route }) => {
     const [searchResult, setSearchResult] = useState([]);
     const [selected, setSelected] = useState(id || null);
     const [toDelete, setToDelete] = useState(null);
+    const [toEdit, setToEdit] = useState(null);
     const [hide, setHide] = useState(false);
     
     const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
@@ -74,35 +80,35 @@ const Sale = ({ navigation, route }) => {
     const loadMoreData = () => {
         if (loading) return 
 
-        search(list.length)
+        search(itemsPerRow*3)
     }
 
     useEffect(() => {
+        console.log(settings);
         setChanged(true);
+        navigation.setParams(settings)
     }, [settings]);
 
     useEffect(() => {
+        setToEdit(null)
         console.log('selected',selected);
         if (!id && selected && width <= 900) navigation.push('cserebere',{id:selected})
     }, [selected]);
 
     useFocusEffect(
         useCallback(() => {
-            console.log(!route?.params);
-            if (database && !route?.params) {
-                setList([]);
-                search(0)
-            }
+            setList([]);
+            search(0)
           return () => {
           };
         }, [])
       );
 
     const deleteItem = () => {
-        console.log('delete',toDelete);
-        if (database && storage && toDelete)
+        console.log('delete',selected);
+        if (selected)
         (async ()=> {
-            axios.delete('/sale/'+toDelete,config()).then(res=>{
+            axios.delete('/sale/'+selected,config()).then(res=>{
                 setList(list.filter(e=>e._id!=toDelete))
             }).catch(err=>{
                 console.log(err);
@@ -111,11 +117,11 @@ const Sale = ({ navigation, route }) => {
     }
 
     const interestItem = async (index,isInterest) => {
-        console.log('interest',interestModal);
+        console.log('interest',interestModal,isInterest);
         if (interestModal.message)
         return (async ()=> {
             const res = await axios.patch('/sale/'+interestModal.id+'/interest', {
-                interested: !isInterest,
+                interested: interestModal.isInterest,
                 message: interestModal.message
               },config())
               .then((res)=>{
@@ -135,16 +141,20 @@ const Sale = ({ navigation, route }) => {
     }
 
     const search = async (skip) => {
+        console.log(settings);
         setChanged(false)
         if (list.length != 0 && deepEqual(lastQuery,{
             ...settings,
             skip,
             search:searchText
-        })) return
+        })) console.log('no');
+        if (lastQuery?.skip && lastQuery?.skip == skip) return
         setLoading(true)
         await axios.get('/sale',{...config(),params:{
             ...settings,
+            id: undefined,
             category: settings.category-1,
+            take:itemsPerRow*3,
             skip,
             search:searchText
         }}).then(res=>{
@@ -168,39 +178,62 @@ const Sale = ({ navigation, route }) => {
         setLoading(false)
     }
 
-    useEffect(() => {
-        console.log('interestModal',interestModal);
-    }, [interestModal]);
+    const toShare = {interestModal,setInterestModal,IList,setIList,userModal,setToEdit,deleteModal,setDeleteModal,selected,setSelected}
+    const modals = <>
+            <DeleteModal modalVisible={deleteModal} setModalVisible={setDeleteModal} handleOK={deleteItem}/>
+            <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.push('uzenetek',{selected:selected?.uid})}/>
+            <HelpModal
+                title="Érdekel a hirdetés?"
+                text='Írj üzenetet a hirdetőnek! Foglald bele, mi érdekel téged.'
+                actions={[
+                    {title:'bezárom',onPress:()=>setInterestModal(null)},
+                    {title:'küldés',onPress:interestItem,color:'#2b80ff',submit:true}]}
+                open={interestModal}
+                setOpen={setInterestModal}
+                inputs={[
+                    {type:'text-input',attribute:'message',label:null,data:interestModal,setData:setInterestModal,style:{backgroundColor:'#fbf1e0'}}
+                ]}
+                success={{
+                    title: 'Elküldted az üzenetedet!'
+                }}
+            />
+            <HelpModal
+                title="Érdeklődők listája"
+                text='Nyomj a nevükre hogy megnézd a profiljukat'
+                actions={[
+                    {title:'bezárom',onPress:()=>setIList(null)},
+                ]}
+                open={IList}
+                setOpen={setIList}
+                inputs={
+                    IList?.map(e=>{
+                        return {type:'user',attribute:e.author,label:'üzenet: '+e.message,setData:setIList,style:{
+                            backgroundColor:'rgb(253, 245, 203)',
+                            borderRadius: 8
+                        }}
+                    })
+                }
+            />
+    </>
 
-    if (id && width <= 900)
-    return <SaleContext.Provider value={{interestModal,setInterestModal,userModal,closeModal,selected,setSelected}}>
+    if (id)
+    return <SaleContext.Provider value={toShare}>
+    <GoBack breakPoint={10000} text={null} previous='cserebere' floating style={{backgroundColor:'#FFC372'}} color='black'/>
+    <BasePage style={{paddingTop:0}}>
         <Item data={list.find(e=>e._id == selected)} toLoadId={selected} 
-            setSelected={setSelected} interestItem={setInterestModal}   deleteItem={()=>setCloseModal(true)}/>
-        <CloseModal modalVisible={closeModal} setModalVisible={setCloseModal} handleOK={deleteItem}/>
-        <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.push('uzenetek',{uid:selected?.uid})}/>
-        <HelpModal
-            title="Érdekel a hirdetés?"
-            text='Írj üzenetet a hirdetőnek, foglald bele, mi az ami foglalkoztat.'
-            actions={[
-                {title:'bezárom',onPress:()=>setInterestModal(null)},
-                {title:'küldés',onPress:interestItem,color:'#2b80ff'}]}
-            open={interestModal}
-            setOpen={setInterestModal}
-            inputs={[
-                {type:'text-input',attribute:'message',label:null,data:interestModal,setData:setInterestModal,style:{backgroundColor:'#fbf1e0'}}
-            ]}
-            success={{
-                text: 'Köszi, hogy részt veszel a FiFe App fejlesztésében:)',
-                title:'Sikeres beküldés!'
-              }}
-        />
+            setSelected={setSelected} interestItem={setInterestModal}   deleteItem={()=>setDeleteModal(true)}/>
+        {modals}
+        </BasePage>
     </SaleContext.Provider>
     return (
-    <SaleContext.Provider value={{interestModal,setInterestModal,IList,setIList,userModal,closeModal,selected,setSelected}}>
-        <View style={{flex:1, flexDirection:'row',backgroundColor:'#FDEEA2'}}>
-            <View style={{flex:1}}>
+    <SaleContext.Provider value={toShare}>
+        <BasePage>
+            <View style={{flex:3}}>
                 <ScrollView
                     ref={scrollView}
+                    onLayout={(e)=>{
+                        setWidth(e.nativeEvent.layout.width)
+                    }}
                     scrollEventThrottle={16}
                     onScroll={event => {
                             if (isCloseToBottom(event.nativeEvent)) 
@@ -216,14 +249,15 @@ const Sale = ({ navigation, route }) => {
                     <Auto breakPoint={width > 900 ? 1300 : 600} style={{flex:'none'}}>
                         <View style={{padding:0}}>
                             <TextInput
-                                onChangeText={setSearchText}
+                                onChangeText={(e)=>setSettings({...settings,searchText:e})}
                                 style={{fontSize:20,padding:10,margin:10,backgroundColor:'white'}}
                                 placeholder="Keress csereberében"
+                                value={settings.searchText}
                             />
                             {(!hide || width > 600) && <><Select
                                 list={categories}
                                 defaultValue={settings.category}
-                                style={{fontSize:15,padding:10,marginVertical:0,margin:10,marginBottom:0,backgroundColor:'white',width:'96.5%',borderWidth:0}}
+                                style={{fontSize:20,padding:10,margin:10,paddingRight:-10,backgroundColor:'white',borderWidth:0}}
                                 placeholder="Válassz kategóriát"
                                 onSelect={(selectedItem, index) => {
                                     const i = index == 0 ? 0 : index
@@ -252,34 +286,25 @@ const Sale = ({ navigation, route }) => {
                             </>}
                         </View>
                         {(!hide || width > 600) && <View style={{flex:1,margin:5,marginLeft:0}}>
-                            {moreFilter && <View style={{minWidth:300}}>
-                                <View style={{flexDirection:'row', alignItems:'center',borderBottomWidth:5,borderColor:'#ffffff',marginHorizontal:5}}>
-                                    <NewButton color={settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: null})}} 
-                                    style={{flex:1,marginBottom:0,marginLeft:0,borderBottomLeftRadius:0,borderBottomRightRadius:0}} 
-                                    title="Mindenki másé"/>
-                                    <NewButton color={!settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: uid})}} 
-                                    style={{flex:1,marginBottom:0,marginRight:0,borderBottomLeftRadius:0,borderBottomRightRadius:0}}
-                                    title="Sajátjaim" />
-                                </View>
-
-                                {false && <TextInput
-                                    onChangeText={v=>setSettings({...settings,author:v})}
-                                    style={{fontSize:15,padding:10,margin:5,marginTop:5,backgroundColor:'white'}}
-                                    placeholder="Szerző"
-                                />}
-                            </View>}
+                            <View style={{flexDirection:'row', alignItems:'center',borderBottomWidth:5,borderColor:'#ffffff',marginHorizontal:5,minHeight:50}}>
+                                <NewButton color={settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: null})}} 
+                                style={{flex:1,marginBottom:0,marginLeft:0,borderBottomLeftRadius:0,borderBottomRightRadius:0,padding:10}} 
+                                title="Mindenki másé"/>
+                                <NewButton color={!settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: uid})}} 
+                                style={{flex:1,marginBottom:0,marginRight:0,borderBottomLeftRadius:0,borderBottomRightRadius:0,padding:10}}
+                                title="Sajátjaim" />
+                            </View>
                             <Row style={{flex:1}}>
-                                <NewButton title="Keresés!" onPress={()=>{setList([]);search(0)}} style={{flex:5}}/>
+                                <NewButton color={changed?'#FFC372':undefined} title="Keresés!" onPress={()=>{setList([]);search(0)}} textStyle={{fontSize:24}} style={{flex:5}}/>
                                 <NewButton title={<Icon name="refresh" size={30} />} onPress={()=>{setList([]);search(0)}} style={{flex:1}}/>
                             </Row>
                         </View>}
                     </Auto>
-                    {changed && <MyText style={{textAlign:'center',padding:10}}>Kattints a Keresésre, hogy frissítsd a találatokat!</MyText>}
+                    {changed && <MyText style={{textAlign:'center',padding:10,backgroundColor:'white'}}>Kattints a Keresésre, hogy frissítsd a találatokat!</MyText>}
                     
                     {list.length ?
-                    <View style={{marginRight:25}}>
+                    <View>
                         {listToMatrix(list,itemsPerRow).map((row,i)=>{
-                            console.log('row',i,new Array(itemsPerRow-row.length))
                             return (
                                 <Row>
                                 {row.map((e,ind,rowL)=>
@@ -290,14 +315,11 @@ const Sale = ({ navigation, route }) => {
                                         selected={selected == e._id}
                                         setSelected={setSelected}
                                         interestItem={setInterestModal}
-                                        deleteItem={()=>{setCloseModal(true);setToDelete(e._id)}}
+                                        deleteItem={()=>{setDeleteModal(true);setToDelete(e._id)}}
                                         openUserModal={()=>setUserModal(true)}
                                     />
                                 )}
-                                {new Array(itemsPerRow-row.length).map(()=>
-                                    <><MyText></MyText>
-                                    <View style={{flex:1}}/></>
-                                )}
+                                <View style={{flex:itemsPerRow-row.length}}/>
                                 </Row>
                             )
                         })}
@@ -309,56 +331,12 @@ const Sale = ({ navigation, route }) => {
                     </View> }
                     {loading && <Loading color='#FFC372' height={10}/>}
                 </ScrollView>
-                <FAB color="#FFC372" size={80} icon="chevron-up" onPress={()=>scrollView.current.scrollTo(0,0)}/>
                 
             </View>
-            {(width > 900) &&
-                <View style={{flex:1,backgroundColor:'white'}}>
-                    {selected ? 
-                    <Item data={list.find(e=>e._id == selected)} toLoadId={selected} interestItem={setInterestModal}
-                            setSelected={setSelected}    deleteItem={()=>setCloseModal(true)}/>
-                    :
-                    <NewSaleItem/>}
-                </View>
-            }
-            {(width <= 900) &&
+        </BasePage>
+            <FAB color="#FFC372" size={80} icon="chevron-up" onPress={()=>scrollView.current.scrollTo(0,0)}/>
             <FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.push('uj-cserebere')}/>
-            }
-            <CloseModal modalVisible={closeModal} setModalVisible={setCloseModal} handleOK={deleteItem}/>
-            <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.push('uzenetek',{selected:selected?.uid})}/>
-            <HelpModal
-                title="Érdekel a hirdetés?"
-                text='Írj üzenetet a hirdetőnek! Foglald bele, mi érdekel téged.'
-                actions={[
-                    {title:'bezárom',onPress:()=>setInterestModal(null)},
-                    {title:'küldés',onPress:interestItem,color:'#2b80ff',submit:true}]}
-                open={interestModal}
-                setOpen={setInterestModal}
-                inputs={[
-                    {type:'text-input',attribute:'message',label:null,data:interestModal,setData:setInterestModal,style:{backgroundColor:'#fbf1e0'}}
-                ]}
-                success={{
-                    title: 'Elküldted az üzenetedet!'
-                }}
-            />
-            <HelpModal
-                title="Érdeklődők listája"
-                text='Nyomj a nevükre hogy megnézd a profiljukat'
-                actions={[
-                    {title:'bezárom',onPress:()=>setIList(null)},
-                ]}
-                open={IList}
-                setOpen={setIList}
-                inputs={
-                    IList?.map(e=>{
-                        return {type:'user',attribute:e.author,label:e.message,setData:setIList,style:{
-                            backgroundColor:'rgb(253, 245, 203)',
-                            borderRadius: 8
-                        }}
-                    })
-                }
-            />
-        </View>
+            {modals}
     </SaleContext.Provider>
     )
 }

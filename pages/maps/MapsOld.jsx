@@ -26,7 +26,7 @@ const defaultFilterList = [
 
 const Maps = ({navigation, route}) => {
     //#region state
-    const { id } = route?.params || {}
+    const { id, category } = route?.params || {}
     const {database} = useContext(FirebaseContext);
     const { width } = useWindowDimensions();
 
@@ -53,6 +53,8 @@ const Maps = ({navigation, route}) => {
     const [newMarker, setNewMarker] = useState(null);
 
     const [errorMsg, setErrorMsg] = useState(null);
+
+    const sheetRef = React.useRef(null);
     //#endregion
 
     //#region uef
@@ -157,6 +159,7 @@ const Maps = ({navigation, route}) => {
           L.marker([location.coords.latitude, location.coords.longitude],{icon: locationIcon }).addTo(map)
         })()
         if (id) setSelected(id)
+        if (category) setSelectedMap(category)
       }
     }, [map]);
 
@@ -268,7 +271,7 @@ const Maps = ({navigation, route}) => {
           status={settings.secure?'checked':'unchecked'} onPress={v=>setSettings({...settings,secure:!settings.secure})} />
         
       </View>
-      <ScrollView style={{}}>
+      <ScrollView style={{flexWrap:'wrap',flexDirection:'row'}} horizontal>
         {filteredCategoryList.map((map,index)=>{
           return <MapElement 
           key={index+'map'}
@@ -308,7 +311,15 @@ const Maps = ({navigation, route}) => {
         </View>
         {!selected && <NewPlace setNewPlace={setNewPlace} newPlace={newMarker} selectedMap={selectedMap}/>}
         {width <= 900 && (selected &&
-            <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected} mapId={selectedMap.id}/>
+            
+            <BottomSheet
+              ref={sheetRef}
+              snapPoints={[450, 300, 0]}
+              borderRadius={10}
+              renderContent={()=>{
+                <LocationData location={selected} locationId={ids.locationId} setLocation={setSelected} mapId={selectedMap.id}/>
+              }}
+            />
             )}
       </Auto>
     )

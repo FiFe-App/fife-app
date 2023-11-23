@@ -5,10 +5,12 @@ import { getDatabase, off, onChildAdded, push, ref, set } from "firebase/databas
 import { randomColor, shadeColor } from "../../lib/functions";
 import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Comments = ({style,path,placeholder}) => {
     const [list, setList] = useState([]);
     const navigation = useNavigation();
+    const [width, setWidth] = useState(0);
     
     const uid = useSelector((state) => state.user.uid)
     const name = useSelector((state) => state.user.name);
@@ -28,7 +30,6 @@ const Comments = ({style,path,placeholder}) => {
             .then(res=>{
                 console.log(res);
                 setLoading(false)
-                setAuthor('')
                 setText('')
             }).catch(err=>{
                 console.log(err);
@@ -52,19 +53,21 @@ const Comments = ({style,path,placeholder}) => {
     }, [path]);
 
     return (
-        <View style={[{flex:1},style]}>
+        <View style={[{flex:1},style]} onLayout={(e)=>setWidth(e.nativeEvent.layout.width)}>
             <Row style={{flex:1}}>
                 <View style={{flexGrow:1}}>
-                    {!name && <TextInput style={{margin:5,padding:10,backgroundColor:'#ffffff'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
-                    <TextInput style={{flex:1,margin:5,marginBottom:0,padding:10,backgroundColor:'#ffffff'}} multiline numberOfLines={5} value={text} onChangeText={setText} 
-                    placeholder={(placeholder && name) ? placeholder : "Komment írása mint "+name}/>
+                    {!name && <TextInput style={{marginRight:5,marginBottom:5,padding:10,backgroundColor:'#ffffff'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
+                    <TextInput style={{flex:1,marginRight:5,marginBottom:0,padding:10,backgroundColor:'#ffffff'}} multiline numberOfLines={2} value={text} 
+                    onChangeText={setText} 
+                    placeholder={(placeholder) ? placeholder : "Kommented"}/>
                 </View>
-                <NewButton title="Küldés" onPress={handleSend} disabled={!author || !text} style={{height:'100%',margin:5}}
+                <NewButton title={width > 300 ? "Küldés" : <Icon name="arrow-redo-outline" size={30} color='black'/>} 
+                onPress={handleSend} disabled={!author || !text} style={{height:'100%',margin:0}}
                     loading={loading}
                 />
             </Row>
             <MyText size={20} style={{marginLeft:10,marginTop:10}}>Kommentek:</MyText>
-            <View style={{flexWrap:'wrap',flexDirection:'row',margin:10,marginRight:15}}>
+            {!!list?.length &&<View style={{flexWrap:'wrap',flexDirection:'row',margin:10,marginRight:15}}>
                 {list.map((comment,ind)=>{
 
                     return (
@@ -79,7 +82,7 @@ const Comments = ({style,path,placeholder}) => {
                         </View>
                     )
                 })}
-            </View>
+            </View>}
             {downloading ? <Loading /> :
             !list?.length && <MyText style={{padding:20}}>Még nem érkezett komment</MyText>}
         </View>)

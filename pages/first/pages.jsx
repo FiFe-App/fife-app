@@ -98,13 +98,15 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                   Az alkalmazás még nincs kész, tesztüzemmódban működik az oldal!</MyText>
                   <MyText style={styles.text}>Ez egy eszköz,
                   ami segít, hogy <B>barátkozz</B>, <B>tájékozódj</B>, <B>bizniszelj</B> és ne érezd magad elszigetelve a nagyvárosban.
-                  {'\n\n'}Az alkalmazás célja a FiFe szellemiség megvalósítása az online térben,
+                  {'\n\n'}Az alkalmazás célja a fife szellemiség megvalósítása az online térben,
                   vagyis a korrektséget és segítőkészséget becsomagolni egy biztonságot nyújtó környezetbe.
                   Egy netes oázis, ahol a könnyen nyújthatsz segítséget másoknak és találhatsz saját magadnak.
                   Ahol az ember közelebb érezheti magát másokhoz, részese lehet a nagy egésznek.
                   {'\n\n'}Nem facebook vagyunk, nem az a célunk, hogy minél több reklámot és tartalmat láss.
                   {'\n\n'}
                   A <B>Tovább</B> gombra nyomva végigvezetünk a regisztrációhoz szükséges lépéseken!
+                  {'\n\n'}
+                  Kérlek figyelmesen olvasd végig a lépéseket! Kb 5 percet vesz igénybe.
                   </MyText>
                 </View>
                 <View style={{flex:small?'none':1,margin:20,flexDirection:'row'}}>
@@ -156,7 +158,8 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
             <MyText style={titleStyle}>Bizniszek</MyText>
             <MyText style={styles.text}>A te Bizniszeid azon hobbijaid, képességeid, vagy szakmáid listája, amelyeket meg szeretnél osztani másokkal is.
             Ha te mondjuk úgy gyártod a sütiket, mint egy gép, és ezt felveszed a bizniszeid közé, az appban megtalálható leszel, a süti kulcsszóval.</MyText>
-            <MyText style={styles.text}>Fontos, hogy kizárólag a megadott <B>kulcsszavak</B> alapján tudnak majd megtalálni </MyText>
+            <MyText style={styles.text}>Fontos, hogy kizárólag a megadott <B>kulcsszavak</B> alapján tudnak majd megtalálni
+            {'\n'}Nem muszáj megadnod bizniszt, ha nem szeretnél!</MyText>
             <Buziness data={data} setData={setData}/>
             
         </ScrollView>,
@@ -166,15 +169,15 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
             <Col style={{alignSelf:'flex-start',marginTop:20,width:'100%'}}>
               <FlatList style={[styles.text,{}]}
                 data={[
-                  {key: 'Nem leszek rosszindulatú senkivel'},
-                  {key: 'Mindenkihez egyformán bizalommal fordulok'},
-                  {key: 'Kedves leszek mindenkivel.'},
-                  {key: 'Mások és a saját érdekeimet is figyelembe veszem'},
-                  {key: 'Nem használok ki másokat'},
+                  {key: 'Nem leszek rosszindulatú senkivel!'},
+                  {key: 'Mindenkihez egyformán bizalommal fordulok!'},
+                  {key: 'Kedves leszek mindenkivel és nem használok ki másokat!'},
+                  {key: 'Saját és mások érdekeit is figyelembe veszem!'},
+                  {key: 'Ha valaki valaki bántóan viselkedik velem, jelentem!'},
                 ]}
                 renderItem={({item,index}) => 
                 <MyText style={styles.listItem} key={'item'+index}>
-                  <Icon name="heart" size={20} style={{marginRight:10}}/>{item.key}
+                  <Icon name="heart" size={20} style={{marginRight:20}}/>{item.key}
                 </MyText>}
               />
             </Col>
@@ -203,7 +206,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 <Image source={require('../../assets/en.jpeg')} resizeMode="cover" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
                 <MyText contained>
                 <MyText title>Rólam</MyText>{'\n'}
-                Kristóf Ákos vagyok, én találtam ki és fejlesztem egyedül a FiFe Appot. Ez egy olyan projekt, 
+                Kristóf Ákos vagyok, én találtam ki és fejlesztem egyedül a fife appot. Ez egy olyan projekt, 
                 amibe szívemet-lelkemet bele tudom rakni, értetek, és egy jobb világért dolgozom rajta. 
                 Az oldal fenntartásához, fejlesztéséhez sok idő és pénz is kell, éppen ezért kérem a támogatásotokat. 
                 Ha neked is fontos a projekt célja, és szívesen használnád az appot, kérlek 

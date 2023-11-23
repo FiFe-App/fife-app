@@ -68,11 +68,12 @@ export default ({ children }) => {
             // Adding listener for firebase auth
             const unsubscribe = onAuthStateChanged(getAuth(),async (user) => {
             if (user) {
-                setTimeout(async () => {
-                }, 10000);
                 console.log('FIREBASE user already loggen in')
                 console.log(user);
-                dispatch(sliceLogin(user.uid))
+                user.reload().then(res=>{
+                    console.log('reload',res);
+                    dispatch(sliceLogin(user.uid))
+                })
             } else {
                 console.log('FIREBASE user not logged in')
                 dispatch(sliceLogout())
@@ -129,7 +130,7 @@ export default ({ children }) => {
         try{const appCheckObj = initializeAppCheck(getApp(), {
         provider: new ReCaptchaV3Provider('6LcSls0bAAAAAKWFaKLih15y7dPDqp9qMqFU1rgG'),
 
-        // Optional argument. If true, the SDK automatically refreshes App Check
+        // Optional argument. If true, the SDK automatically refreshes app Check
         // tokens as needed.
         isTokenAutoRefreshEnabled: true
         });}catch(err){
@@ -203,16 +204,18 @@ export default ({ children }) => {
                     await axios.post('users',firstLogin,config()).then(()=>{
                         response = {success:true,user}
                     })
-                    //await 
-                    //set(ref(db,`users/${user.uid}/data`),{...firstLogin,username:null}).then(()=>{
+                    await set(ref(getDatabase(),`users/${user.uid}/data/name`),firstLogin.name).then(()=>{
+                        console.log('RTDB updated');
+                    })
+                    await set(ref(getDatabase(),`users/${user.uid}/settings/homeFilter`),firstLogin.interest).then(()=>{
+                        console.log('RTDB updated');
+                    })
                     //response = {success:true,user}
                 } catch (err) {
                     console.log('ERROR',err);
                 }
-            } 
-            console.log(userCredential);
-
-
+                dispatch(setName(firstLogin.name))
+            } else {
             const dbRef = ref(getDatabase(getApp()),'users/' + user.uid + "/settings");
             get(dbRef).then((snapshot) => {
             if (snapshot.exists()) {
@@ -228,6 +231,7 @@ export default ({ children }) => {
             }
             
             })
+        }
             response = {success:true}
         })
         .catch((error) => {
@@ -240,7 +244,9 @@ export default ({ children }) => {
             else if (errorCode == "auth/internal-error")
                 response = {error:"Azáldóját! A szerveren hiba történt, próbáld újra!"};
             else if (errorCode == "auth/wrong-password")
-                response = {error:"A fene egye meg! Lehet elírtad a jelszavad"};
+                response = {error:"Azt a hét meg a nyolcát! Lehet elírtad a jelszavad."};
+            else if (errorCode == "auth/too-many-requests")
+                response = {error:"Ó te jó ég! Túl sokszor próbáltál bejelentkezni, próbálkozz később!"};
             else
                 response = {error:"error: " + errorCode + " - " + errorMessage};
         });

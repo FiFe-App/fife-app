@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { MyText, NewButton, Row } from "./Components";
 import { TouchableRipple } from "react-native-paper";
 
-const GoBack = ({breakPoint=900,text="Vissza",floating,previous,style,color}) => {
+const GoBack = ({breakPoint=900,text="Vissza",floating,previous,style,color,params,onPress}) => {
     const { width } = useWindowDimensions();
     const nav = useNavigation();
     if (width > breakPoint || (!nav.canGoBack() && !previous)) return null
@@ -16,7 +16,11 @@ const GoBack = ({breakPoint=900,text="Vissza",floating,previous,style,color}) =>
       shadowOffset: {width: 2, height: 4},
       shadowOpacity: 0.2,
       shadowRadius: 10,},style]} 
-        onPress={()=>{previous ? nav.push(previous) : nav.goBack()}} 
+        onPress={()=>{
+            if (onPress) onPress()
+            else
+            previous ? nav.navigate(previous,params) : nav.goBack()
+        }} 
         >
             <Row style={{alignItems:'center',justifyContent:'center'}}>
                 <Icon name="chevron-back-outline" size={35} color={color}/>

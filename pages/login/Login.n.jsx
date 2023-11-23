@@ -57,7 +57,7 @@ const LoginScreen = ({ navigation, route }) => {
     return (
       (fontsLoaded) &&
       <LinearGradient colors={["rgba(255,196,0,1)", "rgba(255,242,207,1)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.container}>
-        <MyText style={styles.title} >FiFe. a közösség</MyText>
+        <MyText style={styles.title} >fife. a közösség</MyText>
         <View style={{flexWrap:'wrap'}}>
           <TextInput
             style={styles.searchInput}

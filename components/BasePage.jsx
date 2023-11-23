@@ -5,7 +5,7 @@ const BasePage = ({children,style,full}) => {
     return(
         <ScrollView 
         contentContainerStyle={{flex:1,maxWidth:full?'none':800,width:'100%',alignSelf:'center'}} 
-        style={[{backgroundColor:'#FDEEA2',padding:width <= 900 ? 5 : 50},
+        style={[{backgroundColor:'#FDEEA2',paddingHorizontal:width <= 900 ? 5 : 50,paddingTop:width <= 900 ? 5 : 50},
                 style]}>
             {children}
         </ScrollView>

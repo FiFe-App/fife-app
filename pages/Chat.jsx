@@ -13,6 +13,7 @@ import GoBack from "../components/Goback";
 import { config } from "../firebase/authConfig";
 import chatStyles from '../styles/chatDesign';
 import { SaleListItem } from "./sale/SaleListItem";
+import { TouchableRipple } from "react-native-paper";
 
 const color = '#ffde9e'
 
@@ -102,13 +103,14 @@ const Chat = ({route, navigation, propUid, global}) => {
                     const profileListRef = ref(database, `users/${uid2}/data`);
                     onValue(profileListRef, (snapshot) => {
                         setHeader(
-                            <Pressable onPress={()=>nav.push('profil',{uid:uid2})} style={chatStyles.header}>
-                                <GoBack previous={'uzenetek'} style={{backgroundColor:'#FDEEA2',top:0,left:0}}/>
+                            <TouchableRipple onPress={()=>nav.push('profil',{uid:uid2})} style={chatStyles.header}>
+                                <>{route?.name == 'beszelgetes' &&<GoBack breakPoint={10000} text={null} previous={'uzenetek'} style={{backgroundColor:'#FFC372',left:0,top:0,marginRight:10}} color='black'/>}
+
                                 <Row style={{justifyContent:'center',alignItems:'center',flexGrow:1}}>
                                     <ProfileImage style={styles.listIcon} size={70} uid={uid2}/>
-                                    <MyText style={{margin:5,marginLeft:20,fontSize:28,fontWeight:'400'}}>{snapshot.child('name').val()}</MyText>
-                                </Row>
-                            </Pressable>
+                                    <MyText style={{margin:5,marginLeft:20,fontSize:24,fontWeight:'400'}}>{snapshot.child('name').val()}</MyText>
+                                </Row></>
+                            </TouchableRipple>
                         )
                     });
                 }

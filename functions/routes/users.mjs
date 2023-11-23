@@ -19,17 +19,36 @@ router.post("/", async (req, res) => {
       uid: req.uid,
       id: undefined,
       pageId: undefined,
+      textToType: undefined,
       buziness: undefined,
+      interest: undefined
     }
   })
-  console.log(result);
+
+  console.log('res',result);
+  const result2 = await Promise.all(req.body.buziness.map(async (buzi,ind)=>{
+    if (buzi && buzi.name && buzi.description)
+    return await prisma.buziness.create({
+      data: {
+        num: ind,
+        uid: req.uid,
+        ...buzi,
+        removed: undefined,
+        page: {
+          connect: {
+            id: result.pageId
+          }
+        }
+      }
+    })
+  }))
+  console.log(result2);
   if (!result) res.send("could not create").status(404);
   res.send(result.id);
 });
 
 router.get("/all/:uid", async (req, res) => {
 
-  const prisma = new PrismaClient();
   const result = await prisma.user.findFirst({
     where: {
       uid: req.params.uid
@@ -42,19 +61,26 @@ router.get("/all/:uid", async (req, res) => {
       }
     }
   })
+  const friendship = await prisma.friendship.findMany({
+    where: {
+      uid2: req.params.uid,
+    },
+    select: {
+      uid: true
+    }
+  });
   console.log(result);
   if (!result) {
     res.send("Not found").status(404);
     return
   }
 //  res.send(result)
-  res.send(result)
+  res.send({...result,friendship})
   return "hello"; 
 
 });
 
 router.patch("/", async (req, res) => {
-  const prisma = new PrismaClient();
 
 
   if (req.body.page.buziness?.length > 5) {
@@ -65,7 +91,7 @@ router.patch("/", async (req, res) => {
   const location = req.body.page?.location;
 
   const result = await prisma.user.upsert({
-    where: {
+    where: {  
       uid: req.uid
     },
     update: {
@@ -90,9 +116,14 @@ router.patch("/", async (req, res) => {
     create: {
       ...req.body.data,
       page: {
-        create: {
-          uid: req.uid,
-          location: location?.length==2 ? location : null
+        connectOrCreate: {
+          create: {
+            uid: req.uid,
+            location: location?.length==2 ? location : null
+          },
+          where: {
+            uid: req.uid
+          }
         }
       },
       uid: req.uid,
@@ -123,7 +154,7 @@ router.patch("/", async (req, res) => {
   return*/
 
   const result2 = await Promise.all(newB.map(async (buzi,ind)=>{
-    if (buzi)
+    if (buzi && buzi.name && buzi.description)
     return await prisma.buziness.upsert({
       where: {
         id: result.page.buziness[ind]?.id || '000000000000000000000000'
@@ -163,43 +194,67 @@ router.patch("/", async (req, res) => {
     res.send("Not found").status(404);
     return
   }
-  res.send(JSON.parse(JSON.stringify(result)))
+  res.send(result)
   return "hello"; 
 
 });
 
-router.get("/name/:uid", async (req, res) => {
+router.post("/friend/:uid", async (req, res) => {
+  
+  const result = await prisma.friendship.create({
+    data: {
+      uid: req.uid,
+      uid2: req.params.uid,
+    }
+  });
 
-  const prisma = new PrismaClient();
-  const result = await prisma.user.findFirst({
-    where: {
-      uid: req.params.uid
-    },
-    select: {
-      name: true
-    },
-  })
-  console.log(result);
   if (!result) {
     res.send("Not found").status(404);
     return
   }
-  res.send(JSON.parse(JSON.stringify({...result,buziness:[{
-    name:'buzi1',
-    description:'ez vagyok igen bizu'
-  }]})))
+  res.send(result)
   return "hello"; 
 
 });
+router.delete("/friend/:uid", async (req, res) => {
+  
+  const result = await prisma.friendship.deleteMany({
+    where: {
+      OR: [{
+        uid: req.params.uid,
+        uid2: req.uid
+      },{
+        uid: req.uid,
+        uid2: req.params.uid,
+      }],
+    }
+  });
 
+  if (!result) {
+    res.send("Not found").status(404);
+    return
+  }
+  res.send(result)
+  return "hello"; 
+
+});
 router.patch("/friend/:uid", async (req, res) => {
   
+  const result = await prisma.friendship.updateMany({
+    where: {
+      uid: req.params.uid,
+      uid2: req.uid,
+    },
+    data: {
+      allowed: true
+    }
+  });
 
   if (!result) {
     res.send("Not found").status(404);
     return
   }
-  res.send(JSON.parse(JSON.stringify(result)))
+  res.send(result)
   return "hello"; 
 
 });

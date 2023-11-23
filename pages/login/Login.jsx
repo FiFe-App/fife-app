@@ -14,10 +14,12 @@ import { Helmet } from 'react-helmet';
 import { useWindowDimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
-import { B, MyText, NewButton, TextInput } from '../../components/Components';
+import { Auto, B, MyText, NewButton, Row, TextInput } from '../../components/Components';
 import { FirebaseContext } from '../../firebase/firebase';
 import First from '../first/First';
 import { equalTo, get, query, ref } from 'firebase/database';
+import { Smiley } from '../home/HomeScreenOld';
+import { TouchableRipple } from 'react-native-paper';
 
 
 const LoginScreen = ({ navigation, route }) => {
@@ -67,27 +69,31 @@ const LoginScreen = ({ navigation, route }) => {
       </Helmet>
       <LinearGradient colors={["#FDEEA2", "#FDEEA2"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
         
-      <NewButton title="Rólunk" onPress={()=>navigation.push('rolunk')} style={{padding:10}} textStyle={{fontSize:30}} color="#fdcf99"/>
-        {width > 900 ?
-          <MyText style={{fontSize:'10vw', fontFamily:'Raleway_800ExtraBold',color:'black',flex:2,marginTop:100}}>
-          FiFe App
-        </MyText>
-        : 
-        <MyText style={{fontSize:70, fontFamily:'Raleway_800ExtraBold',color:'black',flex:1,marginTop:90,textAlign:'center'}}>
-          FiFe App
-        </MyText>
-        }
-        <MyText style={{fontSize:small?30:60, fontFamily:'SpaceMono_400Regular',color:'#000',backgroundColor:'transparent',textAlign:'right',paddingLeft:30,paddingRight:30}}>
-        <B>légy közelebb</B></MyText>
-
-        <View style={{flexDirection:'row',justifyContent:'flex-start',alignItems:'center',flex:3}}>
-            {!true ?
-            <MyText onClick={()=>{setShowLogin(true);setShowRegister(false)}} style={[localStyle.title,{marginTop:'0%',cursor:'pointer',borderWidth:5,backgroundColor:'rgba(255,196,0,1)'}]}>Bejelentkezés</MyText>:
-            <LoginForm/>}
+      <NewButton title={<><Icon name="chevron-back" size={25}/>Rólunk</>} onPress={()=>navigation.push('rolunk')} style={{padding:10,alignSelf:'flex-start'}} textStyle={{fontSize:25}} color='#FDEEA2'/>
+        
+      <View style={[{backgroundColor:'#fdf4c8',borderRadius:50,padding:small?30:50,margin:5,marginTop:20,maxWidth:'95%',alignItems:'center'}]}>
+          {width > 900 ?
+            <MyText style={{fontSize:100, fontFamily:'Raleway_800ExtraBold',color:'black',flex:1}}>
+            fife app
+          </MyText>
+          :
+          <MyText style={{fontSize:50, fontFamily:'Raleway_800ExtraBold',color:'black',textAlign:'center',flex:1}}>
+            fife app
+          </MyText>
+          }
+          <Row breakPoint={400} style={{paddingHorizontal:small?0:30,textAlign:'center',alignItems:'center'}}>      
+            <Smiley style={{marginRight:20}}/><MyText style={{fontSize:small?30:40}}><B>légy közelebb</B></MyText>
+          </Row>
+          <LoginForm/>
+          
         </View>
-        <View style={{alignItems:'center', justifyContent:'center',flex:1,cursor:'pointer'}} onClick={handleMoreInfo}>
-          <MyText style={{fontSize:30}}>Csatlakozz!</MyText>
-          <Icon name="chevron-down-outline" size={30}/>
+        <View style={{alignItems:'flex-end', justifyContent:'flex-end',margin:10,flex:1,zIndex:-1}} >
+          <TouchableRipple onPress={handleMoreInfo} style={{borderRadius:8,padding:10}}>
+            <View style={{alignItems:'center'}}>
+                <MyText style={{fontSize:25}}>Regisztrálj!</MyText>
+                <Icon name="chevron-down-outline" size={25}/>
+            </View>
+          </TouchableRipple>
         </View>
       </LinearGradient>
       {width > 900 &&
@@ -118,6 +124,7 @@ const  LoginForm = () => {
     context?.api?.login(email,password).then((res) => {
       if (res?.success) {
         //navigation.push('fooldal')
+        
         console.log('user',user);
       } else {
         onChangeLoginError(res?.error)
@@ -135,8 +142,8 @@ const  LoginForm = () => {
   }
 
   return (
-    <View style={{justifyContent:'center',alignItems:"center",flex:1}}>
-      <View style={{flexDirection:'row',flex:1}}>
+    <View style={{justifyContent:'center',alignItems:"center",zIndex:-1}}>
+      <View style={{flexDirection:'row',flexGrow:1}}>
         <View style={{flexWrap:'wrap'}}>
           <TextInput
             style={[styles.searchInput,{width: width <= 900 ? 200 : 'none'} ]}
@@ -161,11 +168,11 @@ const  LoginForm = () => {
         :<Loading/>}
       </Pressable>
       </View>
-      {!!loginError && <View style={styles.error}>
-        <MyText style={{color:'#942400',fontSize:25}} >{loginError}</MyText>
-        <Pressable onPress={forgot} style={{padding:10,borderRadius:8,backgroundColor:'black',marginTop:16}}>
-          <MyText style={{color:'white'}}><B>Aj-aj elfelejtettem a jelszavamat!</B></MyText>
-        </Pressable>
+      {!!loginError && <View style={[styles.error,{maxWidth:small?400:600}]}>
+        <MyText style={{fontSize:25}} >{loginError}</MyText>
+        <NewButton onPress={forgot} color='#ffffff' style={{padding:10,borderRadius:8,marginTop:16,alignSelf:'center'}} 
+          title={<B>Elfelejtettem a jelszavamat!</B>}
+        />
       </View>}
     </View>
   )

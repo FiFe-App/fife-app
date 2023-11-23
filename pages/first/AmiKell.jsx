@@ -20,8 +20,8 @@ const modules = [
 const AmiKell = ({data,setData}) => {
     const { width } = useWindowDimensions()
 
-    const inputs = categories.options.map((e,i)=>{
-        return {type:'checkbox',attribute:i,label:e.name,data:data,setData:setData,style:{backgroundColor:e.color}}
+    const inputs = categories.options.map((e,i)=>{ 
+       return {type:'checkbox',attribute:e.key,label:e.name,data:data,setData:setData,style:{backgroundColor:e.color}}
     })
     const half = Math.ceil(inputs.length / 2);    
 

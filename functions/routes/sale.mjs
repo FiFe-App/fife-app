@@ -2,7 +2,7 @@ import express from "express";
 import adb from "../db/conn.mjs";
 import { ObjectId } from "mongodb";
 import { PrismaClient } from "@prisma/client";
-import { database } from "firebase-admin";
+import { database, storage } from "firebase-admin";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -167,8 +167,6 @@ router.post("/", async (req, res) => {
   res.send(result.id);
 });
 
-
-// Delete an entry
 router.patch("/:id", async (req, res) => {
   console.log(req);
   const result = await prisma.sale.updateMany({
@@ -176,12 +174,13 @@ router.patch("/:id", async (req, res) => {
       id: req.params.id,
       author: req.uid
     },
-    data: req
+    data: req.body
   })
 
   if (!result) res.send("Not found").status(404);
   else res.send(result).status(200);
 });
+
 // Delete an entry
 router.delete("/:id", async (req, res) => {
   const result = await prisma.sale.deleteMany({
@@ -190,6 +189,15 @@ router.delete("/:id", async (req, res) => {
           author: req.uid
     }
   })
+    
+    const folder = 'sale/'+req.params.id+'/';
+    const bucket = storage().bucket('gs://fife-app.appspot.com');
+    async function deleteBucket() {
+        await bucket.deleteFiles({ prefix: folder });
+    }
+    deleteBucket().catch((err) => {
+        console.error(`Error occurred while deleting the folder: ${folder}`, err);
+    });
 
   if (!result) res.send("Not found").status(404);
   else res.send(result).status(200);

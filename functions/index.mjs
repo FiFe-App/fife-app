@@ -9,7 +9,8 @@ import users from "./routes/users.mjs";
 import search from "./routes/search.mjs";
 import places from "./routes/places.mjs";
 import docs from "./routes/docs.mjs";
-import { checkAuth } from "./lib/auth.mjs";
+import blog from "./routes/blog.mjs";
+import { checkAuth, checkAuthNoVer } from "./lib/auth.mjs";
 import serverless from 'serverless-http';
 
 const app = express();
@@ -20,13 +21,14 @@ app.use(cors());
 app.use(express.json());
 
 // Load the /posts routes
-router.use("/admin", checkAuth, admin);
-router.use("/all", checkAuth, all);
-router.use("/sale", checkAuth, sale);
-router.use("/docs", checkAuth, docs);
-router.use("/users", checkAuth, users);
-router.use("/places", checkAuth, places);
-router.use("/search", checkAuth, search);
+router.use("/admin",  checkAuth,      admin);
+router.use("/all",    checkAuth,      all);
+router.use("/sale",   checkAuth,      sale);
+router.use("/docs",   checkAuth,      docs);
+router.use("/blog",   checkAuth,      blog);
+router.use("/users",  checkAuthNoVer, users);
+router.use("/places", checkAuth,      places);
+router.use("/search", checkAuth,      search);
 
 
 // Global error handling

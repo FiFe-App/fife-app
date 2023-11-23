@@ -1,29 +1,25 @@
 
-import { AntDesign } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, View } from 'react-native';
+import { Platform, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Auto, MyText, NewButton, Openable, Row, TextInput } from '../../components/Components';
+import { MyText, NewButton } from '../../components/Components';
 
 
 import * as Location from 'expo-location';
-import { push, ref, set } from 'firebase/database';
 import { useWindowDimensions } from 'react-native';
-import { FirebaseContext } from '../../firebase/firebase';
-import { getMaps, getPlaces, LocationData } from "./mapService";
-import axios from 'axios';
-import { config } from '../../firebase/authConfig';
-import { Checkbox } from 'react-native-paper';
-import { categories } from '../../lib/categories';
+import Error from '../../components/tools/Error';
 import { MapContext } from './MapContext';
 
-const MapElement = ({markers,center}) => {
+
+const MapElement = ({markers,center,index,editable,data,setData}) => {
+    const [location,setLocation] = useState(data?.location);
     //#region state
 
 
     const { width } = useWindowDimensions();
     const [map, setMap] = useState(null);
+    const [error, setError] = useState(false);
     const {selectedPlace,setSelectedPlace,newPlace,newMarker,setNewMarker,open} = useContext(MapContext);
     const mapRef = useRef()
     mapRef.current = map;
@@ -37,64 +33,81 @@ const MapElement = ({markers,center}) => {
     //#endregion
 
 
+    const getErrors = () => {
+      var observables = document.querySelectorAll('.leaflet-pane');
+      console.log('mapC',
+        observables.length);
+      setTimeout(() => {
+        if (!observables.length){
+          getErrors()
+          setError(true)
+        }
+        else setError(false)
+      }, 1000);
+    }
     //MAP LOAD
-    useFocusEffect(
-        React.useCallback(() => {
-          if (Platform.OS != 'web') return
-          console.log('maps loading');
-          let link = document.getElementById("link")
-          let script = document.getElementById("script")
-          if (true) {
-          //if (!document.getElementById("link") && !document.getElementById("script")) {
-            link = document.createElement("link");
-            link.id = "link"
-            link.rel = "stylesheet";
-            link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
-            link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
-            link.crossOrigin=""
-  
-            script = document.createElement("script");
-            script.id = "script"
-            script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
-            script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
-            script.crossOrigin=""
-  
-            document.head.appendChild(link);
-            document.body.appendChild(script);
-            console.log('link, script newly loaded');
-          }
-          script.onload = afterMapLoad
-    
-          return () => {
-            console.log('cleanup');
-            console.log(mapRef.current);
-    
-            console.log('map cleanup ',map);
-            try {
-                mapRef.current.off();
-                mapRef.current.remove();
-            } catch (error) {
-                console.error('MAP REMOVE ERROR ',error);
-            }
+    useEffect(() => {
+      
+      if (Platform.OS != 'web') return
 
-            const mapElement = document.getElementById('map')
-            console.log('map removed');
-            if (mapElement)
-            mapElement.innerHTML = "<div id='map' style='width: 100%; height: 100%;'></div>";
-  
-            let link = document.getElementById("link")
-            let script = document.getElementById("script")
-            link?.remove()
-            script?.remove()
-            // Do something when the screen is unfocused
-            // Useful for cleanup functions
-          };
-        }, [])
-    );
+      getErrors()
+
+      console.log('maps loading');
+      let link = document.getElementById("link")
+      let script = document.getElementById("script")
+      if (true) {
+      //if (!document.getElementById("link") && !document.getElementById("script")) {
+        link = document.createElement("link");
+        link.id = "link"
+        link.rel = "stylesheet";
+        link.href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
+        link.integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+        link.crossOrigin=""
+
+        script = document.createElement("script");
+        script.id = "script"
+        script.src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
+        script.integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s="
+        script.crossOrigin=""
+
+        document.head.appendChild(link);
+        document.body.appendChild(script);
+        console.log('link, script newly loaded');
+      }
+      script.onload = afterMapLoad
+
+
+      return () => {
+        console.log('cleanup');
+        console.log(mapRef.current);
+
+        map?.on('move',undefined);
+
+        console.log('map cleanup ',map);
+        try {
+            mapRef.current.off();
+            mapRef.current.remove();
+        } catch (error) {
+            console.error('MAP REMOVE ERROR ',error);
+        }
+
+        const mapElement = document.getElementById('map')
+        console.log('map removed');
+        if (mapElement)
+        mapElement.innerHTML = "<div id='map' style='width: 100%; height: 100%;'></div>";
+
+        let link = document.getElementById("link")
+        let script = document.getElementById("script")
+        link?.remove()
+        script?.remove()
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, []);
 
     useEffect(() => {
         if (map)
-            map.invalidateSize();
+            map?.invalidateSize();
     }, [width,newPlace,open,selectedPlace]);
 
     // NEW PLACE MARKER
@@ -123,11 +136,13 @@ const MapElement = ({markers,center}) => {
         if (map && !newMarker) {
             const newM = L.marker(map.getCenter())
             console.log('on move');
-            map.on('move',()=>{
-              newM.setLatLng(map.getCenter())
+            map?.on('drag',(e)=>{
+              newM.setLatLng(e.target.getCenter())
             })
             setNewMarker(newM);
   
+        } else {
+          map?.on('move',undefined)
         }
         currentMarkers.forEach((m) =>map.removeLayer(m))
         
@@ -146,10 +161,28 @@ const MapElement = ({markers,center}) => {
     useEffect(() => {
         console.log('map changed',map);
         if (map) {
-            map.setView([47.4983, 19.0408], 13)
-            L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+          if (location?.length)
+            map.setView({lat:location[0],lng:location[1]}, 13)
+          else
+            map.setView({lat:47.498333,lng:	19.040833}, 13)
+          L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                 }).addTo(map);
+
+          if (editable) {
+
+            const circle = L.circleMarker(map.getCenter(), {radius:60,fill:true,fillColor:'#FFC372',color:'#FFC372',}).addTo(map)
+            map.on('move',(ev)=>{
+              const center = map.getCenter();
+              circle.setLatLng(center)
+              setLocation([center.lat,center.lng])
+            });
+          }  
+
+          if (location?.length) {
+            const c = L.circle({lat:location[0],lng:location[1]}, {radius:24*(13),fill:true,fillColor:'#fff1a2',color:'#fff1a2',}).addTo(map)
+          }
+
             (async () => {
 
                 let { status } = await Location.requestForegroundPermissionsAsync();
@@ -169,6 +202,15 @@ const MapElement = ({markers,center}) => {
             })()
         }
     }, [map]);
+
+    useEffect(() => {
+      if (editable && location) {
+        setData({...data,location:location})
+      }
+    }, [location]);
+    useEffect(() => {
+      setLocation(data?.location)
+    }, [data]);
 
     const afterMapLoad = async () => {
         setLocationIcon(L.icon({
@@ -190,23 +232,40 @@ const MapElement = ({markers,center}) => {
         }));
 
         console.log('afterMapload');
+        if (map != undefined) { L.map.remove(); } 
         setMap(L.map('map'));
 
     }
 
+    useEffect(() => {
+    }, [document.getElementsByClassName('leaflet-pane')]);
+
+
+    const focus = () => {
+      if (location?.length)
+        map.flyTo(location)
+    }
+
     return (
-        <>
-            <div id="map" style={localStyles.map} >
+        <View style={{flex:1}} onLayout={()=>{
+          }}>
+            {error && <MyText>erorr</MyText>}
+            <div id={"map"} style={localStyles.map}>
+              {error&&<Error />}
             </div>
-            {myLocation && 
+            {myLocation && !location?.length && 
                 <NewButton 
                     floating style={{position:'absolute',right:5,top:5,zIndex:100,width:50}}
                     onPress={()=>{map.flyTo(myLocation)}}
                     info="Saját helyzetem"
                     title={<Icon size={30} name='locate' />}
                 />
-            }
-        </>
+                }
+              {location?.length &&
+                <NewButton title={<Icon name="location" size={30}/>} onPress={focus} 
+                floating style={{position:'absolute',zIndex:10,right:5,padding:10}}/>
+              }
+        </View>
     )
 }
 

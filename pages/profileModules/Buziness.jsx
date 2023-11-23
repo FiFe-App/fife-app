@@ -14,13 +14,28 @@ const Buziness = ({data,setData}) => {
     const { width } = useWindowDimensions();
     const small = width <= 900;
     const [list, setList] = useState(data?.profiession || []);
+    const help = [
+        {name: 'Programozó, Python, C++', description: 'Egyetemen tanultam programozni, Python, C és C++ nyelveken több projektem is volt.'},
+        {name: 'Varrás, ruhák', description: 'Nagyitól tanultam varrni, hozz bármilyen szakadt ruhát, én megjavítom!'},
+    ]
 
     useEffect(() => {
+        if (data?.buziness)
         setList(data?.buziness.filter(e=>!e?.removed) || [])
       }, [data]);
     
     const addNew = () => {
         setList([...list,{name: '', description: ''}])
+    }
+    const addHelp = () => {
+        console.log(list);
+        if (!list?.length || list[0]?.name=='' ){
+            setList([help[0]])
+            setData({...data,buziness:[help[0]]})
+        }
+        else{
+            setList([...list,help[list.length]])
+            setData({...data,buziness:[...list,help[list.length]]})}
     }
     const set = (val,index,key) => {
         const newState = [...list]
@@ -37,17 +52,24 @@ const Buziness = ({data,setData}) => {
     }
 
     useEffect(() => {
-        //console.log('buzinessList:',list);
     }, [list]);
 
-        return(<Section title="Bizniszeim" flex={1}>
+        return(<Section title={<Auto style={{width:'100%'}}>
+                        <MyText style={{flexGrow:1}}>Bizniszeim</MyText>
+                        <Pressable style={{alignItems:'center',justifyContent:'center'}} onPress={addHelp}>
+                            <MyText size={24} style={{}}>
+                                <Icon name="bulb" color={0} size={40}/>
+                                Adjak egy példát?
+                            </MyText>
+                        </Pressable>
+        </Auto>} flex={1}>
                 
                 <ScrollView style={{marginLeft:small?5:20}}>
                     {list.map((prof,i) =>  
                     {
                         if (prof?.removed != true && prof != undefined)
                         return (
-                        <View style={{flexDirection:'row'}} key={'buzinesslist'+i}>
+                        <View style={{flexDirection:'row',marginBottom:20}} key={'buzinesslist'+i}>
                             <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
                                 <MyText style={{fontSize:20}}>{i+1}</MyText>
                                 <Pressable onPress={()=>remove(i)}>
@@ -55,15 +77,17 @@ const Buziness = ({data,setData}) => {
                                 </Pressable>
                             </View>
                             <View style={{flex:1,justifyContent:'center'}}>
-                                <TextInput placeholder="kulcsszavak" onChangeText={(val)=>set(val,i,'name')} value={prof.name}/>
-                                <TextInput placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} value={prof.description} multiline numberOfLines={2}/>
+                                <TextInput placeholder="kulcsszavak" onChangeText={(val)=>set(val,i,'name')} 
+                                value={prof.name} style={{fontSize:24}}/>
+                                <TextInput placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} 
+                                style={{fontSize:24}} value={prof.description} multiline numberOfLines={2}/>
                             </View>
                         </View>)}
                     )}            
 
                     <View>
-                        <Pressable style={[]} onPress={addNew}>
-                        <MyText>
+                        <Pressable style={{alignItems:'center',justifyContent:'center'}} onPress={addNew}>
+                        <MyText size={24} style={{}}>
                             <Icon name="md-add" color={0} size={40}/>
                             Adj hozzá bizniszt
                         </MyText>

@@ -16,6 +16,16 @@ router.get("/latest", async (req, res) => {
   const db = await adb
 
   const results = {
+    news: 'true'=='true' ? {
+      title: "Hírek, cikkek",
+      link: 'cikkek',
+      id: 'docs',
+      data: await (await db.collection("document")).aggregate([
+        {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1,"image":1,"color":1}},
+        {"$sort": {"created_at": -1}},
+        {"$limit": 3}
+      ]).toArray()
+    } : undefined,
     places: filters?.places=='true' ? {
         title: "Helyek amiket megismerhetsz",
         link: 'terkep',
@@ -71,7 +81,7 @@ router.get("/latest", async (req, res) => {
     ]).toArray()
     } : undefined,
     workSeek: filters?.workSeek=='true' ? {
-      title: "Álláshirdetések",
+      title: "Álláskeresők",
       link: 'cserebere',
       id: 'sale',
       data: await (await db.collection("sale")).aggregate([
@@ -82,7 +92,7 @@ router.get("/latest", async (req, res) => {
     ]).toArray()
     } : undefined,
     workGive: filters?.workGive=='true' ? {
-      title: "Álláskeresők",
+      title: "Álláshirdetések",
       link: 'cserebere',
       id: 'sale',
       data: await (await db.collection("sale")).aggregate([
@@ -91,35 +101,58 @@ router.get("/latest", async (req, res) => {
       {"$match": {"category":5}},
       {"$limit": 3}
     ]).toArray()
-    } : undefined,
-    news: 'true'=='true' ? {
-      title: "Hírek, cikkek",
-      link: 'cikkek',
-      id: 'docs',
-      data: await (async ()=>{
-        const db = getDatabase()
-        const ref = db.ref('/docs')
-        let list=[];
-        
-        await ref.limitToFirst(3).once('value').then((snapshot) => {
-          list = snapshot.val();
-          const entries = Object.entries(snapshot.val())
-          list = Object.values(snapshot.val()).map((e,i)=>{
-            return {
-              key: entries[i],
-              ...e
-            }
-          })
-        })
-        return list;
-      })()
     } : undefined
   }
+  const number = await Promise.all([
+    await prisma.friendship.count({
+      where: {
+        uid2: req.uid
+      }
+    }),
+    await prisma.saleInterest.count({
+      where: {
+        sale: {
+          author:req.uid
+        }
+    }
+  })])
 
   console.log('length:',Object.entries(results).length);
-  res.send(results)
+  res.send({
+    latest:results,
+    notifications:number.reduce((partialSum, a) => partialSum + a, 0)
+  })
   return "hello";
 });
+
+router.get("/notifications", async (req, res) => {
+
+  const results = await Promise.all([
+    await prisma.friendship.findMany({
+      where: {
+        uid2: req.uid
+      }
+    }),
+    await prisma.saleInterest.findMany({
+      where: {
+        sale: {
+          author:req.uid
+        }
+    }
+  })])
+  const dataToSort = [
+    ...results[0].map(e=>{return{...e,type:'friend'}}),
+    ...results[1].map(e=>{return{...e,type:'interest'}})];
+    console.log(dataToSort);
+  const sortedData = dataToSort.sort((itemA, itemB) => {
+    return new Date(itemB.created_at).getTime() - new Date(itemA.created_at).getTime()
+  });
+
+  console.log('results',sortedData);
+
+  res.send(sortedData || [])
+})
+
 
 
 export default router;
