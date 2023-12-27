@@ -115,6 +115,12 @@ const localStyles = {
       flexDirection: 'row',
       justifyContent: 'start',
       alignItems: 'center',
-      flexGrow:1
+      flexGrow:1,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
     },
   }

@@ -10,12 +10,18 @@ import { useState } from 'react';
 import { getDatabase, push, ref, set } from 'firebase/database';
 import AuthoredImage from '../components/tools/AuthoredImage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AmaticSC_700Bold, useFonts } from '@expo-google-fonts/amatic-sc';
+import { Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
 
 const About = ({navigation}) => {
     const small = useWindowDimensions().width <= 900;
     const db = getDatabase()
     const [email, setEmail] = useState('');
     const [sent, setSent] = useState(false);
+
+    let [fontsLoaded] = useFonts({
+        AmaticSC_700Bold, Raleway_800ExtraBold
+      });
     const handleSend = async () => {
         if (email) {
             const newPostRef = push(ref(db,'about/emails'))
@@ -39,14 +45,15 @@ const About = ({navigation}) => {
 
     return (
     <BasePage style={styles.container} full>
-        <Auto style={{flex:'none'}}>
-            <View style={{flex:1}}/>
-            <MyText size={50} style={{margin:20,textAlign:'center',flex:1}}>fife app <Smiley style={{marginLeft:0}}/></MyText>
-
-            <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+        <View style={{}}>
+            <Row style={{justifyContent:'center',alignItems:'center'}}>    
+                <MyText size={100} style={{margin:0,textAlign:'center',justifyContent:'center',fontFamily:'AmaticSC_700Bold'}}>fife app </MyText>
+                <Smiley size={1.5} style={{marginLeft:10}}/>
+            </Row>
+            <View style={{flex:1,alignItems:'center',justifyContent:'center',marginTop:10}}>
                 {true&&<NewButton title="Tovább az alkalmazásba" color="#fdcf99" style={{padding:10}} onPress={next}/>}
             </View>
-        </Auto>
+        </View>
         <View style={{marginHorizontal:small?0:100,flex:1}}>
             <MyText contained>
                     A mai elszigetelt világban szükség van egy olyan rendszerre, amely összehozza a jóérzésű embereket egy biztonságos közösségbe.

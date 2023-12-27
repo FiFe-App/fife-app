@@ -71,6 +71,8 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setUserData } from './lib/userReducer';
+import BugModal from './components/BugModal';
+import { NativeViewGestureHandler } from 'react-native-gesture-handler';
 
 const Stack = createNativeStackNavigator();
 const prefix = Linking.createURL('/');
@@ -96,6 +98,7 @@ export default function app(props) {
   if (!fontsLoaded)
   return <LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />
     return (
+        <NativeViewGestureHandler disallowInterruption={true}>
           <Provider store={store}>
             <MetaHeader />
             <SnowfallWrap />
@@ -108,12 +111,14 @@ export default function app(props) {
                     <NavigationContainer linking={linking} 
                       fallback={<LinearGradient colors={["#fcf3d4", "#fcf3d4"]} style={{flex:1}} start={{ x: 1, y: 0.5 }} end={{ x: 1, y: 1 }} />}>
                       {fontsLoaded ? ( <Navigator/> ) : (<></>)}
+                      <BugModal key="bugmodal" />
                     </NavigationContainer>
                   </Suspense>
                 </SafeAreaProvider>
               </FirebaseProvider>
             </PersistGate>
           </Provider>
+        </NativeViewGestureHandler>
     );
 }
 
@@ -150,7 +155,7 @@ const SnowfallWrap = () => {
     <Snowfall
       style={{position:'absolute',zIndex:10,elevation: 10}}
       snowflakeCount={200}
-      color="#ffffff"/>
+      color="#fafafa"/>
   )
   else return null
 }
@@ -160,6 +165,13 @@ const Navigator = () => {
   const user = useSelector((state) => state.user);
   const [login, setLogin] = useState(null);
   const dispatch = useDispatch();
+
+  const whatError = (e) => {
+    console.log('error',e)
+    if (e == "TypeError: Cannot read properties of undefined (reading 'props')") {
+      //location = '/bejelentkezes'
+    }
+  } 
 
   useEffect(() => {
     (async ()=>{
@@ -186,9 +198,10 @@ const Navigator = () => {
     }
   }, [user]);
   if (login==null) return null;
+
   return (
     <ErrorBoundary
-            onError={(e)=>console.log('error',e)}
+            onError={whatError}
             FallbackComponent={(e)=>
             <View style={{flex:1,alignItems:'center',justifyContent:'center',backgroundColor:'#fcf3d4'}}>
               <MyText title>Hajaj valami hiba történt!</MyText>

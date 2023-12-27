@@ -23,7 +23,9 @@ import BasePage from "../../components/BasePage"
 import { getAuth } from 'firebase/auth';
 import { setTempData } from '../../lib/userReducer';
 import { listToMatrix } from '../../lib/functions';
-import MapElement from '../maps/MapElement';
+import MapElement from '../maps/MapElementNew';
+import BuzinessModal from '../../components/BuzinessModal';
+import { MapContainer } from 'react-leaflet';
 
 const bgColor = '#FDEEA2'//'#ffd581dd'
 
@@ -40,6 +42,7 @@ const Profile = ({ navigation, route }) => {
   
   const [profile, setProfile] = React.useState(myProfile ? tempData : null);
   const [saleList, setSaleList] = React.useState([]);
+  const maxSaleWidth = width > 1200 ? 2 : (width < 700 ?2:4)
   const [followButtonState, setFollowButtonState] = React.useState(false);
   const [followers, setFollowers] = React.useState([]);
   const [rates, setRates] = useState([]);
@@ -143,9 +146,9 @@ const Profile = ({ navigation, route }) => {
   return(
     <>
     <meta name="title" content={profile.username}/>
+    <GoBack breakPoint={10000} text={null} style={{backgroundColor:'#FFC372',left:0,top:0,margin:20,position:"absolute"}} color='black'/>
     <BasePage full >
       <Auto style={{flex:'none'}}>
-        <GoBack style={{marginLeft:20}}/>
         <View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:small?5:25,alignSelf:'center'}]}>
           <ProfileImage modal uid={uid} size={150} style={[{paddingHorizontal:0,background:'none',borderRadius:8}]}/>
         </View>
@@ -203,13 +206,14 @@ const Profile = ({ navigation, route }) => {
           }
 
       </Auto>
-      <Auto style={{flex:1,zIndex:-1,elevation: -1}} breakPoint={1200}>
-        <View style={{flex:width <= 1200 ? 'none' : 1}}>
+      <Auto style={{flex:1,zIndex:-1,elevation: -1}} breakPoint={900}>
+        
+        <View style={{flex:width <= 900 ? 'none' : 1}}>
           
-          <Section title="Helyzetem" flex={2}>
+          <Section title="Helyzetem" flex={width <= 900 ? 'none' : 2}>
+            
             {profile.page?.location?.length ? (
-            (Platform.OS !== 'web') ? <MapElement style={{flex:width <= 900 ? 'none' : 1}} />
-            : <MapElement data={profile.page} index='1'/>)
+            <MapElement style={{flex: width <= 900 ? 'none' : 1,height:300}} data={profile.page} index='1'/>)
             : <View style={{justifyContent:'center',alignItems:'center'}}>
               <MyText style={localStyles.subText}>Nincs megadva helyzeted</MyText>
             </View>
@@ -222,7 +226,7 @@ const Profile = ({ navigation, route }) => {
               <ScrollView style={{marginLeft:small?5:20}}>
                 {profile.page?.buziness && profile.page.buziness.map((prof,i,arr) =>
                   <View key={i+'prof'} >
-                    <Buziness prof={prof} uid={uid} index={i} />
+                    <Buziness prof={prof} uid={uid} index={i} arr={arr} />
                     {arr.length <= i && <View style={{width:'100%',height:2,backgroundColor:'#dddddd'}} />}
                   </View>
 
@@ -233,16 +237,13 @@ const Profile = ({ navigation, route }) => {
           {!!saleList.length && 
           <Section title="Cserebere" flex={width <= 1200 ? 'none' : 2}>
             <ScrollView style={[styles.label,{marginLeft:5}]}>
-                {listToMatrix(saleList,2).map((row,i)=>{
+                {listToMatrix(saleList,maxSaleWidth).map((row,i)=>{
                             return (
                                 <Row>
                                 {row.map((el,ind,rowL)=>
                                   <SaleListItem key={el._id} data={el}/>
                                 )}
-                                {new Array(2-row.length).map(()=>
-                                    <><MyText></MyText>
-                                    <View style={{flex:1}}/></>
-                                )}
+                                <View style={{flex:maxSaleWidth-row.length}}/>
                                 </Row>
                             )
                 })}
@@ -283,7 +284,7 @@ const Profile = ({ navigation, route }) => {
     );
   }
 
-  const Buziness = ({prof,uid,index}) => {
+  const Buziness = ({prof,uid,index,arr}) => {
     const { width } = useWindowDimensions();
     const small = width < 500;
     const Href = useRef(null);
@@ -312,27 +313,40 @@ const Profile = ({ navigation, route }) => {
         : setRate([...rate,myuid]) 
       })
     }
+
+    const [buzinessModal, setBuzinessModal] = useState(null);
+    const getDownToBuziness = () => {
+      setBuzinessModal({
+        index
+      });
+    }
+    
     if (prof)
-    return (
+    return (<>
       <Auto 
       breakPoint={500}
       style={[
         styles.buziness,
-        {backgroundColor:`hsl(52, 100%, ${100-(allRates*10)}%)`,
+        {//backgroundColor:`hsl(52, 100%, ${100-(allRates*10)}%)`,
+        backgroundColor:'#ffffff'
         },
         isHovered && {backgroundColor:'#faffcc'}
       ]} ref={Href}>
         <View style={{flex:small?'none':3,order:small?1:0,flexGrow:1}} key={index+'prof_title'}>
           <MyText title>{prof.name}</MyText>
           <MyText>{prof.description}</MyText>
+          <MyText>{allRates} ember ajánlja</MyText>
         </View>
         <Row style={{justifyContent:'center',alignItems:'center'}} key={index+'prof_number'}
         breakPoint={500}>
-        <View style={[{marginTop:0,marginRight:small?5:50}]}><MyText>{allRates} ember ajánlja</MyText></View>
-          {uid != myuid && 
-          <NewButton title={iRated ? "Ajánlottam" :"Ajánlom"} style={{padding:10,borderRadius:8,alignSelf:'center'}} onPress={handlePress}/>}
+          {uid != myuid && <View> 
+          <NewButton title={iRated ? "Ajánlottam" :"Ajánlom"} color={iRated?"#fff6dc":undefined} style={{padding:10,borderRadius:8,alignSelf:'center'}} onPress={handlePress}/>
+          <NewButton title={"Bizniszelnék"} color="#ffffff" style={{padding:10,borderRadius:8,alignSelf:'center'}} onPress={()=>getDownToBuziness()}/>
+          </View>}
         </Row>
       </Auto>
+      <BuzinessModal open={buzinessModal} setOpen={setBuzinessModal} user1={myuid} user2={uid} b2={arr} />
+      </>
     )
   }
 
@@ -356,7 +370,7 @@ const Profile = ({ navigation, route }) => {
       marginTop: 25,
       marginLeft: 25,
       backgroundColor:'white',
-      paddingHorizontal:20,
+      paddingHorizontal:10,
       justifyContent:'center',
       zIndex:'auto' ,
       shadowColor: '#171717',

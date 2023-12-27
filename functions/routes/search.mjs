@@ -23,33 +23,21 @@ const getBuziness = async (key,myLocation) => {
             },
             distanceMultiplier:0.001,
             distanceField: "distance",
-      
             includeLocs: "location",
             spherical: true,
           }
         },
-        { $match:
-          { $expr:
-            { $and : [
-              { $eq: [ "$_id",  "$$pageId" ] },
-              
-            ]}
+        { $match: { $expr:
+            { $eq: [ "$_id",  "$$pageId" ] }
           }
         }
       ],
         as: "distance"
       }
     },
-    { 
-      $sort : { "distance.0.distance" : 1 } 
-    },
-    { 
-      $limit : 1000000
-    },{ 
-      $match: { 
-        name: { $regex: key}
-      } 
-    }
+    { $sort : { "distance.0.distance" : 1 } },
+    { $limit : 1000000 },
+    { $match: { name: { $regex: key} } }
  ] ).toArray();
    console.log('buziness by dist',results);
 

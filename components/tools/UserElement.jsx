@@ -1,10 +1,11 @@
 import { TouchableRipple } from "react-native-paper";
-import { MyText, ProfileImage, Row, getNameOf } from "../Components";
+import { MyText, NewButton, ProfileImage, Row, getNameOf } from "../Components";
 import { View } from "react-native";
 import { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
+import Icon from 'react-native-vector-icons/Ionicons';
 
-const UserElement = ({uid,text,setData,style}) => {
+const UserElement = ({uid,text,setData,style,image,size,onlyText,extra}) => {
     const [name, setName] = useState(null);
     const navigation = useNavigation();
     useEffect(() => {
@@ -12,19 +13,26 @@ const UserElement = ({uid,text,setData,style}) => {
             setName(await getNameOf(uid))
         })()
     }, []);
-    return (<TouchableRipple onPress={()=>{
-            navigation.push('profil',{uid})
-            setData(null)
-        }}
-        style={[{margin:5,alignItems:'center'},style]}>
-            <Row style={{width:'100%'}}>
-                <ProfileImage uid={uid} size={80} style={[{marginRight:5,borderRadius:8}]}/>
-                <View style={{flex:1}}>
-                    <MyText bold style={{fontSize:20}}>{name}</MyText>
-                    {text && <MyText style={{fontSize:18}}>{text}</MyText>}
-                </View>
-            </Row>
-        </TouchableRipple>)
+    if (onlyText) return <MyText style={style}>{name}</MyText>
+    return (<Row style={{alignItems:"center"}}>
+        <TouchableRipple onPress={()=>{
+                navigation.push('profil',{uid})
+                setData(null)
+            }}
+            style={[{margin:5,alignItems:'center',justifyContent:'center',flexGrow:1},style]}>
+                <Row style={{width:'100%'}}>
+                    {image&&<ProfileImage uid={uid} size={size} style={[{marginRight:5,borderRadius:8}]}/>}
+                    <View style={{flex:1}}>
+                        <MyText bold style={{fontSize:size}}>{name}</MyText>
+                        {text && <MyText style={{fontSize:18}}>{text}</MyText>}
+                    </View>
+                </Row>
+            </TouchableRipple>
+            {extra=='message' && <NewButton icon onPress={()=>{
+                navigation.push('uzenetek',{uid})
+                setData(null)
+            }} title={<Icon name='chatbox-outline' size={20}/>} />}
+    </Row>)
 
 }
 

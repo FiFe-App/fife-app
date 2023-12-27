@@ -6,19 +6,19 @@ const styles = StyleSheet.create({
       flex: 1,
     },
     text: {
-      fontSize:22,
+      fontSize:17,
       textAlign:'left',
       padding:20,
       marginBottom: 10,
       backgroundColor:'#ffffff99',
     },
     list: {
-      fontSize:20,
+      fontSize:17,
       flexDirection:'column'
     },
     listItem: {
       alignItems:'center',
-      fontSize:20,
+      fontSize:17,
       margin:5
     },
     link: {

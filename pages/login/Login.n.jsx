@@ -82,7 +82,7 @@ const LoginScreen = ({ navigation, route }) => {
           onPress={() =>
             signIn(email, password, onChangeLoginError)
           } />
-          <MyText style={{margin:20,fontSize:20}}>Először vagy itt?</MyText>
+          <MyText style={{margin:20,fontSize:17}}>Először vagy itt?</MyText>
           <Button style={styles.headline} title="Regisztráció" color="black"
           onPress={() =>
             navigation.push('regisztracio')

@@ -54,7 +54,7 @@ export const Professions = (props) => {
           <View key={'buziness'+i}  style={localStyle.buziness}>
             <View style={{flexDirection:'row'}}>
               <View style={{width:50,justifyContent:'space-evenly',alignItems:'center'}}>
-                <MyText style={{fontSize:20}}>{i+1}</MyText>
+                <MyText style={{fontSize:17}}>{i+1}</MyText>
                 <Pressable onPress={()=>remove(i)}>
                   <Icon name="trash" color={themeColor} size={25}/>
                 </Pressable>

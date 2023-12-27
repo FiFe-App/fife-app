@@ -5,12 +5,12 @@ import { useNavigation } from "@react-navigation/native";
 import UserElement from "../tools/UserElement";
 import { MyImagePicker } from '../../components/tools/MyImagePicker';
 
-const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,placeholder,render,text}) => {
+const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,placeholder,render,text,extra,extraAction}) => {
     const navigation = useNavigation()
     const { width } = useWindowDimensions();
     const defStyle = {
         padding:10,
-        fontSize:20,
+        fontSize:17,
         margin:width <= 900 ? 5 : 10,
         marginHorizontal:width <= 900 ? 0 : 10,
         borderRadius: 8,
@@ -18,7 +18,7 @@ const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,pla
         //textAlignVertical: "center",
     }
     if (render && !data[render]) return null;
-    const LabelElement = <MyText style={[{marginLeft:0,fontSize:20}]}>{label}</MyText>
+    const LabelElement = <MyText style={[{marginLeft:0,fontSize:17}]}>{label}</MyText>
     if (type == 'text')
     return LabelElement
     if (type == 'text-input')
@@ -34,7 +34,7 @@ const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,pla
     return (<NewButton style={[defStyle,style]} onPress={submit} title={label} />)
     if (type == 'user')
     {
-        return <UserElement uid={attribute} text={label} setData={setData} style={style}/>
+        return <UserElement uid={attribute} text={label} setData={setData} style={style} extra={extra}/>
     }
     if (type == 'item') {
         return <TouchableRipple 
@@ -57,7 +57,7 @@ const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,pla
         initialContentHTML={'Hello <b>World</b> <p>this is a new paragraph</p> <p>this is another new paragraph</p>'}
         editorInitializedCallback={() => this.onEditorInitialized()}
       />)
-    if (type='image') return <MyImagePicker />
+    if (type=='image') return <MyImagePicker />
     if (type=='null') return  null;
     return (<MyText>{LabelElement} Nincs ilyen típus {type}</MyText>)
 }

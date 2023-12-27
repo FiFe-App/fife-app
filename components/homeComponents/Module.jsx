@@ -114,7 +114,7 @@ function Module(props) {
                       <><ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8}} 
                       source={{uri:one?.image}} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8}}>
                         <View style={{alignSelf: 'flex-start'}}>
-                          <MyText style={{margin:10,backgroundColor:(one?.color||'#fff'),padding:5,borderRadius:8}}>{one.category}</MyText>
+                          <MyText style={{margin:10,backgroundColor:('rgb(204, 255, 204)'),padding:5,borderRadius:8}}>{one.category}</MyText>
                         </View>
                       </ImageBackground>
                       <View style={{}}>

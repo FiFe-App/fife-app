@@ -104,7 +104,7 @@ const Chat = ({route, navigation, propUid, global}) => {
                     onValue(profileListRef, (snapshot) => {
                         setHeader(
                             <TouchableRipple onPress={()=>nav.push('profil',{uid:uid2})} style={chatStyles.header}>
-                                <>{route?.name == 'beszelgetes' &&<GoBack breakPoint={10000} text={null} previous={'uzenetek'} style={{backgroundColor:'#FFC372',left:0,top:0,marginRight:10}} color='black'/>}
+                                <>{route?.name == 'beszelgetes' &&<GoBack breakPoint={10000} text={null} style={{backgroundColor:'#FFC372',left:0,top:0,marginRight:10}} color='black'/>}
 
                                 <Row style={{justifyContent:'center',alignItems:'center',flexGrow:1}}>
                                     <ProfileImage style={styles.listIcon} size={70} uid={uid2}/>
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
         color: 'white',
         maxWidth: '80%',
         minWidth: '50%',
-        fontSize:20,
+        fontSize:17,
         borderRadius:8,
         borderWidth:1,
         borderColor: '#dcdcc4'
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
         paddingHorizontal:10,
         color: 'white',
         maxWidth: '80%',
-        fontSize:20,
+        fontSize:17,
         borderRadius:8
     },
     mine: {
@@ -303,14 +303,14 @@ const styles = StyleSheet.create({
         flex:1,
         padding: 10,
         margin:5,
-        fontSize:20,
+        fontSize:17,
         backgroundColor: '#ffffff'
     },
     textButton: {
         width: 40,
         height: 40,
         margin: 5,
-        fontSize:20,
+        fontSize:17,
         justifyContent: 'center',
         alignItems: 'center',
     },

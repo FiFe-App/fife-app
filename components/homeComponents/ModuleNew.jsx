@@ -51,16 +51,16 @@ function Module(props) {
 
     if (!data?.length && title) return null
     return (
-        <View style={[homeDesign.moduleContainer,width>900 && {flex:1}]}>
+        <View style={[homeDesign.moduleContainer, {flex:1}]}>
             <Row style={{paddingLeft:20,paddingBottom:10}}>
             { data?.length ?
               <TouchableOpacity onPress={()=>onPress(link)}>
-                 <MyText style={{ fontWeight: 'bold', fontSize:width>900?30:20 }}>{title}</MyText>
+                 <MyText style={{ fontWeight: 'bold', fontSize:width>900?20:17 }}>{title}</MyText>
                  {false && <TextFor style={{ fontWeight: 'bold', fontSize:width>900?30:20 }} fixed text={title}/>}
               </TouchableOpacity>:
               <LoadingModule ind={1} flat />}
             </Row>
-          {<ScrollView horizontal style={{height:170}} contentContainerStyle={homeDesign.moduleScrollView}>
+          {<ScrollView horizontal contentContainerStyle={homeDesign.moduleScrollView}>
             {data?.length ? data?.map((one,ind)=>{
             
               if (one){
@@ -70,15 +70,15 @@ function Module(props) {
                     navigation.push(link,{id:one._id})
                   }}>
                       <><ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8}} 
-                      source={{uri:images?.[ind]}} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8}}>
-                        <View style={{alignSelf: 'flex-start'}}>
-                          <MyText style={{margin:10,backgroundColor:(category?.color||one?.color||'#fff'),padding:5,borderRadius:8}}>{category?.name}</MyText>
+                      source={{uri:images?.[ind]}} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8,justifyContent: 'flex-end'}}>
+                        <View style={{alignSelf: 'flex-end'}}>
+                          <MyText style={{margin:5,backgroundColor:('rgba(204, 255, 204,200)'),padding:5,borderRadius:8,fontSize:12}}>{category?.name}</MyText>
                         </View>
                       </ImageBackground>
                       <View style={{}}>
                         <MyText style={[homeDesign.moduleText,{fontWeight:'bold'}]}>{one.title}</MyText>
-                        <MyText style={[homeDesign.moduleText,{height:50,overflow:'hidden',flex:1,borderBottomLeftRadius:8,borderBottomRightRadius:8}]}>
-                        {one.text}</MyText>
+                        {one.text && <MyText style={[homeDesign.moduleText,{height:50,overflow:'hidden',flex:1,borderBottomLeftRadius:8,borderBottomRightRadius:8}]}>
+                        {one.text}</MyText>}
                       </View></>
                   </TouchableRipple>
                 )
@@ -123,8 +123,8 @@ function Module(props) {
         outputRange:["rgb(250, 250, 250)" , "rgb(250, 237, 204)"]
       })
       return (
-          <Animated.View key={ind+'one'} style={[homeDesign.module,{backgroundColor:boxInterpolation,opacity:sweepAnim,borderRadius:8},
-          flat&&{height:40,flex:'none',width:300}]}>
+          <Animated.View key={ind+'one'} style={[homeDesign.module,{backgroundColor:boxInterpolation,opacity:sweepAnim,borderRadius:8,height:120},
+          flat&&{height:20,flex:'none',width:300}]}>
           </Animated.View>
       )
   }

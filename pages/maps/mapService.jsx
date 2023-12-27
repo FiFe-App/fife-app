@@ -134,8 +134,12 @@ export const LocationData = (props) => {
           {false&&<View style={styles.draggable}/>}
           <Row>
             <Pressable style={{paddingHorizontal:10,justifyContent:'center'}} onPress={()=>setSelectedPlace(null)}><Icon size={25} name="chevron-back-outline"/></Pressable>
-            <MyText style={{fontSize:20,paddingHorizontal:10,flexGrow:1}}>{selectedPlace?.title}</MyText>
+            <MyText style={{fontSize:17,paddingHorizontal:10,flexGrow:1}}>{selectedPlace?.title}</MyText>
           </Row>
+          {!!images?.length&&<Slideshow
+              photos={images.length ? images : []}
+              style={{backgroundColor:'rgb(253, 245, 203)',maxHeight:400,zIndex:0}}
+            />}
           <UrlText style={{padding:10}} text={selectedPlace?.description} />
           <TouchableOpacity onPress={handleHeart} style={{flexDirection:'row',alignItems:'center'}}>
               <Icon name={hearted ? "heart" : "heart-outline"} size={25} color="red" style={{paddingHorizontal:10}}/>

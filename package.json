@@ -4,11 +4,13 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
+    "client": "npx expo start --web",
+    "server": "cd functions && netlify functions:serve --functions ./ -p 8888",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "dev": "npx expo start --web && netlify functions:serve --functions ./ -p 8888",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "npx expo export:web && netlify functions:build -f web-build/functions --src functions && netlify deploy --dir web-build",
     "deploy": "netlify deploy --prod -d web-build",
     "postinstall": "patch-package"
@@ -114,6 +116,7 @@
     "@expo/webpack-config": "^0.17.4",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.8",
     "babel-preset-react-native": "^4.0.1",
+    "concurrently": "^8.2.2",
     "eslint": "^8.34.0",
     "eslint-plugin-react": "^7.32.2",
     "patch-package": "^6.5.0",

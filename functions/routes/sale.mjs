@@ -7,13 +7,10 @@ import { database, storage } from "firebase-admin";
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get a list of 50 posts
 router.get("/", async (req, res) => {
   const db = await adb
   const sale = db.collection('sale')
-  console.log(req.query);
-  const { author, search, minDate, maxDate, category, take=6, skip=0 } = req.query
-  // query for movies that have a runtime less than 15 minutes
+  const { author, search, category, take=6, skip=0 } = req.query
   
   let query = { 
     title: {$regex: search || ''}
@@ -27,9 +24,7 @@ router.get("/", async (req, res) => {
   .skip( Number(skip) )
   .limit( Number(take) ).toArray();
   
-  //res.send('latestqd')
   res.send(results).status(202);
-  return "hello2"; 
   
 });
 

@@ -12,7 +12,7 @@ import { getApp } from "firebase/app";
 
 const BugModal = () => {
 
-  const route = useRoute()
+  //const route = useRoute()
   const app = getApp()
   const database = getDatabase(app)
   const uid = useSelector((state) => state.user.uid)
@@ -24,7 +24,7 @@ const BugModal = () => {
     let res = null
     console.log({
       uid,
-      route: {path:route.name,params:route?.params||null},
+      //route: {path:route.name,params:route?.params||null},
       time: Date.now(),
       message: data.message
   });

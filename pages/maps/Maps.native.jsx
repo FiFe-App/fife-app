@@ -197,7 +197,7 @@ const LocationData = (props) => {
   const {location} = props;
   return (
     <View style={localStyles.selectedLocation}>
-      <MyText style={{fontSize:20}}>
+      <MyText style={{fontSize:17}}>
       {location?.name}
       </MyText>
       <MyText>

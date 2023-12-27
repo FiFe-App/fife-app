@@ -16,6 +16,7 @@ import { config } from "../../firebase/authConfig";
 import { categories as cats } from '../../lib/categories';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import GoBack from '../../components/Goback';
+import BasePage from '../../components/BasePage';
 
 
 const categories = cats.sale.map(c=>{return c.name});
@@ -70,12 +71,14 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
               setTitle('')
               setText('')
               setLoading(false)
+              navigation.push('cserebere',{id:res.data})
             })
           }
           else {
               setTitle('')
               setText('')
               setLoading(false)
+              navigation.push('cserebere',{id:res.data})
           }
         }).catch(error=>{
           console.log(error);
@@ -131,14 +134,16 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
         };
         console.log('uploadedimgs',uploadedImages);
         console.log('data',data);
-        axios.patch(
+        return await axios.patch(
           '/sale/'+item+'/images',
           data,
           config()
         ).then(async (res)=>{
           console.log('updated db',res);
+          return 'success'
         }).catch(err=>{
           console.log(err);
+          return err
         })
       }
     };
@@ -173,13 +178,13 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
     return (
       <>
       
-      <ScrollView style={{flex:1,padding:10,backgroundColor:'#FDEEA2'}}>
+      <BasePage style={{}}>
         <Row>
           {(width <= 900 || toEdit) && <Pressable onPress={()=>navigation.push('cserebere')}>
-            <GoBack breakPoint={10000} text={null} previous='cserebere' style={{backgroundColor:'#FFC372',left:0,top:0,margin:10}} color='black'/>
+            <GoBack breakPoint={10000} text={null} style={{backgroundColor:'#FFC372',left:0,top:0,margin:10}} color='black'/>
           </Pressable>}
           <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
-            <MyText style={{marginBottom:10,fontSize:20}}>
+            <MyText style={{marginBottom:10,fontSize:17}}>
               {toEdit ?
               <>Szerkeszd át a bejegyzésed!</>:
               <><B>Hirdess!</B> Válassz kategóriát, és töltsd fel a hirdetésedet.</>}
@@ -189,8 +194,8 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
         <View style={[{flexDirection: "row"}]}>
           <View style={{margin: 5,flex:1}}>
             <TextInput 
-              style={{fontSize:20, padding:5, borderRadius:8,
-                      backgroundColor: loading ? 'gray' : '#fbf7f0',
+              style={{fontSize:17, padding:5, borderRadius:8,
+                      backgroundColor: loading ? 'gray' : '#fff',
                       cursor: loading ? 'not-allowed' : 'text'
                     }} 
               placeholder="Cím, kulcsszavak"
@@ -201,8 +206,8 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
 
             <Select
               list={categories}
-              style={{fontSize:20, padding:5,marginTop:5,borderWidth:0, borderRadius:8,
-                      backgroundColor: loading ? 'gray' : '#fbf7f0',
+              style={{fontSize:17, padding:5,marginTop:5,borderWidth:0, borderRadius:8,
+                      backgroundColor: loading ? 'gray' : '#fff',
                       cursor: loading ? 'not-allowed' : 'pointer'
                     }} 
               defaultValue={category}
@@ -212,8 +217,8 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
                   setCategory(index)
               }} />
             <TextInput multiline numberOfLines={5} 
-              style={{ marginVertical:5, padding:5,fontSize:20, borderRadius:8,
-                      backgroundColor: loading ? 'gray' : '#fbf7f0',
+              style={{ marginVertical:5, padding:5,fontSize:17, borderRadius:8,
+                      backgroundColor: loading ? 'gray' : '#fff',
                         cursor: loading ? 'not-allowed' : 'text'
                     }} 
               placeholder="Leírás" 
@@ -223,12 +228,12 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
               onChangeText={setText}/>
           </View>
         </View>
-        <View style={{alignItems:'flex-start',flex:1}}>
+        <View style={{alignItems:'flex-start'}}>
           {!loading && <ImageAdder globalImages={images} editable={!toEdit}
           setGlobalImages={setImages} globalImageTexts={imageTexts}
           setGlobalImageTexts={setImageTexts} setGlobalImageBookbale={setImageBookable}/>}
         </View>
-        <View style={{alignItems:'flex-end'}}>
+        <View style={{alignItems:'flex-end',margin:8}}>
           <NewButton 
             style={{width:'100%'}}
             title={toEdit ? "Mentés" : "Feltöltés"}
@@ -236,7 +241,7 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
             onPress={save}/>
         </View>
         {loading && <Loading color="#FFC372" height={10}/>}
-      </ScrollView>
+      </BasePage>
       </>
     )
 }
@@ -312,7 +317,7 @@ const ImageAdder = ({editable,globalImages,setGlobalImages,globalImageTexts,setG
       </View>
         )}
       {editable&&<Pressable style={[styles.square,{borderRadius:8}]} onPress={pickImage}>
-        <MyText style={{fontSize:20}}>+ Új kép</MyText>
+        <MyText style={{fontSize:17}}>+ Új kép</MyText>
       </Pressable>}
 
     </View>
@@ -327,7 +332,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius:8,
     justifyContent:'center',
     alignItems:'center',
-    backgroundColor:'#f7f7f7'
+    backgroundColor:'#fff'
   },
   close:{
     position: 'absolute', 

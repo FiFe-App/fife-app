@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     elevation: 2
   },
   textStyle: {
-    fontSize:20,
+    fontSize:17,
     color: "white",
     fontWeight: "bold",
     textAlign: "center"

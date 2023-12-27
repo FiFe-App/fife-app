@@ -91,7 +91,7 @@ const NewEvent = ({ navigation, route }) => {
               min="now"
               placeholder="tól-"
           />
-          <MyText style={{fontSize:20}}>-</MyText>
+          <MyText style={{fontSize:17}}>-</MyText>
           <DateTimePicker
               setValue={(v)=>setData({...data,maxDate:v})}
               value={data.maxDate}

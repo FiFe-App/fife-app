@@ -6,9 +6,9 @@ const Select = ({list,defaultValue,placeholder,onSelect,style}) => {
         <SelectDropdown
                 data={list}
                 defaultValueByIndex={defaultValue}
-                buttonStyle={[{backgroundColor:'#fbf7f0',padding:10,borderWidth:2,borderColor:'black',width:'95%'},style]}
-                buttonTextStyle={{fontFamily:'SpaceMono_400Regular',fontSize:20,}}
-                rowTextStyle={{fontFamily:'SpaceMono_400Regular',fontSize:20}}
+                buttonStyle={[{backgroundColor:'#fbf7f0',padding:10,borderWidth:2,borderColor:'black',width:'100%'},style]}
+                buttonTextStyle={{fontFamily:'SpaceMono_400Regular',fontSize:17,}}
+                rowTextStyle={{fontFamily:'SpaceMono_400Regular',fontSize:17}}
                 selectedRowStyle={{backgroundColor:'#fbdaa1'}}
                 defaultButtonText={placeholder}
                 dropdownStyle={{height:list.length*30.5}}

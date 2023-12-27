@@ -20,6 +20,40 @@ router.get("/latest", async (req, res) => {
   res.send(results).status(202);
 });
 
+router.post("/nearby", async (req, res) => {
+
+  const {myLocation, category} = req.body;
+  const db = await adb
+  const b = await db.collection('place')
+  console.log('category',category);
+  const results = await b.aggregate( [
+    {
+      $geoNear: {
+            distanceMultiplier:0.001,
+      
+            as: "distance",
+            maxDistance: 3000,
+
+            near: { 
+              type: "Point", coordinates: myLocation },
+            distanceField: "dist.calculated",
+            includeLocs: "dist.location",
+            spherical: true
+        },
+    },
+    { 
+      $sort : { "dist.calculated" : 1 } 
+    },
+    { 
+      $limit : 5
+    },
+    { $match:
+          category? { category: Number(category) }: {},
+    }
+ ] ).toArray();
+
+  res.send(results).status(202);
+});
 // search by id
 router.get("/search", async (req, res) => {
   const {key,secure} = req.params;

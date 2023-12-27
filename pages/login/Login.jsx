@@ -19,7 +19,7 @@ import { FirebaseContext } from '../../firebase/firebase';
 import First from '../first/First';
 import { equalTo, get, query, ref } from 'firebase/database';
 import { Smiley } from '../home/HomeScreenOld';
-import { TouchableRipple } from 'react-native-paper';
+import { ActivityIndicator, TouchableRipple } from 'react-native-paper';
 
 
 const LoginScreen = ({ navigation, route }) => {
@@ -71,18 +71,18 @@ const LoginScreen = ({ navigation, route }) => {
         
       <NewButton title={<><Icon name="chevron-back" size={25}/>Rólunk</>} onPress={()=>navigation.push('rolunk')} style={{padding:10,alignSelf:'flex-start'}} textStyle={{fontSize:25}} color='#FDEEA2'/>
         
-      <View style={[{backgroundColor:'#fdf4c8',borderRadius:50,padding:small?30:50,margin:5,marginTop:20,maxWidth:'95%',alignItems:'center'}]}>
-          {width > 900 ?
-            <MyText style={{fontSize:100, fontFamily:'Raleway_800ExtraBold',color:'black',flex:1}}>
+      <View style={[{backgroundColor:'#fdf4c8',borderRadius:50,padding:small?30:50,paddingTop:0,margin:5,marginTop:20,maxWidth:'95%',alignItems:'center'}]}>
+          {width >= 900 ?
+            <MyText style={{fontSize:170, fontFamily:'AmaticSC_700Bold',color:'black'}}>
             fife app
           </MyText>
           :
-          <MyText style={{fontSize:50, fontFamily:'Raleway_800ExtraBold',color:'black',textAlign:'center',flex:1}}>
+          <MyText style={{fontSize:70, fontFamily:'AmaticSC_700Bold',color:'black',textAlign:'center',flex:1}}>
             fife app
           </MyText>
           }
           <Row breakPoint={400} style={{paddingHorizontal:small?0:30,textAlign:'center',alignItems:'center'}}>      
-            <Smiley style={{marginRight:20}}/><MyText style={{fontSize:small?30:40}}><B>légy közelebb</B></MyText>
+            <MyText style={{fontSize:small?17:40}}><B>légy közelebb</B></MyText>
           </Row>
           <LoginForm/>
           
@@ -142,17 +142,17 @@ const  LoginForm = () => {
   }
 
   return (
-    <View style={{justifyContent:'center',alignItems:"center",zIndex:-1}}>
-      <View style={{flexDirection:'row',flexGrow:1}}>
-        <View style={{flexWrap:'wrap'}}>
+    <View style={{justifyContent:'center',alignItems:"center",zIndex:-1,width:'100%'}}>
+      <View style={{flexDirection:'column',flexGrow:1,width:'100%'}}>
           <TextInput
-            style={[styles.searchInput,{width: width <= 900 ? 200 : 'none'} ]}
+            style={[styles.searchInput,{width: width <= 900 ? 200 : '100%',webkitBoxShadow: '0 0 0 30px white inset'} ]}
             onChangeText={onChangeUsername}
             editable
             placeholder="Email-cím"
+            inputMode='email'
           />
           <TextInput
-            style={[styles.searchInput,{width: width <= 900 ? 200 : 'none'} ]}
+            style={[styles.searchInput,{width: width <= 900 ? 200 : '100%',webkitBoxShadow: '0 0 0 30px white inset'} ]}
             onChangeText={onChangePassword}
             editable
             textContentType="password"
@@ -160,18 +160,17 @@ const  LoginForm = () => {
             placeholder="Jelszó"
             onSubmitEditing={()=>signIn(username, password, onChangeLoginError)}
           />
-      </View>
-      <Pressable style={{width:70,backgroundColor:'#fdcf99',justifyContent:'center',alignItems:"center",margin:5,borderRadius:8}} 
-        onPress={() => signIn(username, password, onChangeLoginError)}>
-        {!loading ?
-        <Icon name="arrow-forward-outline" color="black" size={40}/>
-        :<Loading/>}
-      </Pressable>
+        <Pressable style={{backgroundColor:'#fdcf99',justifyContent:'center',alignItems:"center",margin:5,padding:10,borderRadius:8,width:'100%'}} 
+          onPress={() => signIn(username, password, onChangeLoginError)}>
+          {!loading ?
+          <MyText bold size={17}>Bejelentkezés!</MyText>
+          :<ActivityIndicator />}
+        </Pressable>
       </View>
       {!!loginError && <View style={[styles.error,{maxWidth:small?400:600}]}>
-        <MyText style={{fontSize:25}} >{loginError}</MyText>
+        <MyText style={{fontSize:17}} >{loginError}</MyText>
         <NewButton onPress={forgot} color='#ffffff' style={{padding:10,borderRadius:8,marginTop:16,alignSelf:'center'}} 
-          title={<B>Elfelejtettem a jelszavamat!</B>}
+          title={<B>Elfelejtettem a jelszavamat!</B>} textStyle={{fontSize:16}}
         />
       </View>}
     </View>
@@ -331,7 +330,7 @@ const Loading = () => {
 
   return (<Animated.View
     style={{transform: [{rotate: spin}] }}>
-      <Icon name="arrow-forward-outline" color="black" size={40}/>
+      <MyText bold size={17}>Bejelentkezés</MyText>
     </Animated.View>)
 } 
 

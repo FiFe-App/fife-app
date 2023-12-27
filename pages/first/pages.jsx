@@ -47,7 +47,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
       padding: width <= 900 ? 4 : 40,
     }
     const titleStyle = {
-      fontSize: width > 900 ? 50 : 30,
+      fontSize: width > 900 ? 30 : 20,
       width:'100%',
       fontWeight:'bold',
       paddingVertical:20,
@@ -56,7 +56,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
     }
     const titleStyleW = {
       color:'white',
-      fontSize: width > 900 ? 50 : 30,
+      fontSize: width > 900 ? 30 : 20,
       width:'100%',
       fontWeight:'bold',
       paddingVertical:20,
@@ -109,12 +109,12 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                   Kérlek figyelmesen olvasd végig a lépéseket! Kb 5 percet vesz igénybe.
                   </MyText>
                 </View>
-                <View style={{flex:small?'none':1,margin:20,flexDirection:'row'}}>
-                  <Image source={require('../../assets/img-main.jpg')} resizeMode="contain" style={{flex:1,minHeight:300}}/>
+                <View style={{flex:small?'none':1,marginLeft:10,marginTop:-5,alignItems:'flex-start'}}>
+                  <Image source={require('../../assets/img-main.jpg')} resizeMode="contain" style={{minHeight:300,aspectRatio:1/1,width:'100%'}}/>
                 </View>
               </Auto>
         </ScrollView>,
-        <ScrollView key="Hozzaallas" style={[pageStyle,{backgroundColor:'#B1ECEA'}]} contentContainerStyle={{paddingBottom:160}}>
+        <ScrollView key="Hozzaallas" style={[pageStyle,{backgroundColor:'#ffd2c2'}]} contentContainerStyle={{paddingBottom:160}}>
             <MyText style={titleStyle} adjustsFontSizeToFit>Hozzáállás</MyText>
             <Auto>
               <View style={{flex:width<=900?'none':3}}>
@@ -125,9 +125,6 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 és barátként tekintünk egymásra, hogy együtt fejlődjünk.
                 Itt olyan lehetőségeket igyekszem elétek tárni, amik segitségével könyebben indulunk el ezen az úton.
                 </MyText>
-              </View>
-              <View style={{flex:width<=900?'none':1}}>
-              <Image resizeMode='center' source={require('../../assets/img-prof.jpg')} style={{flex:1,minHeight:300}}/>
               </View>
             </Auto>
         </ScrollView>,
@@ -154,13 +151,20 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
         <ScrollView key="Mierdekel" style={[pageStyle,{backgroundColor:'#9084d0'}]} contentContainerStyle={{paddingBottom:160}}>
           <AmiKell data={data.interest} setData={(d)=>setData({...data,interest:d})}/>
         </ScrollView>,
-        <ScrollView key="Biznisz" style={[pageStyle,{backgroundColor:'#ffd2c2'}]} contentContainerStyle={{paddingBottom:160}}>
-            <MyText style={titleStyle}>Bizniszek</MyText>
-            <MyText style={styles.text}>A te Bizniszeid azon hobbijaid, képességeid, vagy szakmáid listája, amelyeket meg szeretnél osztani másokkal is.
-            Ha te mondjuk úgy gyártod a sütiket, mint egy gép, és ezt felveszed a bizniszeid közé, az appban megtalálható leszel, a süti kulcsszóval.</MyText>
-            <MyText style={styles.text}>Fontos, hogy kizárólag a megadott <B>kulcsszavak</B> alapján tudnak majd megtalálni
-            {'\n'}Nem muszáj megadnod bizniszt, ha nem szeretnél!</MyText>
-            <Buziness data={data} setData={setData}/>
+        <ScrollView key="Biznisz" style={[pageStyle,{backgroundColor:'#9feeeb'}]} contentContainerStyle={{paddingBottom:160}}>
+            <Auto>
+              <View style={{flex:width<=900?'none':3}}>
+                <MyText style={titleStyle}>Bizniszek</MyText>
+                <MyText style={styles.text}>A te Bizniszeid azon hobbijaid, képességeid, vagy szakmáid listája, amelyeket meg szeretnél osztani másokkal is.
+                Ha te mondjuk úgy gyártod a sütiket, mint egy gép, és ezt felveszed a bizniszeid közé, az appban megtalálható leszel, a süti kulcsszóval.</MyText>
+                <MyText style={styles.text}>Fontos, hogy kizárólag a megadott <B>kulcsszavak</B> alapján tudnak majd megtalálni
+                {'\n'}Nem muszáj megadnod bizniszt, ha nem szeretnél!</MyText>
+                <Buziness data={data} setData={setData}/>
+              </View>
+              <View style={{flex:width<=900?'none':1,padding:10}}>
+                <Image resizeMode='center' source={require('../../assets/img-prof.jpg')} style={{flex:1,minHeight:300}}/>
+              </View>
+            </Auto>
             
         </ScrollView>,
         <ScrollView key="Iranyelvek" style={[pageStyle,{backgroundColor:'#39c0db'}]} contentContainerStyle={{paddingBottom:160}}>
@@ -196,7 +200,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
         </ScrollView>,
         <ScrollView key="Adatok" style={[pageStyle,{backgroundColor:'#ff668b'}]} contentContainerStyle={{paddingBottom:160,alignItems:'center'}}>
             <MyText style={titleStyle}>Mindjárt kész is vagy!</MyText>
-            <MyText style={styles.text}>Add meg kérlek még az néhány adatod, az email-címed, és a jelszavad a befejezéshez.</MyText>
+            <MyText style={styles.text}>Adj meg kérlek még néhány adatot, az email-címed, és a jelszavad a befejezéshez.</MyText>
             <Auto style={{justifyContent:'center',alignItems:small?'center':null}}>
               <MoreInfoForm style={styles.text} data={data.moreInfo} setData={(newData)=>setData({...data,name:newData.name,username:newData.username})} />
               <RegisterForm style={styles.text} dataToAdd={data}/>

@@ -7,7 +7,7 @@ const AddDoc = () => {
     const { width } = useWindowDimensions();
     const defStyle = {
         padding:10,
-        fontSize:20,
+        fontSize:17,
         margin:width <= 900 ? 0 : 10,
         marginTop:5,
         borderRadius: 8,

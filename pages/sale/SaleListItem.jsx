@@ -23,6 +23,7 @@ export function SaleListItem({data,readOnly}) {
     const myUid = useSelector((state) => state.user.uid)
     const [loadedImage, setLoadedImage] = useState(null);
     const [elapsed, setElapsed] = useState('');
+    const [hover, setHover] = useState(false);
 
     useEffect(() => {
         setElapsed(elapsedTime(created_at))
@@ -66,6 +67,8 @@ export function SaleListItem({data,readOnly}) {
     return (
         <TouchableRipple 
         onPress={onPress} 
+        onHoverIn={()=>setHover(true)}
+        onHoverOut={()=>setHover(false)}
         style={[localStyles.list, { aspectRatio:1/1,backgroundColor: selected==_id ? '#fff8ce' : '#ffffff'}]}>
             <>
                 <View  style={{width:'100%'}}>
@@ -73,10 +76,10 @@ export function SaleListItem({data,readOnly}) {
                             <ExpoFastImage source={loadedImage[0]} onError={(e)=>{console.log('err',e)}} style={{flex:1,aspectRatio: 1/1,margin:5,borderRadius:8}}/>
                             : <ProfileImage uid={author} style={{flex:1,aspectRatio: 1/1,margin:5,borderRadius:8}}/>}
                 </View>
-                <MyText style={{marginRight:5,position:'absolute',backgroundColor:categories[category].color,padding:5}}>{categories[category].name}</MyText>
+                {!hover&&<><MyText style={{marginRight:5,position:'absolute',backgroundColor:categories[category].color,padding:5}}>{categories[category].name}</MyText>
                 <View style={{position:'absolute',bottom:0,backgroundColor:selected==_id ? '#fff8ce' : '#ffffff',padding:4,width:'100%',borderRadius:8}}>
                     <MyText style={{ fontWeight: 'bold',fontSize:14 }}>{title}</MyText>
-                </View>
+                </View></>}
             </>
                         
         </TouchableRipple>

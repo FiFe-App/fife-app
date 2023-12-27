@@ -17,9 +17,11 @@ const Error = ({text}) => {
 }
 
 const getErrorText = (code) => {
+    const nav = useNavigation()
     switch(code) {
         case 'Token expired':
-          return 'Lejárt a munkamenet, kérlek jelentkezz be újra!';
+            nav.push('kijelentkezes')
+            return 'Lejárt a munkamenet'
         default:
           return code;
       }

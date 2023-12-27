@@ -21,6 +21,7 @@ import { listToMatrix } from '../../lib/functions';
 import Error from '../../components/tools/Error';
 import MessageModal from '../../components/help/MessageModal';
 import Posting from '../../components/homeComponents/Posting';
+import { setSettings as setStoreSettings } from "../../lib/userReducer";
 
 
   const HomeScreen = () => {
@@ -41,6 +42,20 @@ import Posting from '../../components/homeComponents/Posting';
     const [filter, setFilter] = useState([]);
     const [list, setList] = useState([null,null,null,null]);
     const [number, setNumber] = useState(0);
+
+    const [settings, setSettings] = useState(useSelector((state) => state.user.settings));
+
+    const {database} = useContext(FirebaseContext);
+    useEffect(() => {
+        if (uid) {
+            if (database && settings) {
+                const dbRef = ref(database,'users/' + uid + "/settings/snowfall");
+                set(dbRef,settings.snowfall)
+                dispatch(setStoreSettings(settings))
+                
+            }
+        }
+    }, [settings]);
 
     useFocusEffect(
       useCallback(() => {
@@ -127,11 +142,11 @@ import Posting from '../../components/homeComponents/Posting';
                 {<Row style={{alignItems:'center',textAlign:'center',paddingHorizontal:20,paddingVertical:20,opacity:textWidth}}>
                   <MyText 
                   onLayout={e=>setTextWidth(e.nativeEvent.layout.width)}
-                  style={{fontSize:small?20:40,marginRight:30,backgroundColor:'white',borderWidth:2,borderRadius:100,padding:8}} bold>
+                  style={{fontSize:small?14:20,marginRight:30,backgroundColor:'white',fontWeight:'300',borderRadius:100,padding:16,paddingHorizontal:32}} bold>
                     <TextFor text={greeting} embed={name}/>
                   </MyText>
                   <View style={[styles.bubble,{marginLeft:textWidth-5}]} />
-                  <Smiley style={{marginTop:32}}/>
+                  <Smiley style={{marginTop:32,marginLeft:10}}/>
                 </Row>}
               </Animated.View> 
             </Col>
@@ -152,7 +167,7 @@ import Posting from '../../components/homeComponents/Posting';
               />
             </Auto>
           </Row>
-          <Posting />
+          {false&&<Posting />}
         </HomeBackground>
           <View style={{zIndex:-1}}>
             {
@@ -167,10 +182,14 @@ import Posting from '../../components/homeComponents/Posting';
                   </Row>
                 })}
               </View>
-            </> : <View>
+            </> : <View style={{alignItems:'center'}}>
                   {list.map(e=><Module data={e} />)}
             </View>}</>}
           </View>
+          {list?.[0] && <View style={{alignItems:'center',flex:1,margin:32}}>
+            <Smiley/>
+            <MyText>Vége a találatoknak</MyText>
+          </View>}
           <HelpModal 
             title="Mi érdekel?"
             text={`Válaszd ki hogy mi jelenjen meg a főoldalon!
@@ -180,10 +199,12 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
               {title:'mentés',onPress:save,color:'#ff462b'}]}
             open={filterModal}
             setOpen={setFilterModal}
-            inputs={categories.options.reduce((r, e) => r.push(
+            inputs={[
+              {type:'checkbox',attribute:'snowfall',label:'Hóesés',data:settings,setData:setSettings},
+            ...categories.options.reduce((r, e) => r.push(
               {type:'checkbox',attribute:e.key,label:e.name,data:filter,setData:setFilter,style:{backgroundColor:e.color}},  
               {type:'null',attribute:e.key+'key',placeholder:'kulcs',data:filter,setData:setFilter,render:e.key,style:{marginBottom:16}},
-            ) && r, [])}
+            ) && r, [])]}
           />
           <HelpModal 
             title="Értesítések"

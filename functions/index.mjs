@@ -10,6 +10,7 @@ import search from "./routes/search.mjs";
 import places from "./routes/places.mjs";
 import docs from "./routes/docs.mjs";
 import blog from "./routes/blog.mjs";
+import trade from "./routes/trade.mjs";
 import { checkAuth, checkAuthNoVer } from "./lib/auth.mjs";
 import serverless from 'serverless-http';
 
@@ -29,6 +30,7 @@ router.use("/blog",   checkAuth,      blog);
 router.use("/users",  checkAuthNoVer, users);
 router.use("/places", checkAuth,      places);
 router.use("/search", checkAuth,      search);
+router.use("/trade",  checkAuth,      trade);
 
 
 // Global error handling

@@ -99,12 +99,14 @@ const Admin = ({navigation,route}) => {
             const db = getDatabase()
             return get(ref(db,firebasePath)).then((res)=>{
                 const all = res.val()
+                console.log(all);
                 const list = Object.keys(all).map(key=>{
-                    return {
-                        author: key,
-                        data:Object.values(all[key])
-                    }
-                })
+                  return Object.values(all[key]).map(){
+                    author: key,
+                    data:Object.values(all[key])
+                }
+                  
+                }).flat(1)
                 console.log('fn2',list);
                 return list
             }).catch(err=>{ 

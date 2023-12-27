@@ -134,7 +134,7 @@ const Search = ({ route, style }) => {
     const text = route.params?.key+" kifejezésre"//toldalek(route.params?.key||null,'ra')
 
     return(
-        <BasePage style={{backgroundColor:'#FDEEA2'}}>
+        <BasePage style={{backgroundColor:'#fdf6d1'}}>
             {width < 1340 && <SearchBar style={{flexGrow:0,flex:'none',width:'100%',marginRight:40}}/>}
 
             <View style={{justifyContent:'center',width:'100%',flexWrap:small?'wrap':'none',flexDirection:'row',zIndex:-1}}>
@@ -142,13 +142,13 @@ const Search = ({ route, style }) => {
                             {
                                 if(array[cat]?.length || selected == ind || ind==0 || progress== 0)
                                 return <NewButton title={categories[cat].name} key={ind+"cat"}
-                                color={selected==ind?'#fdf6d1':'#FDEEA2'}
+                                color={selected==ind?'#fdfbf0':'#fdf6d1'}
                                 style={{userSelect:'none',padding:small?3:8,marginBottom:0,borderBottomLeftRadius:0,borderBottomRightRadius:0}}
                                 textStyle={{fontSize:small?11:18,fontWeight:'400'}}
                                 onPress={()=>setSelected(ind)}/>}
                         )}
             </View>
-            <ScrollView style={{backgroundColor:'#fdf6d1',borderRadius:8,padding:16,flex:1,zIndex:-1}}>
+            <ScrollView style={{backgroundColor:'#fdfbf0',borderRadius:8,padding:16,flex:1,zIndex:-1}}>
                 <View style={{marginHorizontal:25,width:'90%'}}>
                     {!route.params?.key &&
                         <MyText>Keress profilokra, bizniszre, helyekre, cserebere cikkekre</MyText>}
@@ -156,7 +156,7 @@ const Search = ({ route, style }) => {
                 {myLocation==null && progress>0 && array && 
                 <MyText>Ha szeretnél távolság alapján rendezett találatokat, engedélyezd a hozzáférést a helyadatokhoz.</MyText>
                 }
-                <View style={{backgroundColor:'#fdf6d1',zIndex:-1}}>
+                <View style={{backgroundColor:'#fdfbf0',zIndex:-1}}>
                     
                     {progress < ready ?
                         <>
@@ -264,10 +264,10 @@ function Item({data,cat}) {
     }, [cat]);
     return (
         <View style={[styles.list, { aspectRatio:1/1}]}>
-        <TouchableOpacity onPress={onPress}  style={{width:'100%'}}>
-                {image ? <ProfileImage path={image} style={{flex:1,aspectRatio: 1/1,margin:0,borderRadius:8}}/>
+        <TouchableRipple onPress={onPress}  style={{width:'100%',backgroundColor:'#ffffff',borderRadius:8}}>
+                <>{image ? <ProfileImage path={image} style={{flex:1,aspectRatio: 1/1,margin:0,borderRadius:8,}}/>
                 : <ProfileImage uid={data?.author} style={{flex:1,aspectRatio: 1/1,margin:0,borderRadius:8}}/>}
-                    <View style={{position:'absolute',bottom:0,backgroundColor:'#ffffff',padding:4,width:'100%',borderRadius:8}}>
+                    <View style={{position:'absolute',bottom:0,backgroundColor:'#ffffff',padding:4,width:'100%',borderBottomLeftRadius:8,borderBottomRightRadius:8}}>
                         
                                         <View style={{marginLeft: 5}}>
                         <MyText style={{ fontWeight: 'bold',fontSize:14 }}>{title}</MyText>
@@ -277,9 +277,9 @@ function Item({data,cat}) {
                         <MyText style={{ flex:1,maxHeight:20,overflow:'hidden' }}>{!!sortData && sortData+" km"}</MyText>
                                         </View>
                     </View>
+                    </>
                 
-                
-        </TouchableOpacity>
+        </TouchableRipple>
         { false &&
             <MyText style={{marginRight:5,position:'absolute',padding:5}}>{}</MyText>
             }

@@ -88,7 +88,6 @@ export function LogoTitle() {
                 </MyText>
               </TouchableOpacity>}
           </View>
-          <BugModal key="bugmodal" />
         </SafeAreaView>
       </LinearGradient>)
   }

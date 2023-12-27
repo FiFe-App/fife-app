@@ -7,9 +7,9 @@ import CustomInput from "../custom/CustomInput";
 import axios from "axios";
 import { config } from "../../firebase/authConfig";
 
-const Posting = () => {
+const Posting = ({open}) => {
     const [text, setText] = useState('');
-    const [options, setOptions] = useState(null);
+    const [options, setOptions] = useState(open?{}:null);
     const [loading, setLoading] = useState(false);
     const send = () => {
         setLoading(true)
@@ -22,22 +22,25 @@ const Posting = () => {
     }
     return (<View style={{alignItems:'center'}}>
             <View style={{flexDirection:'row',width:'100%',maxWidth:600}}>
-                <View style={{width:'100%'}}>
+                <View style={{flexGrow:1}}>
                     <>
                     {loading&&<Loading style={{zIndex:10,left:15,height:60,alignItems:'center',position:'absolute'}} />}
                     <TextInput
                     loading={loading}
                         placeholder={!loading&&'Kérdezz a fiféktől!'}
                         onChangeText={setText}
+                        multiline
                         value={text}
-                        numberOfLines={1}
-                        style={[{backgroundColor:'white',borderRadius:30,flexGrow:1,paddingLeft:20,paddingRight:50,fontSize:20,height:60,zIndex:0},
+                        numberOfLines={2}
+                        style={[{backgroundColor:'white',borderRadius:30,flexGrow:1,paddingLeft:20,paddingRight:50,paddingTop:17,fontSize:17,height:60,
+                                zIndex:0,marginHorizontal:10,fontWeight:'bold',color:'black',borderColor:'white'},
                             options && {borderBottomLeftRadius:0,borderBottomRightRadius:0,}
                         ]}
                     /></>
-                    {options && <View style={{backgroundColor:'white',padding:20,paddingTop:0,borderBottomLeftRadius:30,borderBottomRightRadius:30,}}>
+                    {options && <View style={{
+                        backgroundColor:'white',padding:20,paddingTop:0,borderBottomLeftRadius:30,borderBottomRightRadius:30,marginHorizontal:10}}>
                         <MyText size={20}>Küldés beállításai</MyText>
-                        <CustomInput type='text-input' data={options} setData={setOptions} placeholder='Kinek küldöd?' attribute='title' />
+                        <CustomInput type='text-input' data={options} setData={setOptions} placeholder='Üzenet témája' attribute='title' />
                         <Row>
                             <CustomInput type='checkbox' data={options} setData={setOptions} label='Közelemben' attribute='nearby' />
                             <CustomInput type='checkbox' data={options} setData={setOptions} label='Sürgős' attribute='urgent' />
@@ -46,19 +49,20 @@ const Posting = () => {
 
                     </View>}
                 </View>
-                <NewButton
+                {!open && <NewButton
                 icon
                 onPress={()=>setOptions(options?null:{})}
                 title={<Icon name="ellipsis-horizontal" size={30}/>}
                 style={{
-                    backgroundColor:'transparent',
-                    left: -30
-                }} />
+                    backgroundColor:options?'#ddd':'transparent',
+                    right:40,
+                    position:'absolute',
+                }} />}
                 <NewButton icon
                 title={<Icon name="send" size={25}/>}
                 onPress={send}
                 style={{
-                    left: -30
+                    left: -0
                 }} />
             </View>
     </View>

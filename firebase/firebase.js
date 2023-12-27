@@ -35,8 +35,6 @@ const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check"
 const FirebaseContext = createContext(null)
 export { FirebaseContext };
 
-
-
 export default ({ children }) => {
     const dispatch = useDispatch()
     const [messaging, setMessaging] = useState(null);

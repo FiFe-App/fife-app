@@ -88,13 +88,13 @@ const First = ({scrollView}) => {
         style={[styles.button,{right:10},width>=450&&{padding:40}]} 
         onPress={()=>scrollView2.scrollTo({x:(page+1)*width,y:0,animated:true})} 
           title={page > pages.lenght-1 ? 'Befejezés' : 'Tovább'}
-          textStyle={[styles.buttonText,width<450&&{fontSize:20}]}
+          textStyle={[styles.buttonText,width<450&&{fontSize:17}]}
         />}
       {<NewButton floating
       color='#ffffff'
       style={[styles.button,{left:10},width>=450&&{padding:40},]} onPress={()=>backDisabled ? handleToHome() : scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})} 
         title={backDisabled ? "Bejelentkezés" : "Vissza"}
-        textStyle={[styles.buttonText,width<450&&{fontSize:20}]}
+        textStyle={[styles.buttonText,width<450&&{fontSize:17}]}
       />
       }
 

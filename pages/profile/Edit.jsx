@@ -28,6 +28,7 @@ import Buziness from '../profileModules/Buziness';
 import SaleModule from '../profileModules/SaleModule';
 import { setTempData } from '../../lib/userReducer';
 import { deepEqual } from '../../lib/functions';
+import MapElement from '../maps/MapElementNew';
 
 const bgColor = '#FDEEA2'//'#ffd581dd'
 const themeColor = '#000';//#ba9007
@@ -250,7 +251,7 @@ const Profile = ({ navigation, route }) => {
     <BasePage full style={{paddingRight:small?5:50,paddingLeft:small?5:25,paddingBottom:50,backgroundColor:bgColor,flex:1}}>
       <Auto style={{flex:'none'}}>
         <GoBack style={{marginLeft:20}}/>
-        <Row style={{}}>
+        <Row style={{justifyContent:"center"}}>
             <View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:small?5:25,alignSelf:'center'}]}>
               <Pressable onPress={pickImage} disabled={saving || deepEqual(newData,data) && deepEqual(image,dbImage)}>
                 <Image source={image} style={[{paddingHorizontal:0,background:'none',borderRadius:8,height:150,width:150}]}/>
@@ -296,16 +297,12 @@ const Profile = ({ navigation, route }) => {
 
       </Auto>
       <Auto style={{flex:1,zIndex:-1,elevation: -1}}>
-        <View style={{flex:width <= 900 ? 'none' : 1}}>
-          
           {true&&<Section title="Helyzetem" flex={width <= 900 ? 'none' : 1} style={{}}>
             {
-            (Platform.OS !== 'web') ? 
-            <MapView style={localStyles.map} />
-            : <Map data={page} editable setData={(e)=>setPage({...page,location: e.location})}/>
+              <MapElement style={{}}
+                data={page} editable setData={(e)=>setPage({...page,location: e.location})}/>
             }
           </Section>}
-        </View>
         <View style={{flex:(width <= 900 ? 'none' : 2)}}>
             <Buziness data={page} setData={setPage}/>
           
@@ -317,7 +314,7 @@ const Profile = ({ navigation, route }) => {
           {small && <NewButton onPress={save}
               disabled={saving || !changed}
           title={saving?<ActivityIndicator />:"Mentés"} textStyle={{fontSize:30}}
-          style={[localStyles.containerNoBg, {flex:width <= 900 ? 'none' : 1,alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginLeft:small?5:25}]}
+          style={[localStyles.containerNoBg, {alignItems:'center',shadowOpacity:0.5,height:'none',marginLeft:small?5:25}]}
               />}
       </Auto>
     </BasePage>

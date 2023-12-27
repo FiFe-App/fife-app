@@ -32,8 +32,7 @@ model saleInterest {
 
 model place {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  lat         Float
-  lng         Float
+  location    Float[]
   title       String
   description String
   category    Int
@@ -94,14 +93,35 @@ model page {
 }
 
 model buziness {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  page        page   @relation(fields: [pageId], references: [id])
-  pageId      String @db.ObjectId
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  page        page    @relation(fields: [pageId], references: [id])
+  pageId      String  @db.ObjectId
   uid         String
   num         Int
   name        String
   description String
   emoji       Int?
+  trade1      trade[]
+  trade2      trade[]
+  trade       trade[]
+  trade       trade[]
+}
+
+model trade {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  user1       String
+  user2       String
+  bId1        buziness  @relation("b1", fields: [buzinessId1], references: [id])
+  bId2        buziness  @relation("b2", fields: [buzinessId2], references: [id])
+  message1    String?
+  message2    String?
+  accepted    Boolean
+  buzinessId1 String    @db.ObjectId
+  buzinessId2 String    @db.ObjectId
+  buziness    buziness? @relation(fields: [buzinessId], references: [id])
+  buzinessId  String?   @db.ObjectId
+  buziness    buziness? @relation(fields: [buzinessId], references: [id])
+  buzinessId  String?   @db.ObjectId
 }
 
 model images {

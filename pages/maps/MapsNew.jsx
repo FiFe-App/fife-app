@@ -12,7 +12,7 @@ import { get, push, ref, set } from 'firebase/database';
 import { useWindowDimensions } from 'react-native';
 import { FirebaseContext } from '../../firebase/firebase';
 import { getMaps, getPlaceById, getPlaces, LocationData } from "./mapService";
-import MapElement from './MapElement';
+import MapElement from './MapElementNew';
 import axios from 'axios';
 import { config } from '../../firebase/authConfig';
 import { Checkbox } from 'react-native-paper';
@@ -26,11 +26,11 @@ import BottomSheet from '@gorhom/bottom-sheet';
 
 const Maps = ({navigation, route}) => {
     //#region state
-    
     const uid = useSelector((state) => state.user.uid)
     const {id,category} = route?.params || {}
     const {database} = useContext(FirebaseContext);
     const { width } = useWindowDimensions();
+    const small = width < 900;
     const [open, setOpen] = useState(true);
 
     const [search, setSearch] = useState('');
@@ -51,27 +51,68 @@ const Maps = ({navigation, route}) => {
     const [oldStarred, setOldStarred] = useState([]);
     
     const sheetRef = React.useRef(null);
-    const snapPoints = useMemo(() => ['1%', '50%'], []);
+    const snapPoints = useMemo(() => ['10%','40%', '70%'], []);
     const handleSheetChanges = useCallback((index) => {
       console.log('handleSheetChanges', index);
     }, []);
 
+    const [myLocation, setMyLocation] = useState(null);
+
     //#endregion
+
+    const getLocation = async () => {
+      if (myLocation) return myLocation;
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            console.log('Permission to access location was denied');
+            return;
+        }
+    
+        console.log('loc',status);
+        let location = await Location.getCurrentPositionAsync({});
+        try {
+            //L.marker([location.coords.latitude, location.coords.longitude],{icon: myLocationIcon }).addTo(map)
+            setMyLocation([location.coords.latitude, location.coords.longitude])
+            return [location.coords.latitude, location.coords.longitude]
+            
+        } catch (error) {
+            console.log('marker',error);
+        }
+    }
 
     useFocusEffect(
       useCallback(() => {
         (async () => {
+
+          getLocation()
           setCategoryList(await getMaps(database));
           const getL = (await get(ref(database,'users/'+uid+'/data/mapLikes'))).val()
           console.log('getL',getL)
           setStarred(getL || [])
           setOldStarred(getL || [])
-      })()
-      (async () => {
-        setNearby(await axios.get('places/'));
-    })()
+        })()
+
       }, [])
     );
+
+    useEffect(() => {
+      console.log('myLocation',myLocation);
+      if (myLocation)
+        getNearby()
+    }, [myLocation,selected]);
+
+    const getNearby = () => {
+      console.log('getNearby',myLocation);
+      if (!myLocation) return;
+
+
+      setNearby([])
+      axios.post('places/nearby',{myLocation,category:selected.id?(selected?.id+1):null},config()).then(res=>{
+        console.log('nearby:',res.data);
+        if (res?.data?.length)
+        setNearby(res.data);
+      })
+    }
 
     useEffect(() => {
       console.log('star log',starred,oldStarred,!arraysEqual(starred,oldStarred));
@@ -101,7 +142,7 @@ const Maps = ({navigation, route}) => {
     
     useEffect(() => {
       console.log('setParams cat',selected,selectedPlace);
-      navigation.setParams({category:Number(selected?.id) || undefined,id:selectedPlace?.id || undefined})
+      navigation.setParams({category:Number(selected?.id) || undefined,id:(selectedPlace?.id||selectedPlace?._id) || undefined})
     }, [selected,selectedPlace]);
 
     useEffect(() => {
@@ -114,7 +155,7 @@ const Maps = ({navigation, route}) => {
       })
     }, [search]);
 
-    const menu = <View style={{}}>
+    const menu = <View style={{padding:10}}>
       {selected.id == null && <><Row style={{zIndex:10}}>
         <TextInput
           style={localStyles.searchInput}
@@ -132,12 +173,14 @@ const Maps = ({navigation, route}) => {
           })}
 
         </ScrollView>
-        <MyText bold style={{paddingLeft:10}}>Közelemben $</MyText>
-        <ScrollView horizontal style={{height:selected?.id==null?150:'none'}} contentContainerStyle={{flexWrap:'wrap',flexDirection:'column',flex:1}}>
+        <MyText bold style={{paddingLeft:10}}>Közelemben <Icon name="location"/></MyText>
+        <ScrollView horizontal={small} style={{height:selected?.id==null?(small?150:'none'):'none'}} contentContainerStyle={{flexWrap:small?'wrap':'none',flexDirection:small?'row':'column',flex:1}}>
+          {!myLocation && <NewButton onPress={getLocation} title="Közeli helyek keresése"/> }
           {nearby.map((place,index2) => {
-            return <Pressable style={[localStyles.mapLink,{borderWidth:selectedPlace?.id==place.id ? 2 : 0}]} 
+            return <Pressable style={[localStyles.mapLink]} 
                               key={"place"+index2} onPress={()=>{
-                                  if (selectedPlace?.id==place.id) {
+                                  console.log(selectedPlace,place._id);
+                                  if (selectedPlace?.id==place._id) {
                                     setSelectedPlace(null)
                                   }
                                   else {
@@ -175,11 +218,8 @@ const Maps = ({navigation, route}) => {
                 >
                   {menu}
                 </BottomSheet>}
-                {false && <Openable open={open} style={[localStyles.side,{flex: 1,backgroundColor:'#ffffd6'}]}>
-                {menu}
-                </Openable>}
 
-                {<NewPlace selected={selected}/>}
+                {false&&<NewPlace selected={selected}/>}
             </Auto>
             <HelpModal
               title="Új térkép kategória ajánlása"
@@ -300,7 +340,14 @@ const localStyles = {
         padding: 10,
         fontWeight: "bold",
         maxWidth: 500,
-        flexGrow:1
+        flexGrow:1,
+        borderRadius:8,
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
     },
     selected: {
       borderColor: 'red',
@@ -329,12 +376,19 @@ const localStyles = {
     mapLink: {
       padding: 5,
       margin: 5,
-      marginHorizontal: 30,
-      borderColor: 'black',
-      borderWidth:1,
+      backgroundColor: 'white',
+      borderRadius:8,
+      borderColor:'black',
       flexDirection: 'row',
       justifyContent: 'start',
       alignItems: 'center',
+      flexGrow:1,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
     },
     filterList: {
       padding:5,

@@ -4,7 +4,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node index.mjs",
+    "start": "netlify functions:serve --functions ./ -p 8888",
     "test": "cross-env NODE_ENV=test jest --testTimeout=5000",
     "lint": "eslint .",
     "format": "prettier --single-quote --check .",

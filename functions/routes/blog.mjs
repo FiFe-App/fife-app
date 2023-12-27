@@ -6,12 +6,15 @@ import { PrismaClient } from "@prisma/client";
 const router = express.Router();
 const prisma = new PrismaClient();
 
-router.get("/", async (req, res) => {
+router.patch("/", async (req, res) => {
     const db = await adb
     const blog = db.collection('blog')
-    const {q='',skip,take} = req.query;
+    const {q='',skip,take,recommended,buziness} = req.body;
+    console.log( buziness?.map(b=>`/^${b}/`));
     let query = { 
-      title: {$regex: q}
+      title: {
+        $in: buziness.map(function (e) { return new RegExp(e, "i"); })
+      }
     }
     const results = await blog.find(query,{})
     .sort({created_at:-1})

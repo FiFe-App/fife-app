@@ -50,15 +50,11 @@ const Buziness = ({data,setData}) => {
             return {...item, removed:ei == i?true:item?.removed} 
         })})
     }
-
-    useEffect(() => {
-    }, [list]);
-
         return(<Section title={<Auto style={{width:'100%'}}>
                         <MyText style={{flexGrow:1}}>Bizniszeim</MyText>
                         <Pressable style={{alignItems:'center',justifyContent:'center'}} onPress={addHelp}>
-                            <MyText size={24} style={{}}>
-                                <Icon name="bulb" color={0} size={40}/>
+                            <MyText size={17} style={{}}>
+                                <Icon name="bulb" color={0} size={20}/>
                                 Adjak egy példát?
                             </MyText>
                         </Pressable>
@@ -78,9 +74,9 @@ const Buziness = ({data,setData}) => {
                             </View>
                             <View style={{flex:1,justifyContent:'center'}}>
                                 <TextInput placeholder="kulcsszavak" onChangeText={(val)=>set(val,i,'name')} 
-                                value={prof.name} style={{fontSize:24}}/>
+                                value={prof.name} style={{fontSize:17}}/>
                                 <TextInput placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} 
-                                style={{fontSize:24}} value={prof.description} multiline numberOfLines={2}/>
+                                style={{fontSize:17}} value={prof.description} multiline numberOfLines={2}/>
                             </View>
                         </View>)}
                     )}            

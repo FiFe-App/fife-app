@@ -11,11 +11,14 @@ import homeDesign from '../../styles/homeDesign';
 import Comments from "../../components/tools/Comments";
 import { elapsedTime } from "../../lib/textService/textService";
 import Tags from "../../components/tools/Tags";
+import Posting from '../../components/homeComponents/Posting';
 
 const Blog = () => {
 
     const navigation = useNavigation()
     const [searchText, setSearchText] = useState('');
+    const [recommended, setRecommended] = useState(true);
+    const [myBuziness, setMyBuziness] = useState(null);
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
     const small = useWindowDimensions().width <= 900;
@@ -25,15 +28,17 @@ const Blog = () => {
     });
     const [openComment, setOpenComment] = useState(null);
 
-    const searchDirectory = async () => {
+    const searchDirectory = async (buziness) => {
 
         setLoading(true)
         setData(null)
-        const result = await axios.get('blog',{...config(),
-            params: {
-                q: searchText
-            }
-        }).catch(err=>{
+        const result = await axios.patch('blog',
+            {
+                q: searchText,
+                recommended,
+                buziness
+            },config()
+        ).catch(err=>{
             setLoading(false)
         })
         setData(result?.data)
@@ -46,7 +51,11 @@ const Blog = () => {
     }, []);
 
     const firstSearch = () => {
-        searchDirectory();
+        axios.get('users/mybuziness',config()).then(res=>{
+            console.log(res.data);
+            setMyBuziness(res.data.map(b=>b.name))
+            searchDirectory(res.data.map(b=>b.name));
+        })
     }
 
 
@@ -95,50 +104,28 @@ const Blog = () => {
             </View>
     };
 
+    const header = <>
+    <Posting />
+    <Row>
+        <NewButton title="A bizniszednek megfelelő" color={recommended?'#ffffff':undefined} />
+        <NewButton title="Minden" color={!recommended?'#ffffff':undefined} />
+    </Row>
+    <MyText style={{height:50,marginTop:40}}>Keresés: {myBuziness?.map(b=>{
+        return <MyText contained style={{marginRight:20}}>{b}</MyText>
+    })}</MyText>
+    </>
+
     return (
         <BasePage left={
             <View style={{backgroundColor:'white',flex:1,minHeight:50}}><MyText size={30}>Írj te is posztot!</MyText></View>
         }>
-        {false &&<Row style={{alignItems:'center',width:'100%'}}>
-            <TextInput
-              style={[{fontSize:16,padding:10,backgroundColor:'#ffffff',borderRadius:8,margin:4,flexGrow:1}]}
-              returnKeyType="search"
-              autoCapitalize='none'
-              onChangeText={setSearchText}
-              placeholder={'Keress a posztok közt!'}
-              placeholderTextColor="gray"
-              onSubmitEditing={() => firstSearch()}
-            />
-            <Pressable 
-            onPress={firstSearch}
-            style={{padding:10}}><Icon name='search' size={30}/></Pressable>
-        </Row>}
-        <Row style={{width:'100%'}}>
-            <View style={{flexGrow:1}}>
-                <TextInput
-                    style={[{fontSize:16,padding:10,backgroundColor:'#ffffff',height:80,borderRadius:8,margin:4,flexGrow:1}]}
-                    returnKeyType="submit"
-                    autoCapitalize='none'
-                    multiline
-                    value={newData?.text}
-                    onChangeText={(t)=>setNewData({...newData,text:t})}
-                    placeholder={'Kérdezz valamit a fiféktől!'}
-                    placeholderTextColor="gray"
-                    />
-                    <Tags />
-            </View>
-            <NewButton
-            onPress={createPost}
-            style={{padding:10,height:100,height:'-webkit-fill-available'}} 
-            title={<Icon name='chatbox-ellipses-outline' size={30}/>}
-            disabled={!newData.text || !newData.title }
-            />
-        </Row>
+            
             <FlatList
                 renderItem={renderItem}
                 data={data}
                 style={{padding:8}}
                 enableEmptySections={true}
+                ListHeaderComponent={header}
                 ListFooterComponent={
             <View style={{width:'100%',alignItems:'center'}}>
             {!data?.length&&!loading&&<MyText>Nincs találat</MyText>}

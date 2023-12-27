@@ -47,14 +47,14 @@ export const styles = StyleSheet.create({
         color: "black"
     },
     searchInput: {
+        textAlign:'center',
         margin: 5,
         borderColor: "black",
         borderRadius: 8,
         backgroundColor: "#ffffff",
         padding: 10,
-        fontSize:20,
+        fontSize:14,
         fontWeight: "500",
-        width:'100%',
         borderRadius:8,
     },
     searchList: {

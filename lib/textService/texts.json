@@ -4,7 +4,7 @@
     "search_text": ["Keress a fifén...","Keress a fife appon!"],
 
     "greeting_morning": ["Szép kávét, boldog napot!","Szia $!","Jó reggelt $!","Igyál sok vizet!"],
-    "greeting_normal": ["Szia $!","Legyen meg a napi jócselekedeted!","Segíts egy ismeretlennek!","Minden ember egyenlő!"],
+    "greeting_normal": ["Szia $!","Legyen meg a napi jócselekedeted!","Segíts egy ismeretlennek!","Minden ember egyenlő!","Légy környezettudatos!","Menj el sétálni egyet!"],
     "greeting_evening": ["Remélem jó napod volt!","Szia $!","Jó estét $!","Pihend ki magad!"],
 
     "no_result": ["A manóba! Nincs találat","Bakfitty! Nem találtunk semmit.","Hinnye! Próbáld meg más megfogalmazásban!","Azt a hét meg a nyolcát!"],

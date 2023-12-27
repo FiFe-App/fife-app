@@ -2,9 +2,10 @@ import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
     moduleContainer: {
-        paddingBottom:30,
+        paddingBottom:5,
         paddingTop:5,
         justifyContent:'center',
+        width:'100%'
     },
     module: {
         alignSelf:'stretch',
@@ -17,21 +18,20 @@ const styles = StyleSheet.create({
         borderTopLeftRadius:8,
         borderTopRightRadius:8,
         borderRadius:8,
-        shadowOffset: {width: 4, height: 6},
-        shadowOpacity: 0.15,
-        shadowRadius: 2,
     },
     moduleText: {
-        backgroundColor:'white',
-        padding:2,
+        backgroundColor:'rgba(255, 255, 214,0)',
+        padding:4,
+        paddingLeft:8,
+        borderRadius:8,
+        borderTopLeftRadius:0,
+        borderTopRightRadius:0,
     },
     moduleScrollView: {
-        height:170,
         paddingHorizontal:20
     },
     bubble: {
         backgroundColor:'white',
-        borderWidth:2,
         borderLeftWidth:0,
         marginLeft:5,
         width:30,

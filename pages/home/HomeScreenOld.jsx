@@ -291,13 +291,13 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
     )
   } 
 
-  export const Smiley = ({style}) => {
-    const size = useRef(new Animated.Value(1)).current 
+  export const Smiley = ({style,size=1}) => {
+    const sizeC = useRef(new Animated.Value(size)).current 
 
     const handleGrow = () => {
-      if (size._value > 60) 
+      if (sizeC._value > 60) 
       Animated.timing(
-        size,
+        sizeC,
         {
           toValue: 1,
           duration: 1000,
@@ -306,9 +306,9 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
       ).start();
       else
       Animated.timing(
-        size,
+        sizeC,
         {
-          toValue: size._value*3,
+          toValue: sizeC._value*3,
           duration: 1000,
           useNativeDriver: false,
         }
@@ -317,7 +317,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
     return (
       <Animated.View                 // Special animatable View
       style={[{
-        transform: [{ scale: size }],
+        transform: [{ scale: sizeC }],
         transformOrigin:'50% 30%'
       },style]}
       >

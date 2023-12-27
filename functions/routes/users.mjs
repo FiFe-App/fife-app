@@ -80,6 +80,54 @@ router.get("/all/:uid", async (req, res) => {
 
 });
 
+router.post("/search", async (req, res) => {
+  const {search} = req.body;
+  // query for movies that have a runtime less than 15 minutes
+  if (search.length < 3) {
+    res.send({error:'Adj meg legalább három karaktert!'})
+    return 
+  }
+  console.log(req.body);
+
+  const results = await prisma.user.findMany({
+      where: {
+        OR: [
+          {name: {
+            contains: search,
+            mode: 'insensitive',
+          }},
+          {username: {
+            contains: search,
+            mode: 'insensitive',
+          }},
+        ]
+      }
+    })
+
+  //res.send('latestqd')
+  console.log(results);
+  res.send(results).status(202);
+
+});
+
+
+router.get("/mybuziness", async (req, res) => {
+
+  const result = await prisma.buziness.findMany({
+    where: {
+      uid: req.uid
+    }
+  })
+  console.log(result);
+  if (!result) {
+    res.send("Not found").status(404);
+    return
+  }
+//  res.send(result)
+  res.send(result)
+  return "hello"; 
+
+});
 router.patch("/", async (req, res) => {
 
 

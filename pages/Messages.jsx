@@ -9,11 +9,15 @@ import { elapsedTime } from "../lib/textService/textService";
 import { styles } from "../styles/styles";
 import Chat from "./Chat";
 import Icon from 'react-native-vector-icons/Ionicons';
+import axios from 'axios';
+import { config } from '../firebase/authConfig';
 
 const Messages = ({route,navigation}) => {
     const { width } = useWindowDimensions();
     
     const [list, setList] = useState([]);
+    const [extraList, setExtraList] = useState([]);
+    const finalExtraList = (extraList.filter(x => !list.find(e=>e.uid==x.uid)));
     const [filteredList, setFilteredList] = useState([]);
     const [search, setSearch] = useState('');
     const { app, auth} = useContext(FirebaseContext);
@@ -71,6 +75,17 @@ const Messages = ({route,navigation}) => {
     }, [list,search]);
 
     useEffect(() => {
+        console.log(search);
+        if (search?.length >= 3)
+        axios.post('users/search',{search},config()).then(res=>{
+            setExtraList(res.data);
+            console.log('extra',res.data);
+            console.log('normal',list);
+        })
+        else setExtraList([])
+    }, [search]);
+
+    useEffect(() => {
         console.log(filteredList);
     }, [filteredList]);
 
@@ -118,12 +133,17 @@ const Messages = ({route,navigation}) => {
         <View style={{flex:1}}>
             <Row style={{padding:10}}>
                 <TextInput 
-                placeholder="Keresés a beszélgetések közt"
-                style={{flexGrow:1,height:50,padding:10,margin:5,backgroundColor:'#fdf7d8'}} 
+                placeholder="Keresés a fifék közt"
+                style={{flexGrow:1,height:50,padding:15,margin:5,backgroundColor:'#fdf7d8'}} 
                 onChangeText={setSearch} value={search} />
+                <NewButton title={<Icon name="close" size={20}  style={{left:30,color:'#555555'}} />} 
+                style={{position:'absolute',right:55}} icon color="#fdf7d800"
+                onPress={()=>{setSearch('')}}/>
                 <NewButton title={<Icon name="search" size={30} style={{padding:10}} />} />
             </Row>
             <ScrollView style={{flex:1}} contentContainerStyle={{paddingTop:5}}>
+
+            <MyText style={{padding:8}}>korábbi beszélgetések</MyText>
                 {!!filteredList.length && filteredList.map((e,i)=>{
                     console.log(i)
                     return (
@@ -132,6 +152,14 @@ const Messages = ({route,navigation}) => {
                         </>
                     )
                 })}
+
+                {!!finalExtraList?.length && <><MyText style={{padding:8}}>egyéb találatok</MyText>
+                    {finalExtraList.map(e=>{
+                        return <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected}/>
+                    }
+                    )}</>
+                }
+                
             </ScrollView>
         </View>
         {(width > 900) &&

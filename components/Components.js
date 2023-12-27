@@ -73,10 +73,8 @@ const getUri = async (path) => {
 
 const getNameOf = async (uid) => {
   const name = await AsyncStorage.getItem('name-'+uid)
-  console.log('getNameOf',uid,name);
+
   if (name != null && name != 'NINCS NÉV') {
-    
-    console.log('name',name);
     return name;}
   else {
     const res = (await get(ref(getDatabase(),`users/${uid}/data/name`))).val()
@@ -155,11 +153,8 @@ const ProfileName = ({uid,style}) => {
   }, [uid]);
 
   if (!name) return null
-  return <MyText style={style}>{name}</MyText>
-    
-    
+  return <MyText style={style}>{name}</MyText>   
 }
-
 
 function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color = "#ffde7e",info,loading=false}) {
   const ref = useRef();
@@ -194,7 +189,7 @@ function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color =
             ,style,{}]} 
             onPress={onPress} disabled={disabled}>
             {!loading ? 
-              <MyText style={[{ fontWeight: 'bold', color: isBright(bgColor) , fontSize:18, whiteSpace:'pre' },textStyle]}>{title}</MyText>
+              <MyText style={[{ fontWeight: 'bold', color: isBright(bgColor) , fontSize:18, whiteSpace:'break-space' },textStyle]}>{title}</MyText>
             : <ActivityIndicator color={isBright(bgColor)}/> }
       </TouchableRipple>
     </View>
@@ -209,7 +204,6 @@ function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color =
     </>
   );
 }
-
 
 class Slideshow extends React.Component {
   width = Dimensions.get('window').width > 900 ? Dimensions.get('window').width/2 : Dimensions.get('window').width 
@@ -441,7 +435,7 @@ const SearchBar = (props) => {
     </Pressable>
   );
   return (
-    <View style={[{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:20,marginVertical:17,backgroundColor:'#FDEEA2'},style]}>
+    <View style={[{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:20,marginVertical:17},style]}>
       <View style={{flexDirection: 'row',alignItems: 'center', justifyContent:'center'}}>
         <TextInput
           onLayout={e=>setRect(e.nativeEvent.layout)}
@@ -535,7 +529,7 @@ export const MyText = (props) => {
     fontFamily:'SpaceMono_400Regular',
     letterSpacing:-1
     },title && {fontSize:22,marginTop:14},
-    contained && {padding:8,borderRadius:8,backgroundColor:'white',fontSize:20,marginTop:14},
+    contained && {padding:8,borderRadius:8,backgroundColor:'white',fontSize:17,marginTop:14},
     bold && {fontWeight:'bold'},
     light && {fontWeight:'200',color:'gray'},
     size && {fontSize:size},
@@ -554,7 +548,7 @@ const TextInput = React.forwardRef((props,ref) => {
       ref={ref}
       placeholderTextColor="#555"
       style={[props.style,{fontFamily:'SpaceMono_400Regular'}, 
-      isFocused && {backgroundColor:'#eae6ff'},
+      isFocused && {backgroundColor:'#f0f1da'},
       Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => {
         setIsFocused(false)
