@@ -39,7 +39,6 @@ const Posting = ({open}) => {
                     /></>
                     {options && <View style={{
                         backgroundColor:'white',padding:20,paddingTop:0,borderBottomLeftRadius:30,borderBottomRightRadius:30,marginHorizontal:10}}>
-                        <MyText size={20}>Küldés beállításai</MyText>
                         <CustomInput type='text-input' data={options} setData={setOptions} placeholder='Üzenet témája' attribute='title' />
                         <Row>
                             <CustomInput type='checkbox' data={options} setData={setOptions} label='Közelemben' attribute='nearby' />

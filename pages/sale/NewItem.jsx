@@ -17,6 +17,7 @@ import { categories as cats } from '../../lib/categories';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import GoBack from '../../components/Goback';
 import BasePage from '../../components/BasePage';
+import LabelInput from '../../components/tools/LabelInput';
 
 
 const categories = cats.sale.map(c=>{return c.name});
@@ -193,7 +194,7 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
         </Row>
         <View style={[{flexDirection: "row"}]}>
           <View style={{margin: 5,flex:1}}>
-            <TextInput 
+            <LabelInput 
               style={{fontSize:17, padding:5, borderRadius:8,
                       backgroundColor: loading ? 'gray' : '#fff',
                       cursor: loading ? 'not-allowed' : 'text'
@@ -201,8 +202,8 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
               placeholder="Cím, kulcsszavak"
               editable={!loading}
               selectTextOnFocus={!loading} 
-              value={title}
-              onChangeText={setTitle}/>
+              defaultValue={title}
+              onChange={setTitle}/>
 
             <Select
               list={categories}

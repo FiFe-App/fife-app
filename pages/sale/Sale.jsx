@@ -22,6 +22,7 @@ import HelpModal from "../../components/help/Modal";
 import { SaleContext } from './SaleContext';
 import BasePage from "../../components/BasePage";
 import GoBack from "../../components/Goback";
+import ShareModal from "../../components/tools/ShareModal";
 
 
 const categories = ['Kategória: Minden',...cats.sale.map(c=>{return c.name})];
@@ -57,6 +58,7 @@ const Sale = ({ navigation, route }) => {
     const [deleteModal, setDeleteModal] = useState(false);
     const [userModal, setUserModal] = useState(false);
     const [interestModal, setInterestModal] = useState(null);
+    const [shareModal, setShareModal] = useState(null);
     const [IList, setIList] = useState(null);
 
     const [searchText, setSearchText] = useState('');
@@ -131,11 +133,13 @@ const Sale = ({ navigation, route }) => {
                 } else {
                     setList(list.map((e,i)=> e._id==index ? {...e, interested:true, interestedBy: 'other'} : e))
                 }
+                setInterestModal('submitted')
                 return res.data
               })
-              .catch(error=>console.error(error))
-              .finally(()=>{
-                setInterestModal('submitted')})
+              .catch(error=>{
+                console.error(error)
+                setInterestModal({error:"Nem vagy bejelentkezve!"})
+            })
               console.log(res);
             return !isInterest;
         })()
@@ -179,7 +183,7 @@ const Sale = ({ navigation, route }) => {
         setLoading(false)
     }
 
-    const toShare = {interestModal,setInterestModal,IList,setIList,userModal,setToEdit,deleteModal,setDeleteModal,selected,setSelected}
+    const toShare = {interestModal,setInterestModal,IList,setIList,userModal,setToEdit,deleteModal,setDeleteModal,selected,setSelected,shareModal,setShareModal}
     const modals = <>
             <DeleteModal modalVisible={deleteModal} setModalVisible={setDeleteModal} handleOK={deleteItem}/>
             <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.push('uzenetek',{selected:selected?.uid})}/>
@@ -215,11 +219,14 @@ const Sale = ({ navigation, route }) => {
                     })
                 }
             />
+            <ShareModal
+            open={shareModal}
+            setOpen={setShareModal} />
     </>
 
     if (id)
     return <SaleContext.Provider value={toShare}>
-    <GoBack breakPoint={10000} text={null} floating style={{backgroundColor:'#FFC372'}} color='black'/>
+    <GoBack breakPoint={10000} text={null} floating icon style={{backgroundColor:'#FFC372'}} color='black'/>
     <BasePage style={{paddingTop:0}}>
         <Item data={list.find(e=>e._id == selected)} toLoadId={selected} 
             setSelected={setSelected} interestItem={setInterestModal}   deleteItem={()=>setDeleteModal(true)}/>
@@ -318,7 +325,7 @@ const Sale = ({ navigation, route }) => {
             </View>
         </BasePage>
             <FAB color="#FFC372" size={80} icon="chevron-up" onPress={()=>scrollView.current.scrollTo(0,0)}/>
-            <FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.push('uj-cserebere')}/>
+            {uid&&<FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.push('uj-cserebere')}/>}
             {modals}
     </SaleContext.Provider>
     )

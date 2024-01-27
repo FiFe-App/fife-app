@@ -5,7 +5,8 @@ const styles = StyleSheet.create({
         paddingBottom:5,
         paddingTop:5,
         justifyContent:'center',
-        width:'100%'
+        width:'100%',
+        margin:5
     },
     module: {
         alignSelf:'stretch',
@@ -28,7 +29,8 @@ const styles = StyleSheet.create({
         borderTopRightRadius:0,
     },
     moduleScrollView: {
-        paddingHorizontal:20
+        paddingHorizontal:20,
+        marginHorizontal:5
     },
     bubble: {
         backgroundColor:'white',

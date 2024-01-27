@@ -22,8 +22,7 @@ router.get("/users", async (req, res) => {
     res.send({error:'You are not an admin'})
     return
   }*/
-  console.log(await getAllEmail());
-
+  
   const match = {
     sale: req?.query?.category != undefined ? { category: Number(req?.query?.category) } : null,
     places: null
@@ -31,17 +30,15 @@ router.get("/users", async (req, res) => {
 
   //const u = await listAllUsers()
   //console.log(u);
-  res.send('u')
-  return "gello"
-  const results = await Promise.all(req.body.map(async data=>{
-    let collection = await db.collection('users');
-    return await collection.aggregate([
-      {"$project": { "name": 1, "description":1, "created_at": 1}},
-      {"$sort": {"created_at": -1}},
-      {"$match": match[data.collection]},
-      {"$limit": 3}
-    ]).toArray();
-  }))
+
+  const exList = await prisma.user.findMany({
+    include: {
+      page: true
+    }
+  })
+  const fbList = await listAllUsers();
+
+  const results = fbList.map(t1 => ({...t1, ...exList.find(t2 => t2.uid === t1.uid)}))
   res.send(results)
   return "hello";
 });
@@ -55,6 +52,9 @@ router.get("/docs", async (req, res) => {
 
 
   const results = await prisma.document.findMany({
+    include: {
+      author:true
+    }
   })
   res.send(results)
   return "hello";

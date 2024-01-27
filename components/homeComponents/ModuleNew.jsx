@@ -6,6 +6,7 @@ import homeDesign from '../../styles/homeDesign';
 import { MyText, Row, getUri } from '../Components';
 
 
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { TouchableRipple } from 'react-native-paper';
@@ -13,7 +14,7 @@ import { categories } from '../../lib/categories';
 import { TextFor } from '../../lib/textService/textService';
 
 function Module(props) {
-    const { title, link, list, params, data, id } = props?.data || {};
+    const { title, link, list, params, data, id, newLink } = props?.data || {};
     const { width } = useWindowDimensions();
     const navigation = useNavigation();
     const onPress = (to) => {
@@ -23,17 +24,24 @@ function Module(props) {
     const [images, setImages] = useState({});
 
     useEffect(() => {
+    }, [images]);
+
+    useEffect(() => {
       let resList
       if (data?.length)
       {
         (async ()=>{
         resList = await Promise.all(data.map( async (el,i)=> {
           let image
+          console.log('module',title);
           try {
            image = el?.image || await getUri(id+'/'+el._id+'/'+0)
           } catch (error) {
+            console.log(title,error);
             if (el?.author)
-              image = await getUri(`profiles/${el.author}/profile.jpg`)
+              try{image = await getUri(`profiles/${el.author}/profile.jpg`)} catch {
+                image = require('../../assets/profile.jpeg')
+              }
             else {
               try {
                 image = require('../../assets/icons/mapIcons/'+(Number(el.category)+1)+'.png')
@@ -42,6 +50,8 @@ function Module(props) {
               }
             }
           }
+          
+          console.log('module',i,title,image);
           return image
         }))
         setImages(resList)
@@ -60,7 +70,7 @@ function Module(props) {
               </TouchableOpacity>:
               <LoadingModule ind={1} flat />}
             </Row>
-          {<ScrollView horizontal contentContainerStyle={homeDesign.moduleScrollView}>
+          {<ScrollView horizontal style={{}} contentContainerStyle={homeDesign.moduleScrollView}>
             {data?.length ? data?.map((one,ind)=>{
             
               if (one){
@@ -69,7 +79,9 @@ function Module(props) {
                   <TouchableRipple key={ind+'one'} style={homeDesign.module} onPress={()=>{
                     navigation.push(link,{id:one._id})
                   }}>
-                      <><ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8}} 
+                      <><ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8,
+    resizeMode: 'cover',
+    top: undefined,}} 
                       source={{uri:images?.[ind]}} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8,justifyContent: 'flex-end'}}>
                         <View style={{alignSelf: 'flex-end'}}>
                           <MyText style={{margin:5,backgroundColor:('rgba(204, 255, 204,200)'),padding:5,borderRadius:8,fontSize:12}}>{category?.name}</MyText>
@@ -88,7 +100,17 @@ function Module(props) {
               [1,1,1]?.map((one,ind)=>{
               return <LoadingModule ind={ind} key={ind+'blank'} />
             }))
-            }
+            } 
+              {!!newLink&&<TouchableRipple key={'one'} style={[homeDesign.module,{backgroundColor:'#ffffff00',flexGrow:0,flex:'none',width:100}]} onPress={()=>{
+                    navigation.push(newLink)
+                  }}>
+                      <><View style={{height:100,borderRadius:8,justifyContent: 'center',alignItems:'center',backgroundColor:'#ffffff00'}}>
+                          <Icon name="add-outline" color="#535353" size={70} />
+                      </View>
+                      <View style={{}}>
+                        <MyText style={[homeDesign.moduleText,{color:'#535353',fontWeight:'bold',backgroundColor:'#ffffff00',textAlign:'center'}]}>Feltöltés</MyText>
+                      </View></>
+              </TouchableRipple>}
 
           </ScrollView>
             }

@@ -174,80 +174,83 @@ export default ({ children }) => {
         let newPass = password
         let response = null
         
-        await signInWithEmailAndPassword(getAuth(getApp()), newEmail, newPass)
-        .then(async (userCredential) => {
-            const user = userCredential.user
-            await user.getIdToken(false).then(token=>{
-                console.log(token);
+        await getAuth().setPersistence(browserSessionPersistence).then(async ()=>{
 
-                dispatch(setUserData({
-                    authtoken:token,
-                    email:user.email,
-                    emailVerified:user.emailVerified,
-                    providerData:user.providerData,
-                    createdAt:user.createdAt,
-                    lastLoginAt:user.lastLoginAt
-                }))
-            })
-
-            if (firstLogin) {
-                const user = getAuth(getApp()).currentUser;
-                console.log(user);
-                if (user == null) {
-                    console.log('USER NULL');
-                    return
+            await signInWithEmailAndPassword(getAuth(getApp()), newEmail, newPass)
+            .then(async (userCredential) => {
+                const user = userCredential.user
+                await user.getIdToken(false).then(token=>{
+                    console.log(token);
+    
+                    dispatch(setUserData({
+                        authtoken:token,
+                        email:user.email,
+                        emailVerified:user.emailVerified,
+                        providerData:user.providerData,
+                        createdAt:user.createdAt,
+                        lastLoginAt:user.lastLoginAt
+                    }))
+                })
+    
+                if (firstLogin) {
+                    const user = getAuth(getApp()).currentUser;
+                    console.log(user);
+                    if (user == null) {
+                        console.log('USER NULL');
+                        return
+                    }
+                    console.log('set',`users/${user.uid}/data`,firstLogin);
+                    try{
+                        await axios.post('users',firstLogin,config()).then(()=>{
+                            response = {success:true,user}
+                        })
+                        await set(ref(getDatabase(),`users/${user.uid}/data/name`),firstLogin.name).then(()=>{
+                            console.log('RTDB updated');
+                        })
+                        await set(ref(getDatabase(),`users/${user.uid}/settings/homeFilter`),firstLogin.interest).then(()=>{
+                            console.log('RTDB updated');
+                        })
+                        //response = {success:true,user}
+                    } catch (err) {
+                        console.log('ERROR',err);
+                    }
+                    dispatch(setName(firstLogin.name))
+                } else {
+                const dbRef = ref(getDatabase(getApp()),'users/' + user.uid + "/settings");
+                get(dbRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    dispatch(setSettings(snapshot.val()))
                 }
-                console.log('set',`users/${user.uid}/data`,firstLogin);
-                try{
-                    await axios.post('users',firstLogin,config()).then(()=>{
-                        response = {success:true,user}
-                    })
-                    await set(ref(getDatabase(),`users/${user.uid}/data/name`),firstLogin.name).then(()=>{
-                        console.log('RTDB updated');
-                    })
-                    await set(ref(getDatabase(),`users/${user.uid}/settings/homeFilter`),firstLogin.interest).then(()=>{
-                        console.log('RTDB updated');
-                    })
-                    //response = {success:true,user}
-                } catch (err) {
-                    console.log('ERROR',err);
+                
+                })
+                const nameRef = ref(getDatabase(getApp()),'users/' + user.uid + "/data/name");
+                get(nameRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    dispatch(setName(snapshot.val()))
+                    console.log(snapshot.val());
                 }
-                dispatch(setName(firstLogin.name))
-            } else {
-            const dbRef = ref(getDatabase(getApp()),'users/' + user.uid + "/settings");
-            get(dbRef).then((snapshot) => {
-            if (snapshot.exists()) {
-                dispatch(setSettings(snapshot.val()))
+                
+                })
             }
-            
+                response = {success:true}
             })
-            const nameRef = ref(getDatabase(getApp()),'users/' + user.uid + "/data/name");
-            get(nameRef).then((snapshot) => {
-            if (snapshot.exists()) {
-                dispatch(setName(snapshot.val()))
-                console.log(snapshot.val());
-            }
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.error(error);
             
-            })
-        }
-            response = {success:true}
+                if (errorCode == "auth/invalid-email" || errorCode == "auth/user-not-found")
+                    response = {error:"Bakfitty! Nem jó az email cím, amit megadtál!"};
+                else if (errorCode == "auth/internal-error")
+                    response = {error:"Azáldóját! A szerveren hiba történt, próbáld újra!"};
+                else if (errorCode == "auth/wrong-password")
+                    response = {error:"Azt a hét meg a nyolcát! Lehet elírtad a jelszavad."};
+                else if (errorCode == "auth/too-many-requests")
+                    response = {error:"Ó te jó ég! Túl sokszor próbáltál bejelentkezni, próbálkozz később!"};
+                else
+                    response = {error:"error: " + errorCode + " - " + errorMessage};
+            });
         })
-        .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            console.error(error);
-        
-            if (errorCode == "auth/invalid-email" || errorCode == "auth/user-not-found")
-                response = {error:"Bakfitty! Nem jó az email cím, amit megadtál!"};
-            else if (errorCode == "auth/internal-error")
-                response = {error:"Azáldóját! A szerveren hiba történt, próbáld újra!"};
-            else if (errorCode == "auth/wrong-password")
-                response = {error:"Azt a hét meg a nyolcát! Lehet elírtad a jelszavad."};
-            else if (errorCode == "auth/too-many-requests")
-                response = {error:"Ó te jó ég! Túl sokszor próbáltál bejelentkezni, próbálkozz később!"};
-            else
-                response = {error:"error: " + errorCode + " - " + errorMessage};
-        });
 
         return response
 

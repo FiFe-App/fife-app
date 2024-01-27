@@ -67,9 +67,9 @@ const LoginScreen = ({ navigation, route }) => {
       <Helmet>
         <meta name="theme-color" content="#FDEEA2"/>
       </Helmet>
-      <LinearGradient colors={["#FDEEA2", "#FDEEA2"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
+      <LinearGradient colors={["#fdf9e5", "#fdf9e5"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
         
-      <NewButton title={<><Icon name="chevron-back" size={25}/>Rólunk</>} onPress={()=>navigation.push('rolunk')} style={{padding:10,alignSelf:'flex-start'}} textStyle={{fontSize:25}} color='#FDEEA2'/>
+      <NewButton title={<><Icon name="chevron-back" size={25}/>Rólunk</>} onPress={()=>navigation.push('rolunk')} style={{padding:10,alignSelf:'flex-start'}} textStyle={{fontSize:25}} color='#fdf9e5'/>
         
       <View style={[{backgroundColor:'#fdf4c8',borderRadius:50,padding:small?30:50,paddingTop:0,margin:5,marginTop:20,maxWidth:'95%',alignItems:'center'}]}>
           {width >= 900 ?
@@ -145,14 +145,14 @@ const  LoginForm = () => {
     <View style={{justifyContent:'center',alignItems:"center",zIndex:-1,width:'100%'}}>
       <View style={{flexDirection:'column',flexGrow:1,width:'100%'}}>
           <TextInput
-            style={[styles.searchInput,{width: width <= 900 ? 200 : '100%',webkitBoxShadow: '0 0 0 30px white inset'} ]}
+            style={[styles.searchInput,{width: width <= 900 ? 200 : '100%',WebkitBoxShadow: '0 0 0 30px white inset'} ]}
             onChangeText={onChangeUsername}
             editable
             placeholder="Email-cím"
             inputMode='email'
           />
           <TextInput
-            style={[styles.searchInput,{width: width <= 900 ? 200 : '100%',webkitBoxShadow: '0 0 0 30px white inset'} ]}
+            style={[styles.searchInput,{width: width <= 900 ? 200 : '100%',WebkitBoxShadow: '0 0 0 30px white inset'} ]}
             onChangeText={onChangePassword}
             editable
             textContentType="password"
@@ -164,7 +164,7 @@ const  LoginForm = () => {
           onPress={() => signIn(username, password, onChangeLoginError)}>
           {!loading ?
           <MyText bold size={17}>Bejelentkezés!</MyText>
-          :<ActivityIndicator />}
+          :<ActivityIndicator color="#fdf9e5"/>}
         </Pressable>
       </View>
       {!!loginError && <View style={[styles.error,{maxWidth:small?400:600}]}>
@@ -218,15 +218,15 @@ export const RegisterForm = ({setData,dataToAdd,style}) => {
     })
   }
   return (
-    <View style={[{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,margin:20,width:'100%'},style]}>
-        <MyText>Email-cím</MyText>
+    <View style={[{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,width:'100%'},style]}>
+        <MyText style={styles.text}>Email-cím</MyText>
         <TextInput
           style={styles.searchInput}
           onChangeText={onChangeEmail}
           editable
           placeholder="email@gmail.com"
         />
-        <MyText>Jelszó</MyText>
+        <MyText style={styles.text}>Jelszó</MyText>
         <TextInput
           style={styles.searchInput}
           onChangeText={onChangePassword}
@@ -235,7 +235,7 @@ export const RegisterForm = ({setData,dataToAdd,style}) => {
             secureTextEntry
             placeholder="***************"
         />
-        <MyText>Jelszó újra</MyText>
+        <MyText style={styles.text}>Jelszó újra</MyText>
         <TextInput
           style={styles.searchInput}
           onChangeText={onChangePasswordAgain}
@@ -244,7 +244,7 @@ export const RegisterForm = ({setData,dataToAdd,style}) => {
             secureTextEntry
             placeholder="***************"
         />
-        <MyText style={styles.error} >{loginError}</MyText>
+        {!!loginError&&<MyText style={styles.error} >{loginError}</MyText>}
         <NewButton style={styles.headline} title="Kész!" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
           signUp(email,password)
         } />
@@ -282,17 +282,17 @@ export const MoreInfoForm = ({setData,style}) => {
     setData({name,bio,username:usernameValid?username:null})
   }, [name,bio,username,usernameValid]);
   return (
-    <View style={[{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,margin:20,width:'100%'},style]}>
-        <MyText>Neved, vagy ahogy szeretnéd, hogy szólítsanak:)</MyText>
+    <View style={[{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,width:'100%'},style]}>
+        <MyText style={styles.text}>A Neved</MyText>
         <TextInput
           style={styles.searchInput}
           onChangeText={onChangeName}
           editable
           placeholder="Fiatal Felnőtt"
         />
-        <MyText>Az egyedi felhasználóneved</MyText>
+        <MyText style={styles.text}>Az egyedi felhasználóneved</MyText>
         <View style={[{flexDirection:'row',width:'100%'}]}>
-            <Icon style={{position:"absolute",alignSelf:'center',top:15,left:15}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={usernameValid ? "green" : "red"}/>
+            <Icon style={{position:"absolute",alignSelf:'center',top:10,left:10}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={'#fdcf99'}/>
             <TextInput
               style={[styles.searchInput,{paddingLeft:50,marginRight:0}]}
               onChangeText={onChangeUsername}
@@ -300,7 +300,7 @@ export const MoreInfoForm = ({setData,style}) => {
               placeholder="fifevok69420"
             />
           </View>
-            {!usernameValid && !!username && <MyText style={[localStyle.label,{color:'red'}]}>Nem lehet ez a felhasználóneved!</MyText>}
+            {!usernameValid && !!username && <MyText style={[localStyle.label,{color:'#fdcf99'}]}>Nem lehet ez a felhasználóneved!</MyText>}
 
     </View>
   )

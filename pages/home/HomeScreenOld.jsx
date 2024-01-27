@@ -318,11 +318,12 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
       <Animated.View                 // Special animatable View
       style={[{
         transform: [{ scale: sizeC }],
-        transformOrigin:'50% 30%'
+        transformOrigin:'50% 30%',
       },style]}
       >
       <Pressable onPress={handleGrow}>
-        <Image source={require('../../assets/logo.png')} style={{width:50,height:50,zIndex:10,elevation: 10}}/>
+        <Image source={require('../../assets/logo.png')} style={{width:50,height:50,
+        zIndex: sizeC,elevation: sizeC}}/>
       </Pressable>
     </Animated.View>
     )

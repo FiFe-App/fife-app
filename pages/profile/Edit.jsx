@@ -30,7 +30,7 @@ import { setTempData } from '../../lib/userReducer';
 import { deepEqual } from '../../lib/functions';
 import MapElement from '../maps/MapElementNew';
 
-const bgColor = '#FDEEA2'//'#ffd581dd'
+const bgColor = '#fcf3d4'//'#ffd581dd'
 const themeColor = '#000';//#ba9007
 const categories = cats.sale.map(c=>{return c.name});
 
@@ -151,13 +151,9 @@ const Profile = ({ navigation, route }) => {
       .catch(err=>console.error('uploadError',err))
     if (database)
     if (uid) {
-        if (newData.username != data.username) {
-          console.log(uid);
-          //await set(databaseRef(database, 'usernames/' + newData.username), {owner:uid})
-        }
         console.log("data to upload:", {
           data:{...newData,friendship:undefined},
-          buziness: page.buziness?.map(bu=>{
+          buziness: page?.buziness?.map(bu=>{
             if (bu?.id == null && bu?.removed == true) return
             return {
               ...bu,
@@ -170,7 +166,7 @@ const Profile = ({ navigation, route }) => {
           data:{...newData,friendship:undefined},
           page:{
               ...page,
-              buziness: page.buziness?.map(bu=>{
+              buziness: page?.buziness?.map(bu=>{
                 if (bu?.id == null && bu?.removed == true) return
                 return {
                   ...bu,
@@ -248,7 +244,7 @@ const Profile = ({ navigation, route }) => {
 
   if (!loading)
   return(
-    <BasePage full style={{paddingRight:small?5:50,paddingLeft:small?5:25,paddingBottom:50,backgroundColor:bgColor,flex:1}}>
+    <BasePage full style={{paddingRight:small?5:50,paddingLeft:small?5:25,paddingBottom:50,flex:1}}>
       <Auto style={{flex:'none'}}>
         <GoBack style={{marginLeft:20}}/>
         <Row style={{justifyContent:"center"}}>
@@ -274,8 +270,8 @@ const Profile = ({ navigation, route }) => {
           <Input attribute="name" name="Név" 
             helpText='Írd ide, hogy hogyan szeretnéd hogy szólítsanak mások:)'
             small={small} setNewData={setNewData} newData={newData} data={data} saving={saving}/>
-          <Input attribute="title" name="Titulus" 
-            helpText='Megadhatod, hogy mi a te fő bizniszed'
+          <Input attribute="username" name="Felhasználóneved" 
+            helpText='Megadhatsz egy egyedi felhasználónevet'
             small={small} setNewData={setNewData} newData={newData} data={data} saving={saving}/>
 
           {false&&<Row style={{flex:width <= 900 ? 'none' : 1}}>
@@ -297,10 +293,10 @@ const Profile = ({ navigation, route }) => {
 
       </Auto>
       <Auto style={{flex:1,zIndex:-1,elevation: -1}}>
-          {true&&<Section title="Helyzetem" flex={width <= 900 ? 'none' : 1} style={{}}>
+          {true&&<Section title="Helyzetem" flex={width <= 900 ? 'none' : 1} style={{}} helpText="Húzd arra a környékre a kört, amerre sokat jársz. Így a kereső tudni fogja ki van közelebb.">
             {
               <MapElement style={{}}
-                data={page} editable setData={(e)=>setPage({...page,location: e.location})}/>
+                data={page} editable setData={(e)=>setPage({...page,location: e?.location?.length == 2 ? e.location : undefined})}/>
             }
           </Section>}
         <View style={{flex:(width <= 900 ? 'none' : 2)}}>
@@ -479,7 +475,10 @@ const Profile = ({ navigation, route }) => {
 
     return (
       <View>
-        <TextInput style={[localStyles.fcontainer,{marginLeft:small?5:25,padding:5,fontSize:30}]}
+        {true && 
+        <MyText size={16} style={{padding:10}}
+        >{helpText}</MyText>}
+        <TextInput style={[localStyles.fcontainer,{marginLeft:small?5:25,marginTop:4,padding:5,fontSize:30}]}
           onChangeText={(e)=>setNewData({...newData, [attribute]: e})}
           editable
           onFocus={()=>setOpened(true)}
@@ -489,9 +488,6 @@ const Profile = ({ navigation, route }) => {
           disabled={saving}
           defaultValue={data?.[attribute]}
         />
-        {opened && 
-        <MyText size={16} style={{padding:10}}
-        >{helpText}</MyText>}
       </View>)
   }
 

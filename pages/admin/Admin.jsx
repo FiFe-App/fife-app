@@ -1,4 +1,4 @@
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import { get, getDatabase, ref } from "firebase/database";
 import { useCallback, useContext, useEffect, useState } from "react";
@@ -11,8 +11,10 @@ import { config } from "../../firebase/authConfig";
 import { FirebaseContext } from "../../firebase/firebase";
 import List from "./List";
 
-const Admin = ({navigation,route}) => {
-    const [index, setIndex] = useState(0);
+const Admin = ({}) => {
+    const navigation = useNavigation();
+    const route = useRoute();
+    const [index, setIndex] = useState(Number(route.params?.index||0));
     const {database,api} = useContext(FirebaseContext)
     const [routes] = useState([
       { key: 'reports', title: 'Jelentések', focusedIcon: 'alert-circle', unfocusedIcon: 'alert-circle-outline'},
@@ -39,34 +41,37 @@ const Admin = ({navigation,route}) => {
         setData(null)
         setLoading(true)
         console.log('index',index);
+        navigation?.setParams({index});
         (async ()=>{
           switch (index) {
             case 0:
               setData(
                 (await fn2('report')).map((el)=>{
                   
-                  return <List data={el} />
+                  return <List data={el} author={el.author} message={'reportolta: '+el.uid}/>
                 }
               ))
                 break;
             case 1:
               setData(
-                (await fn('admin/users')).map((u)=>{
-                    return u.data.map(el=><List key={'admin-'+u.author} data={el} author={u.author}/>)
+                (await fn('admin/users')).sort((a, b) => a.metadata.creationTime - b.metadata.creationTime).map((u)=>{
+                  console.log(u);
+                    return <List key={'admin-'+u.uid} data={u} author={u.uid}/>
                 }
               ))
                 break;
             case 2:
                 setData(
                   (await fn2('bugReport')).map((el)=>{
-                    return <List data={el} />
+                    return <List data={el} author={el.author}/>
                   }
                 ))
                 break;
             case 3:
                 setData(
                   (await fn('admin/docs')).map((u)=>{
-                    return u.data.map(el=><List key={'admin-'+u.author} data={el} author={u.author}/>)
+                    console.log(u);
+                    return <List key={'admin-'+u.author.uid} data={{message:u.title+''}} title={u.category} author={u.author.uid}/>
                   }
                 ))
                 break;
@@ -81,8 +86,8 @@ const Admin = ({navigation,route}) => {
         try {
           resList = (await axios.get(serverPath,config())).data
           console.log('list',resList);
-          return resList;
           setLoading(false)
+          return resList;
             
         } catch (error) {
           if (error?.response?.data == 'Token expired') {
@@ -101,12 +106,12 @@ const Admin = ({navigation,route}) => {
                 const all = res.val()
                 console.log(all);
                 const list = Object.keys(all).map(key=>{
-                  return Object.values(all[key]).map(){
-                    author: key,
-                    data:Object.values(all[key])
-                }
+
+                  return Object.values(all[key]).map(e=>{
+                    return {...e,author:key}
+                  })
                   
-                }).flat(1)
+                }).flat(1).reverse();
                 console.log('fn2',list);
                 return list
             }).catch(err=>{ 

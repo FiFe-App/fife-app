@@ -61,22 +61,20 @@ const Document = ({navigation,route}) => {
 
     if (loading) return <View style={{flex:1,backgroundColor:'#ffffd6'}}><Loading color="#fff"/></View>
     return (
-    <View style={{flex:1}}>
-    <GoBack breakPoint={10000} previous="cikkek" text={null}  floating style={{backgroundColor:'#FFC372'}} color='black'/>
-    <ScrollView style={{backgroundColor:'#ffffd6',flex:1}}>
+    <BasePage style={{paddingTop:0,paddingBottom:20}}>
+        <GoBack breakPoint={10000} floating style={{backgroundColor:'#FFC372'}} color='black'/>
         <Image source={{uri:url}} resizeMode={"cover"}  style={[
             {height:300,width:'100%',backgroundPosition:'bottom',backgroundColor:'#ffffd6',alignSelf:'center'},
             width>900&&{maxWidth:900}
             ]} />
-        <View style={{padding:20,maxWidth:900,alignSelf:'center',backgroundColor:'#ffffd6',flex:1}}>
+        <View style={{padding:20,maxWidth:900,alignSelf:'center',flex:1}}>
             <MyText size={24} bold>{data?.title}</MyText>
             <MyText size={20} >{data?.text}</MyText>
             <View style={{marginTop:width <= 900 ? 5 : 30}}>
                 {data?.forms.map((f)=> <CustomInput {...f} setData={setInput} data={input} />)}
             </View>
         </View>
-    </ScrollView>
-    </View>)
+    </BasePage>)
 }
 
 export default Document;

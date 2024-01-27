@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
       flex: 1,
     },
     text: {
-      fontSize:17,
+      fontSize:20,
       textAlign:'left',
       padding:20,
       marginBottom: 10,

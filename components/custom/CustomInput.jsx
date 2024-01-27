@@ -52,12 +52,13 @@ const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,pla
             </Row>
         </TouchableRipple>
     }
-    if (type=='rich-text')
-    return (<RichEditor
-        initialContentHTML={'Hello <b>World</b> <p>this is a new paragraph</p> <p>this is another new paragraph</p>'}
-        editorInitializedCallback={() => this.onEditorInitialized()}
-      />)
-    if (type=='image') return <MyImagePicker />
+    if (type=='image') return "image"//<MyImagePicker />
+    if (type=='rate') return <Row>
+        {[0,1,2,3,4,5,6,7,8,9].map(e=>{
+            return <NewButton title={e} textStyle={{color:e+1==data[attribute]?'white':'black'}}
+            color={e+1==data[attribute]?'#000000':`hsl(${108-e*12},100%,75%)`} onPress={()=>setData({...data,[attribute]:e+1})}/>
+        })}
+    </Row>
     if (type=='null') return  null;
     return (<MyText>{LabelElement} Nincs ilyen típus {type}</MyText>)
 }

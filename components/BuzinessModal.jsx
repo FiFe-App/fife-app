@@ -17,6 +17,7 @@ const BuzinessModal = ({open,setOpen,user1,user2,b1,b2}) => {
 
     useEffect(() => {
         (async ()=>{
+            if (open)
             axios.get('users/mybuziness',config()).then(res=>{
                 setMyB(res.data)
             })

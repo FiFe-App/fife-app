@@ -1,9 +1,9 @@
+import Hotjar from '@hotjar/browser';
 import { StatusBar } from 'expo-status-bar';
 import React, { Suspense, useContext, useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from 'react-native-error-boundary';
-import Hotjar from '@hotjar/browser';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const siteId = 3704200;
 const hotjarVersion = 6;
@@ -63,16 +63,14 @@ import { useSelector } from 'react-redux';
 
 import { Helmet } from 'react-helmet';
 
-import { LinearGradient } from 'expo-linear-gradient';
-import { onMessage } from "firebase/messaging";
-import { Loading, MyText, NewButton, Row } from './components/Components';
-import firebaseConfig from './firebase/firebaseConfig';
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setUserData } from './lib/userReducer';
-import BugModal from './components/BugModal';
+import { LinearGradient } from 'expo-linear-gradient';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { onMessage } from "firebase/messaging";
 import { NativeViewGestureHandler } from 'react-native-gesture-handler';
+import BugModal from './components/BugModal';
+import { Loading, MyText, NewButton, Row } from './components/Components';
+import { setUserData } from './lib/userReducer';
 
 const Stack = createNativeStackNavigator();
 const prefix = Linking.createURL('/');
@@ -100,7 +98,6 @@ export default function app(props) {
     return (
         <NativeViewGestureHandler disallowInterruption={true}>
           <Provider store={store}>
-            <MetaHeader />
             <SnowfallWrap />
             <PersistGate loading={<MyText>Loading...</MyText>} persistor={persistor}>
               <FirebaseProvider>
@@ -130,19 +127,20 @@ const MetaHeader = () => {
     return (<Helmet>
       <meta name="theme-color" content="#FDEEA2"/>
       <meta name="title" content="fife alkalmazás" />
-      <meta name="description" content="Sokrétű online felületet a nagyvárosban élőknek." />
+      <meta name="description" content="A biztonságos online tér" />
 
       <meta property="og:type" content="website"/>
       <meta property="og:url" content="https://metatags.io/"/>
       <meta property="og:title" content="fife alkalmazás"/>
-      <meta property="og:description" content="Sokrétű online felületet a nagyvárosban élőknek."/>
-      <meta property="og:image" content="https://fifeapp.hu/static/media/logo.d2acffec.png"/>
+      <meta property="og:description" content="A biztonságos online tér"/>
 
       <meta property="twitter:card" content="summary_large_image"/>
       <meta property="twitter:url" content="https://metatags.io/"/>
       <meta property="twitter:title" content="fife alkalmazás"/>
-      <meta property="twitter:description" content="Sokrétű online felületet a nagyvárosban élőknek."/>
-      <meta property="twitter:image" content="https://fifeapp.hu/static/media/logo.d2acffec.png"/>
+      <meta property="twitter:description" content="A biztonságos online tér"/>
+      
+      <meta property="og:image" content="/static/media/web_splash.png"/>
+      <meta property="twitter:image" content="/static/media/web_splash.png"/>
     </Helmet>)
   }
     
@@ -212,21 +210,28 @@ const Navigator = () => {
               </Row>
             </View>}
           >
-      <Stack.Navigator  initialRouteName={login?"bejelentkezes":"rolunk"} 
+      <Stack.Navigator  initialRouteName={login?"fooldal":"rolunk"} 
       
-      fallback={<View style={{backgroundColor:'#FDEEA2',flex:1}}></View>} 
+      fallback={<View style={{backgroundColor:'#fcf3d4',flex:1}}></View>} 
       screenOptions={{ header: () => <LogoTitle />,headerStyle:{zIndex:100,elevation:100,position:'absolute'}, title:"fife app",}}>
           <>
-            { !user?.uid && <>
+            { !user?.uid && /** NOT LOGGED IN pages */ <>
             <Stack.Screen name="bejelentkezes" component={LoginScreen} options={{ headerShown: false, title:'Bejelentkezés' }} />
             <Stack.Screen name="rolunk" component={About} options={{ headerShown: false, title:"A fife appról" }} />
             <Stack.Screen name="regisztracio" component={First} options={{ headerShown: false, title:'Regisztráció' }} />
             <Stack.Screen name="elfelejtett-jelszo" component={Forgot} options={{ headerShown: false, title:'Új jelszó' }} />
             </>
             }
-              {!!user?.uid && <>
+            
+            {/** Public pages */}
+            <Stack.Screen name="fooldal" component={HomeScreen} options={{title:'fife főoldal'}} />
+            <Stack.Screen name="cserebere" component={Sale} options={{ title: "cserebere" }} />
+            <Stack.Screen name="terkep" component={Maps} options={{title:'fife térkép'}} />
+            <Stack.Screen name="adatvedelem" component={PrivacyPolicy} options={{ headerShown: false }} />
+            <Stack.Screen name="hasznalati-feltetelek" component={TermsAndServices} options={{ headerShown: false }} />
+
+              {/** Logged in pages */ !!user?.uid && <>
               {user.userData.emailVerified ? <>
-                <Stack.Screen name="fooldal" component={HomeScreen} options={{title:'fife főoldal'}} />
                 <Stack.Screen name="kereses" component={Search} options={{title:'fife keresés'}} />
 
                 <Stack.Screen name="beallitasok" component={Settings} options={{title:'fife beállítások'}}/>
@@ -236,16 +241,15 @@ const Navigator = () => {
                 <Stack.Screen name="uzenetek" component={Messages} options={{ title: "chatek" }} />
                 <Stack.Screen name="beszelgetes" component={Chat} options={{ title: "chat" }} />
 
-                <Stack.Screen name="terkep" component={Maps} options={{title:'fife térkép'}} />
 
                 <Stack.Screen name="esemenyek" component={Events} options={{ title: "események" }} />
                 <Stack.Screen name="esemeny" component={Event} />
                 <Stack.Screen name="uj-esemeny" component={NewEvent} options={{ title: "új esemény" }} />
                 
-                <Stack.Screen name="cserebere" component={Sale} options={{ title: "cserebere" }} />
                 <Stack.Screen name="uj-cserebere" component={Item} options={{ title: "új cserebere" }} />
 
                 <Stack.Screen name="cikkek" component={Document} options={{ title: "cikkek" }} />
+                <Stack.Screen name="uj-cikkek" component={Document} options={{ title: "új cikk" }} />
                 <Stack.Screen name="blog" component={Post} options={{ title: "blog" }} />
                 <Stack.Screen name="test-es-lelek" component={BodyAndSoul} options={{ title: "test és lélek" }} />
                 <Stack.Screen name="custom" component={CustomPage} options={{ title: "teszt" }} />
@@ -259,12 +263,11 @@ const Navigator = () => {
             
             </>}
 
-            { user?.uid == '26jl5FE5ZkRqP0Xysp89UBn0MHG3' && <>
+            { /** Admin pages */ user?.uid == '26jl5FE5ZkRqP0Xysp89UBn0MHG3' && <>
             <Stack.Screen name="admin" component={AdminScreen} options={{ headerShown: false, title:'admin' }} />
             </>
             }
-            <Stack.Screen name="adatvedelem" component={PrivacyPolicy} options={{ headerShown: false }} />
-            <Stack.Screen name="hasznalati-feltetelek" component={TermsAndServices} options={{ headerShown: false }} />
+
           </>
         
       </Stack.Navigator>

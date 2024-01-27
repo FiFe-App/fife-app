@@ -1,7 +1,7 @@
 
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import ImageModal from "react-native-image-modal";
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -18,7 +18,7 @@ import { SaleContext } from "./SaleContext";
 
 
 export const Item = ({data,toLoadId}) => {
-    const { selected,setSelected,setDeleteModal,setToEdit,interestModal,setInterestModal, IList, setIList } = useContext(SaleContext);
+    const { selected,setSelected,setDeleteModal,setToEdit,interestModal,setInterestModal, IList, setIList,shareModal,setShareModal } = useContext(SaleContext);
     const uid = useSelector((state) => state.user.uid)
     const {api} = useContext(FirebaseContext);
     const navigation = useNavigation();
@@ -29,6 +29,7 @@ export const Item = ({data,toLoadId}) => {
     const [loading, setLoading] = useState(true);
     const [elapsed, setElapsed] = useState();
     const [openedImage, setOpenedImage] = useState(null);
+    const [haveInterested, setHaveInterested] = useState(false);
 
     useFocusEffect(
       useCallback(() => {
@@ -85,6 +86,11 @@ export const Item = ({data,toLoadId}) => {
       setLoadData({...loadData,interested:newInterested,interestedBy:uid})
     }
 
+    useEffect(() => {
+      if (interestModal=='submitted')
+        setHaveInterested(true)
+    }, [interestModal]);
+
     const goBack = () => {
       if (width <= 900)
       navigation.push('cserebere')
@@ -109,7 +115,7 @@ export const Item = ({data,toLoadId}) => {
           </View>
           
           <Auto style={{flex:'none'}}>
-            <MyText size={30} style={{marginTop:0}}>{title}</MyText>
+            <MyText size={30} style={{marginTop:0}} selectable>{title}</MyText>
           </Auto>
           {uid!=author && 
             <MyText style={[styles.author,{}]}>{'Ezt '}
@@ -129,22 +135,31 @@ export const Item = ({data,toLoadId}) => {
               <NewButton style={{marginBottom:5,fontSize:25,padding:10,flex:1}} title='szerkesztés'  color='#27aa38' onPress={edit}/>
               <NewButton style={{marginBottom:5,fontSize:25,padding:10,flex:1}} title='törlés' color='#aa2786' onPress={del}/>
             </Row>}
-
-          {uid!=author ?
-            <NewButton 
-              style={{marginHorizontal:0}}
-              title={saleInterest?.find(e=>e.author==uid)?"Mégsem érdekel":"Érdekel"} 
-              onPress={()=>handleInterest(!saleInterest?.find(e=>e.author==uid))}
-            />:
-            <NewButton 
-              style={{marginHorizontal:0}}
-              title={saleInterest?.length?"Érdeklődők megtekintése":"Még senki sem érdeklődik."} 
-              onPress={saleInterest?.length?()=>{
-                setIList(saleInterest)
-              }:undefined}
-            />
-          }
-          <MyText style={{marginBottom:20,fontSize:17,padding:10,backgroundColor:'#fff',borderRadius:8}}>{description}</MyText>
+            
+          <Row>
+            <NewButton title={<Icon name="share-social-outline" size={24}/>} icon onPress={()=>setShareModal(id)}/>
+            {uid!=author && uid!=null &&
+              <NewButton
+                style={{marginHorizontal:0,flexGrow:1}}
+                title={haveInterested||saleInterest?.find(e=>e.author==uid)?"Már érdeklődtél":"Érdekel"}
+                onPress={haveInterested||saleInterest?.find(e=>e.author==uid)?()=>navigation.push('uzenetek',{uid:author}):()=>handleInterest(!saleInterest?.find(e=>e.author==uid))}
+              />}
+              {uid==author && <NewButton
+                style={{marginHorizontal:0,flexGrow:1}}
+                title={saleInterest?.length?"Érdeklődők megtekintése":"Még senki sem érdeklődik."}
+                onPress={saleInterest?.length?()=>{
+                  setIList(saleInterest)
+                }:undefined}
+              />}
+              {uid==null&&<NewButton
+                style={{marginHorizontal:0,flexGrow:1}}
+                title={"Jelentkezz be a érdeklődéshez!"}
+                onPress={()=>{
+                  navigation.push('bejelentkezes')
+                }}
+              />}
+          </Row>
+          <MyText style={{marginBottom:20,fontSize:17,padding:10,backgroundColor:'#fff',borderRadius:8}} selectable>{description}</MyText>
           {!!images.length && <ScrollView horizontal style={{backgroundColor:'rgb(253, 245, 203)',flex:1,marginBottom:20}}>
             {images.map((img,ind)=>
               <View key={"img"+ind} style={styles.image}>
@@ -165,7 +180,7 @@ export const Item = ({data,toLoadId}) => {
         </> : <View style={{backgroundColor:'rgb(253, 245, 203)',alignSelf:'center',alignItems:'center',marginTop:100,maxWidth:'80%'}}>
         <Icon name="alert-circle" size={100}/>
         <MyText size={30}>Bakfitty!</MyText>
-        <MyText>Nincs itt semmi! Lehet törölték a posztot, vagy valami hiba történt.</MyText>
+        <MyText>Hiba történt! Lehet törölték a hirdetést, vagy valami hiba történt.</MyText>
         <NewButton title="Próbáld újra" onPress={()=>location.reload()} style={{padding:10}}/>
       </View>}
         

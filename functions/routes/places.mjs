@@ -2,6 +2,7 @@ import express from "express";
 import adb from "../db/conn.mjs";
 import { ObjectId } from "mongodb";
 import { PrismaClient } from "@prisma/client";
+import { checkAuth } from "../lib/auth.mjs";
 
 const router = express.Router();
 const prisma = new PrismaClient()
@@ -20,7 +21,7 @@ router.get("/latest", async (req, res) => {
   res.send(results).status(202);
 });
 
-router.post("/nearby", async (req, res) => {
+router.post("/nearby",  async (req, res) => {
 
   const {myLocation, category} = req.body;
   const db = await adb
@@ -114,7 +115,7 @@ router.get("/:id", async (req, res) => {
 
 
 // Add a new document to the collection
-router.post("/:id", async (req, res) => {
+router.post("/:id",checkAuth, async (req, res) => {
   console.log('create',req.body);
   const cat = Number(req.params.id)
   if (!(cat >= 0 && cat <= 20)) {
@@ -135,7 +136,7 @@ router.post("/:id", async (req, res) => {
   res.send(result.id)
 });
 
-router.get("/:id/like", async (req, res) => {
+router.get("/:id/like",checkAuth, async (req, res) => {
   console.log('create',req.body);
   const result = await prisma.like.findMany({
     where: {
@@ -148,7 +149,7 @@ router.get("/:id/like", async (req, res) => {
   return "asd"
 });
 
-router.post("/:id/like", async (req, res) => {
+router.post("/:id/like",checkAuth, async (req, res) => {
   console.log('create',req.body);
   const test = await prisma.like.findMany({
     where: {

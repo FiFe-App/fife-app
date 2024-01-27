@@ -129,36 +129,38 @@ const Messages = ({route,navigation}) => {
         });
       }, [selected]);
     return (
-    <View style={{flex:1, flexDirection:'row',backgroundColor:'#FDEEA2'}}>
+    <View style={{flex:1, flexDirection:'row',backgroundColor:'#fdf6d1'}}>
         <View style={{flex:1}}>
             <Row style={{padding:10}}>
                 <TextInput 
                 placeholder="Keresés a fifék közt"
-                style={{flexGrow:1,height:50,padding:15,margin:5,backgroundColor:'#fdf7d8'}} 
+                style={{flexGrow:1,height:50,padding:15,margin:5,backgroundColor:'#ffffff',borderRadius:8}} 
                 onChangeText={setSearch} value={search} />
                 <NewButton title={<Icon name="close" size={20}  style={{left:30,color:'#555555'}} />} 
                 style={{position:'absolute',right:55}} icon color="#fdf7d800"
                 onPress={()=>{setSearch('')}}/>
                 <NewButton title={<Icon name="search" size={30} style={{padding:10}} />} />
             </Row>
-            <ScrollView style={{flex:1}} contentContainerStyle={{paddingTop:5}}>
+            <ScrollView style={{flex:1}} contentContainerStyle={{}}>
 
-            <MyText style={{padding:8}}>korábbi beszélgetések</MyText>
+            {!!filteredList.length && <MyText style={{padding:8}}>korábbi beszélgetések</MyText>}
                 {!!filteredList.length && filteredList.map((e,i)=>{
                     console.log(i)
                     return (
                         <>
-                            <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected}/>
+                            <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected}/>
                         </>
                     )
                 })}
 
                 {!!finalExtraList?.length && <><MyText style={{padding:8}}>egyéb találatok</MyText>
                     {finalExtraList.map(e=>{
-                        return <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected}/>
+                        return <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected}/>
                     }
                     )}</>
                 }
+                {!filteredList.length && !finalExtraList?.length && 
+                <MyText style={{padding:8}}>Nincs találat</MyText>}
                 
             </ScrollView>
         </View>
@@ -174,7 +176,7 @@ const Messages = ({route,navigation}) => {
 function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
     const navigation = useNavigation();
     const { width } = useWindowDimensions();
-    const [newMessage, setNewMessage] = useState(newMessageProp);
+    const [newMessage, setNewMessage] = useState( typeof newMessageProp == "boolean" && !newMessageProp);
     const elapsed = elapsedTime(last?.date)
     
     const onPress = () => {
@@ -190,7 +192,7 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
     }
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#fdf8d9' : '#fff'},
+        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#ffde7e' : '#fff'},
             {shadowOffset: {width: 2, height: 4},shadowOpacity: 0.2,shadowRadius: 1,}]}>
             <ProfileImage style={styles.listIcon} size={50} uid={uid}/>
             <View style={{marginLeft: 5,flexGrow:1}}>

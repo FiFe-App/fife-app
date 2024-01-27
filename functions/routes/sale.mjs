@@ -1,8 +1,10 @@
-import express from "express";
-import adb from "../db/conn.mjs";
-import { ObjectId } from "mongodb";
 import { PrismaClient } from "@prisma/client";
+import express from "express";
 import { database, storage } from "firebase-admin";
+import adb from "../db/conn.mjs";
+import { checkAuth } from "../lib/auth.mjs";
+import { getDatabase } from "firebase-admin/database";
+import { getMessaging } from "firebase-admin/messaging";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -64,7 +66,7 @@ router.get("/:id", async (req, res) => {
 
 });
 
-router.patch("/:id/images", async (req, res) => {
+router.patch("/:id/images", checkAuth, async (req, res) => {
   
   const result = await prisma.sale.update({
     where: {
@@ -80,9 +82,12 @@ router.patch("/:id/images", async (req, res) => {
   else res.send(result).status(200);
 });
 
-router.patch("/:id/interest", async (req, res) => {
+router.patch("/:id/interest",checkAuth, async (req, res) => {
   const { message } = req.body;
   const id = req.params.id
+
+  //author: akinek megy az üzenet
+  // érdeklődő: req.uid
 
   const result = await prisma.saleInterest.create({
     data:{
@@ -95,64 +100,64 @@ router.patch("/:id/interest", async (req, res) => {
       }
     }
   })
+  const sale = await prisma.sale.findFirst({
+    where: {
+      id
+    }
+  })
+  
+  const db = getDatabase();
+  const ref = db.ref('users/'+sale.author+'/data/fcm/token');
+  const name = db.ref('users/'+req.uid+'/data/name');
+  ref.once("value", function(snapshot) {
+      name.once("value", function(nameSnapshot) {
+      const token = snapshot.val();
+      const name = nameSnapshot.val();
+      const payload = {
+          token: token,
+          notification: {
+              title: name+' érdeklődik a(z) '+sale.title+' hirdetésed iránt!',
+              body: message,
+              image: 'https://i.ibb.co/KxgW84L/logo.png',
+          },
+          webpush: {
+            fcmOptions: {
+              link: "https://fifeapp.hu/uzenetek?uid="+req.uid
+            }
+          }
+      };
+      getMessaging().send(payload).then(res=>{
+        console.log('siker',res,payload);
+      }).catch(err=>{
+        console.log('vmi mem jo',err);
+      })
+      })
+  });
 
   if (!result) res.send("Not found").status(404);
   res.send(result);
 });
 
-router.patch("/:id/book/:ind", async (req, res) => {
-  const { booked, bookedBy } = req.body;
-  const result = await prisma.sale.updateMany({
+router.delete("/:id/interest",checkAuth, async (req, res) => {
+  const { message } = req.body;
+  const id = req.params.id
+
+  //author: akinek megy az üzenet
+  // érdeklődő: req.uid
+
+  const result = await prisma.saleInterest.deleteMany({
     where: {
-      OR: [
-        {
-          id: req.params.id,
-          booked: false
-        },
-        {
-          id: req.params.id,
-          booked: true,
-          bookedBy: req.uid
-        },
-      ]
-    },
-    data: {
-      booked,
-      bookedBy: booked ? req.uid : null
+      id: id,
+      author: req.uid
     }
   })
 
   if (!result) res.send("Not found").status(404);
-  else {
-    const updated = await prisma.sale.findFirst({
-      where: {
-        id: req.params.id,
-      },
-      select: {
-        author: true
-      },
-    })
-    console.log(result);
-    if (booked) {
-      await database().ref('users/'+updated.author+'/messages/'+req.uid).push({
-        text: req.params.id,
-        time: Date.now(),
-        uid: req.uid,
-        automated: true
-      })
-      await database().ref('users/'+req.uid+'/messages/'+updated.author).push({
-        text: req.params.id,
-        time: Date.now(),
-        uid: req.uid,
-        automated: true
-      })
-    }
-    res.send(!!result.count).status(200)
-  };
+  res.send(result);
 });
 
 // Add a new document to the collection
-router.post("/", async (req, res) => {
+router.post("/",checkAuth,  async (req, res) => {
   console.log('create',req.body);
   const result = await prisma.sale.create({
     data: req.body
@@ -162,7 +167,7 @@ router.post("/", async (req, res) => {
   res.send(result.id);
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id",checkAuth, async (req, res) => {
   console.log(req);
   const result = await prisma.sale.updateMany({
     where: {
@@ -177,7 +182,7 @@ router.patch("/:id", async (req, res) => {
 });
 
 // Delete an entry
-router.delete("/:id", async (req, res) => {
+router.delete("/:id",checkAuth, async (req, res) => {
   const result = await prisma.sale.deleteMany({
     where: {
           id: req.params.id,

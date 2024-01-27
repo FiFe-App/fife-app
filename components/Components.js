@@ -26,37 +26,6 @@ import { push } from '../lib/searchReducer';
 //Dimensions.get('window');
 
 const Loading = ({color='#ffde7e',style}) => {
-  /*const sweepAnim = useRef(new Animated.Value(0)).current  // Initial value for opacity: 0
-  const fadeAnim = useRef(new Animated.Value(1)).current  // Initial value for opacity: 0
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(sweepAnim, {
-        toValue: 100,
-        easing: Easing.sin,
-        duration: 2000,
-        useNativeDriver: false
-      })
-    ).start();
-  }, [sweepAnim])
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(fadeAnim, {
-        toValue: 0.1,
-        duration: 2000,
-        useNativeDriver: false
-      })
-    ).start();
-  }, [sweepAnim])
-
-  return (
-    <View style={{ flexDirection: "row" }}>
-      <Animated.View style={[{ flex: (1) }]} />
-      <Animated.View style={[{ flex: sweepAnim, opacity: (fadeAnim), backgroundColor: props.color, height: props?.height || 5 }]} />
-      <Animated.View style={[{ flex: (1) }]} />
-    </View>
-  );*/
   return (
     <View style={[{flex:1,alignItems:'center',justifyContent:'center'},style]}>
       <ActivityIndicator color={color} size={'large'} />
@@ -68,6 +37,7 @@ const getUri = async (path) => {
   const storage = getStorage();
   const imgRef = sRef(storage, path);
   const url = await getDownloadURL(imgRef)
+  console.log(path,url);
   return url
 } 
 
@@ -180,7 +150,7 @@ function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color =
     onLayout={(event) => {
       //setRect(event.nativeEvent.layout.)
   }}
-    style={[style,{margin:0,padding:0,width:'unset',height:'unset',alignItems:'unset',boxShadow:'unset'}]}>
+    style={[style,{margin:0,padding:0,width:'unset',height:'unset',alignItems:'unset',boxShadow:'unset',border:'none'}]}>
       <TouchableRipple onPressOut={()=>setBgColor(color)} onPressIn={()=>{setBgColor(color);handleFocus()}} 
             style={[styles.newButton,
             floating && {shadowColor: "#000",shadowOffset: {width: 4, height: 4 },shadowOpacity: 0.5,shadowRadius: 3,},
@@ -189,7 +159,7 @@ function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color =
             ,style,{}]} 
             onPress={onPress} disabled={disabled}>
             {!loading ? 
-              <MyText style={[{ fontWeight: 'bold', color: isBright(bgColor) , fontSize:18, whiteSpace:'break-space' },textStyle]}>{title}</MyText>
+              <MyText style={[{ fontWeight: 'bold', color: isBright(bgColor) , fontSize:16, whiteSpace:'break-space' },textStyle]}>{title}</MyText>
             : <ActivityIndicator color={isBright(bgColor)}/> }
       </TouchableRipple>
     </View>
@@ -428,11 +398,13 @@ const SearchBar = (props) => {
   const [rect, setRect] = useState(null);
   console.log('history',history);
   const listItems = history.reverse().map((element) =>
-    <Pressable key={'search'+element} onPress={()=>onSubmit(element)} 
+    {
+      if (element.includes(text))
+    return <Pressable key={'search'+element} onPress={()=>onSubmit(element)} 
       style={[newStyles.searchList,{width:rect?.width}]}>
         <Icon name="time-outline" size={25} color="black" style={{ margin: 5 }} />
         <MyText>{element}</MyText>
-    </Pressable>
+    </Pressable>}
   );
   return (
     <View style={[{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:20,marginVertical:17},style]}>
@@ -468,7 +440,7 @@ const SearchBar = (props) => {
         </Pressable>
       </View>
         <ScrollView contentContainerStyle={{justifyContent:'flex-start',zIndex:10}} 
-        style={{position:"absolute",width:rect?.width,top:rect?.y+40,zIndex:10,left:rect?.x,backgroundColor:'#fbf7f0',borderBottomLeftRadius:8,borderBottomRightRadius:8,zIndex:20}}>
+        style={{position:"absolute",width:rect?.width,top:rect?.y+40,maxHeight:200,zIndex:10,left:rect?.x,backgroundColor:'#fbf7f0',borderBottomLeftRadius:8,borderBottomRightRadius:8,zIndex:20}}>
           {(showHistory && history.length > 0) && listItems}
         </ScrollView>
     </View>
@@ -548,7 +520,7 @@ const TextInput = React.forwardRef((props,ref) => {
       ref={ref}
       placeholderTextColor="#555"
       style={[props.style,{fontFamily:'SpaceMono_400Regular'}, 
-      isFocused && {backgroundColor:'#f0f1da'},
+      isFocused && {backgroundColor:'#fff6d5'},
       Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => {
         setIsFocused(false)

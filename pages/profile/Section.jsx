@@ -3,12 +3,14 @@ import { MyText } from "../../components/Components";
 
 const Section = (props) => {
     const { width } = useWindowDimensions();
+    const {helpText} = props;
     const small = width <= 900;
     if (props?.children)
     return(
       <View style={[localStyles.container,{flex:props?.flex,padding:small?5:20,marginLeft:small?5:25},props.style,]}>
         <View style={[{}]}>
           <MyText style={localStyles.sectionText}>{props.title}</MyText>
+          {helpText && <MyText style={[localStyles.sectionText,{fontSize:14,fontWeight:'100'}]}>{helpText}</MyText>}
         </View>
           <Animated.View style={[{ paddingHorizontal:0, flex: props?.flex, height: props.height }]} >
           {props.children}
@@ -43,7 +45,7 @@ const Section = (props) => {
     },
     sectionText:{
       fontWeight: 'bold',
-      fontSize:26,
+      fontSize:17,
 
     },
   }

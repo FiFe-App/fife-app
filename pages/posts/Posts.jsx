@@ -13,7 +13,7 @@ import { elapsedTime } from "../../lib/textService/textService";
 import Tags from "../../components/tools/Tags";
 import Posting from '../../components/homeComponents/Posting';
 
-const Blog = () => {
+const Blog = ({style}) => {
 
     const navigation = useNavigation()
     const [searchText, setSearchText] = useState('');
@@ -48,7 +48,7 @@ const Blog = () => {
 
     useEffect(() => {
         firstSearch();
-    }, []);
+    }, [recommended]);
 
     const firstSearch = () => {
         axios.get('users/mybuziness',config()).then(res=>{
@@ -57,7 +57,6 @@ const Blog = () => {
             searchDirectory(res.data.map(b=>b.name));
         })
     }
-
 
     const createPost = () => {
         if (newData.text && newData.title)
@@ -107,19 +106,18 @@ const Blog = () => {
     const header = <>
     <Posting />
     <Row>
-        <NewButton title="A bizniszednek megfelelő" color={recommended?'#ffffff':undefined} />
-        <NewButton title="Minden" color={!recommended?'#ffffff':undefined} />
+        <NewButton title="A bizniszednek megfelelő" color={recommended?'#ffffff':undefined} onPress={()=>setRecommended(true)} />
+        <NewButton title="Minden" color={!recommended?'#ffffff':undefined} onPress={()=>setRecommended(false)} />
     </Row>
-    <MyText style={{height:50,marginTop:40}}>Keresés: {myBuziness?.map(b=>{
+    {false&&<MyText style={{height:50,marginTop:40}}>Keresés: {myBuziness?.map(b=>{
         return <MyText contained style={{marginRight:20}}>{b}</MyText>
-    })}</MyText>
+    })}</MyText>}
     </>
 
     return (
-        <BasePage left={
-            <View style={{backgroundColor:'white',flex:1,minHeight:50}}><MyText size={30}>Írj te is posztot!</MyText></View>
-        }>
-            
+        <BasePage style={style} left={
+            <View style={[{backgroundColor:'white',flex:1,minHeight:50}]}><MyText size={30}>Írj te is posztot!</MyText></View>
+        }>  
             <FlatList
                 renderItem={renderItem}
                 data={data}

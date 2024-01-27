@@ -1,11 +1,11 @@
 
-import { get, ref, set } from "firebase/database";
-import { useState, useContext, useEffect } from "react";
-import { ActivityIndicator, SafeAreaView, View, Switch, Button, Image, StyleSheet } from 'react-native';
+import { ref, set } from "firebase/database";
+import { useContext, useEffect, useState } from "react";
+import { Button, StyleSheet, Switch, View } from 'react-native';
 import { useDispatch, useSelector } from "react-redux";
+import { MyText } from "../components/Components";
 import { FirebaseContext } from "../firebase/firebase";
 import { setSettings as setStoreSettings } from "../lib/userReducer";
-import { MyText } from "../components/Components";
 
 const New = ({ navigation, route }) => {
     const {database} = useContext(FirebaseContext);

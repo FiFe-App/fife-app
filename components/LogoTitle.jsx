@@ -25,6 +25,7 @@ export function LogoTitle() {
     const {api,app,auth} = useContext(FirebaseContext);
     const navigation = useNavigation();
     const dispatch = useDispatch()
+    const uid = useSelector((state) => state.user.uid)
     
     const [height, setHeight] = useState(null);
     const { width } = useWindowDimensions();
@@ -53,32 +54,34 @@ export function LogoTitle() {
         <SafeAreaView>
           <OpenNav height={height} open={open} style={{width:'100%',zIndex: 13000,elevation: 10030}}>
             <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
-            <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
-            <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
+            <MenuLink setOpen={setOpen} forUsers title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
+            <MenuLink setOpen={setOpen} forUsers title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
             <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
             <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
-            <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
+            <MenuLink setOpen={setOpen} forUsers title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
+            <MenuLink setOpen={setOpen} forNoUsers title="Bejelentkezés" text="" color="black" onPress={()=>navigation.push('bejelentkezes')} icon="exit-outline" />
           </OpenNav>
           <View style={[{flexDirection:'row',justifyContent:width <= 900 ? 'center' :'space-between',paddingLeft:width > 900 ?25:0,
-          zIndex: 9,elevation: 9,backgroundColor:'#FDEEA2'},width > 900 && {shadowOffset: {width: 0, height: 3 },shadowOpacity: 0.4,shadowRadius: 2}
-          ]}
-  shadowOffset={{height: 4,width:1}}
-  shadowOpacity={0.4} shadowRadius={3}>
-            { width <= 900 && <>{search}{bug}</>}
+            zIndex: 9,elevation: 9,backgroundColor:'#FDEEA2'},width > 900 && {shadowOffset: {width: 0, height: 3 },shadowOpacity: 0.4,shadowRadius: 2}]}
+            shadowOffset={{height: 4,width:1}}
+            shadowOpacity={0.4} shadowRadius={3}
+          >
+            { width <= 900 && !!uid && <>{search}{bug}</>}
             <HomeButton />
-            {width > 1340 && <SearchBar/>}
+            {width > 1340 && !!uid && <SearchBar/>}
             { width >  900 ?
             <View style={{flexDirection:'row',justifyContent:'center',marginRight:20,marginBottom:5}}>
               <Row>
-              {width <= 1340 && width >  900 && search}
+              {width <= 1340 && !!uid && width >  900 && search}
 
-                <MenuLink title={<Icon name='bug' size={30} />} onPress={()=>dispatch(setBugData(true))} style={{width:55,borderRadius:50,alignItems:'center',padding:10}}/>
+                <MenuLink title={<Icon name='bug' size={30} />} forUsers onPress={()=>dispatch(setBugData(true))} style={{width:55,borderRadius:50,alignItems:'center',padding:10}}/>
                 <MenuLink setOpen={setOpen} title="Főoldal" text="" color="#509955" link={"fooldal"} icon="person-outline" />
                 <MenuLink setOpen={setOpen} title="sale" color="#f4e6d4" icon="shirt-outline" link={"cserebere"}/>
                 <MenuLink setOpen={setOpen} title="places" color="#f4e6d4" icon="map" link={"terkep"}/>
-                <MenuLink setOpen={setOpen} title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
-                <MenuLink setOpen={setOpen} title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
-                <MenuLink setOpen={setOpen} title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
+                <MenuLink setOpen={setOpen} forUsers title="messages" color="#0052ff" icon="mail-outline" link={"uzenetek"} number={unreadMessage?.length}/>
+                <MenuLink setOpen={setOpen} forUsers title="profile" text="" color="#509955" link={"profil"} icon="person-outline" />
+                <MenuLink setOpen={setOpen} forUsers title="logout" text="" color="black" onPress={()=>logout()} icon="exit-outline" />
+                <MenuLink setOpen={setOpen} forNoUsers title="Bejelentkezés" text="" color="black" onPress={()=>navigation.push('bejelentkezes')} icon="exit-outline" />
               </Row>
             </View>
             :
@@ -92,15 +95,19 @@ export function LogoTitle() {
       </LinearGradient>)
   }
 
+  const MenuLink = ({title,link,number,setOpen,onPress,style,forUsers,forNoUsers}) => {
 
+    const uid = useSelector((state) => state.user.uid)
 
-  const MenuLink = ({title,link,number,setOpen,onPress,style}) => {
     const ref = useRef(null);
     const { width } = useWindowDimensions();
 
     const isHovered = useHover(ref);
     const navigation = useNavigation()
     const route = useRoute()
+
+    if (uid && forNoUsers) return null; 
+    if (!uid && forUsers) return null; 
     return (
       <Pressable ref={ref}
         style={[(!isHovered && route.name != link ? menuLink(width).default : 

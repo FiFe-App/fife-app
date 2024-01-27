@@ -23,6 +23,10 @@ export const styles = StyleSheet.create({
         flexWrap: 'wrap',
         backgroundColor: 'white'
     },
+    text: {
+      fontSize:20,
+      textAlign:'left',
+    },
     title: {
         fontFamily: "AmaticSC_700Bold",
         fontSize: 50,
@@ -48,12 +52,13 @@ export const styles = StyleSheet.create({
     },
     searchInput: {
         textAlign:'center',
+        width:'100%',
         margin: 5,
         borderColor: "black",
         borderRadius: 8,
         backgroundColor: "#ffffff",
         padding: 10,
-        fontSize:14,
+        fontSize:17,
         fontWeight: "500",
         borderRadius:8,
     },

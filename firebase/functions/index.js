@@ -2,6 +2,7 @@ const functions = require("firebase-functions");
 const admin = require('firebase-admin');
 
 var serviceAccount = require("./firebase-service-key.json");
+const { log } = require("firebase-functions/logger");
 
 // Initialize the app with a service account, granting admin privileges
 admin.initializeApp({
@@ -34,6 +35,7 @@ exports.newMessage = functions.database.ref('/users/{uid}/messages/{uid2}/last')
             name.once("value", function(nameSnapshot) {
             const token = snapshot.val();
             const name = nameSnapshot.val();
+            log('message',token,name)
             const payload = {
                 token: token,
                 notification: {

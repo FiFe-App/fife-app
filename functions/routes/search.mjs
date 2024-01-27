@@ -6,6 +6,10 @@ import { PrismaClient } from "@prisma/client";
 const router = express.Router();
 const prisma = new PrismaClient()
 
+const replace = (text) => {
+  return text
+  .replace(/[aáeéoóöőiíuúüű]/g, '.')
+}
 
 const getBuziness = async (key,myLocation) => {
   const db = await adb
@@ -39,7 +43,6 @@ const getBuziness = async (key,myLocation) => {
     { $limit : 1000000 },
     { $match: { name: { $regex: key} } }
  ] ).toArray();
-   console.log('buziness by dist',results);
 
   return results
 
@@ -50,6 +53,8 @@ router.post("/", async (req, res) => {
     const db = await adb
     const {key,skip=0,take=5,myLocation} = req.body;
     console.log('search',key,myLocation);  
+    const search = replace(key);
+    console.log(search);
     // query for movies that have a runtime less than 15 minutes
     if (key.length < 3) {
       res.send({error:'Adj meg legalább három karaktert!'})
@@ -60,7 +65,7 @@ router.post("/", async (req, res) => {
       sale: await prisma.sale.findMany({
         where: {
               title: {
-              contains: key,
+              contains: search,
               mode: 'insensitive',
             }
           },
@@ -69,11 +74,11 @@ router.post("/", async (req, res) => {
         where: {
           OR: [
             {name: {
-              contains: key,
+              contains: search,
               mode: 'insensitive',
             }},
             {username: {
-              contains: key,
+              contains: search,
               mode: 'insensitive',
             }},
           ]
@@ -82,16 +87,16 @@ router.post("/", async (req, res) => {
       maps: await prisma.place.findMany({
         where: {
           title: {
-            contains: key,
+            contains: search,
             mode: 'insensitive',
           }
         }
       }),
-      buziness: myLocation ? await getBuziness(key,myLocation) : 
+      buziness: myLocation ? await getBuziness(search,myLocation) : 
       await prisma.buziness.findMany({
         where: {
           name: {
-            contains: key,
+            contains: search,
             mode: 'insensitive',
           }
         }
@@ -111,7 +116,6 @@ router.post("/", async (req, res) => {
 
 
     //res.send('latestqd')
-    console.log(results);
     res.send(results).status(202);
 
 });

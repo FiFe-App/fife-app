@@ -6,6 +6,7 @@ import { randomColor, shadeColor } from "../../lib/functions";
 import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/Ionicons';
+import UrlText from "./UrlText";
 
 const Comments = ({style,path,placeholder}) => {
     const [list, setList] = useState([]);
@@ -78,7 +79,8 @@ const Comments = ({style,path,placeholder}) => {
                                 }}>
                                 <MyText><B>{comment.author}</B></MyText>
                             </Pressable>
-                            <MyText style={{}}>{comment.text}</MyText>
+
+                            <UrlText text={comment.text} />
                         </View>
                     )
                 })}

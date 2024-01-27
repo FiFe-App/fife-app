@@ -52,7 +52,6 @@ const MapElement = ({markers,center,index,editable,data,setData,style}) => {
     //#endregion
 
     const MapControl = () => {
-
       const map = useMapEvents({
         move(e) {
           if (editable) {

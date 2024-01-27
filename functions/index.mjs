@@ -23,12 +23,12 @@ app.use(express.json());
 
 // Load the /posts routes
 router.use("/admin",  checkAuth,      admin);
-router.use("/all",    checkAuth,      all);
-router.use("/sale",   checkAuth,      sale);
-router.use("/docs",   checkAuth,      docs);
-router.use("/blog",   checkAuth,      blog);
-router.use("/users",  checkAuthNoVer, users);
-router.use("/places", checkAuth,      places);
+router.use("/all",                    all);
+router.use("/sale",                   sale);
+router.use("/docs",                   docs);
+router.use("/blog",                   blog);
+router.use("/users",                  users);
+router.use("/places",                 places);
 router.use("/search", checkAuth,      search);
 router.use("/trade",  checkAuth,      trade);
 

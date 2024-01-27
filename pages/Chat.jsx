@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { child, limitToLast, off, onChildAdded, onValue, orderByValue, push, query, ref, set } from "firebase/database";
 import { useContext, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import { Loading, MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from "../components/Components";
@@ -18,6 +18,7 @@ import { TouchableRipple } from "react-native-paper";
 const color = '#ffde9e'
 
 const Chat = ({route, navigation, propUid, global}) => {
+    const small = useWindowDimensions().width <= 900;
     const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
@@ -138,8 +139,8 @@ const Chat = ({route, navigation, propUid, global}) => {
     }, [database,uid2,navigation]);
     
     if (!uid2) return (
-        <View style={{flex:1,backgroundColor:'#FDEEA2'}}>
-            <View style={{flex:1,backgroundColor:'#fce48f',margin:10,borderRadius:30,justifyContent:'center',alignItems:'center'}}>
+        <View style={{flex:1,backgroundColor:'#fdf6d1'}}>
+            <View style={{flex:1,backgroundColor:'#FDEEA2',margin:10,borderRadius:30,justifyContent:'center',alignItems:'center'}}>
                 <Image source={require('../assets/img-prof.jpg')} style={{height:200,width:200,borderRadius:20,marginBottom:20}}/>
                 <MyText size={20}>Válassz ki valakit, akivel beszélnél.</MyText>
             </View>
@@ -147,92 +148,84 @@ const Chat = ({route, navigation, propUid, global}) => {
     )
 
     return (
-    <View style={{flex:1}}>
-        <View style={{flex:1,backgroundColor:'#FDEEA2'}}>
-            {!global && header}
-            <ScrollView 
-            snapToEnd
-            ref={(scroll) => {setScrollView(scroll)}}
-            style={{flex:1,backgroundColor:global?'transparent':'#fff'}} contentContainerStyle={styles.messages}>
-                <View style={{flex:1}}>
-                    {!loading ?
-                    messages.length ? 
-                    messages.map((e,i,arr)=> {
-                        return (
-                            <View key={i}>
-                                {(!(new Date(arr[i-1]?.time).getDate()) || new Date(arr[i-1]?.time).getDate() != new Date(e?.time).getDate()) 
-                                && <MyText style={{width:'100%',textAlign:'center'}}>{new Date(e?.time).toLocaleDateString('hu-HU')}</MyText>}
-                                
-                                {!!global && (!arr[i-1]?.uid || arr[i-1]?.uid != e?.uid) 
-                                && <MyText style={{width:'100%',paddingHorizontal:10,textAlign:e?.uid != uid ? 'left' : 'right'}}>{e?.name || null}</MyText>}
-                                
-                                {e?.automated ? <AutoMessage text={e.text} uid={e.uid} isMine={e.uid == uid}/> :
-                                <Message text={e.text} isMine={e.uid == uid}/>}
+    <View style={{flex:1,backgroundColor:'#fdf6d1'}}>
+        <View style={[{flex:1,backgroundColor:'#FDEEA2'},small?{}:{margin:10,borderRadius:30}]}>
+            <View style={{flex:1,backgroundColor:'#fdf6d1'}}>
+                {!global && header}
+                <ScrollView
+                snapToEnd
+                ref={(scroll) => {setScrollView(scroll)}}
+                style={{flex:1,backgroundColor:global?'transparent':'#fff'}} contentContainerStyle={styles.messages}>
+                    <View style={{flex:1}}>
+                        {!loading ?
+                        messages.length ?
+                        messages.map((e,i,arr)=> {
+                            return (
+                                <View key={i}>
+                                    {(!(new Date(arr[i-1]?.time).getDate()) || new Date(arr[i-1]?.time).getDate() != new Date(e?.time).getDate())
+                                    && <MyText style={{width:'100%',textAlign:'center'}}>{new Date(e?.time).toLocaleDateString('hu-HU')}</MyText>}
+        
+                                    {!!global && (!arr[i-1]?.uid || arr[i-1]?.uid != e?.uid)
+                                    && <MyText style={{width:'100%',paddingHorizontal:10,textAlign:e?.uid != uid ? 'left' : 'right'}}>{e?.name || null}</MyText>}
+        
+                                    {e?.saleId ? <AutoMessage text={e.text} saleId={e.saleId} title={e.title} uid={e.uid} isMine={e.uid == uid}/> :
+                                    <Message text={e.text} isMine={e.uid == uid}/>}
+                                </View>
+                            )}):
+                            <View style={{flex:1, backgroundColor:'white',alignItems:'center',justifyContent:'center'}}>
+                                <MyText>Írj üzenetet ... számára!</MyText>
                             </View>
-                        )}):
-                        <View style={{flex:1, backgroundColor:'white',alignItems:'center',justifyContent:'center'}}>
-                            <MyText>Írj üzenetet ... számára!</MyText>
-                        </View>
-                    :   <View style={{flex:1, backgroundColor:'white'}}>
-                            <Loading color="rgba(255,175,0,0.7)"/>
-                        </View>}
+                        :   <View style={{flex:1, backgroundColor:'white'}}>
+                                <Loading color="rgba(255,175,0,0.7)"/>
+                            </View>}
+                </View>
+            </ScrollView>
             </View>
-        </ScrollView>
-        </View>
-        <View style={styles.input}>
-            <TextInput
-                style={styles.textInput} 
-                onChangeText={setMessage}
-                value={message}
-                placeholder="Írj valami kedveset..."
-                onSubmitEditing={send}
-                ref={input}
-                blurOnSubmit={false}
-            />
-            <TouchableOpacity onPress={send} style={styles.textButton} disabled={!message}>
-                <Icon name="send" color={message ? "black" : "gray"} size={20}/>
-            </TouchableOpacity>
+            <View style={styles.input}>
+                <TextInput
+                    style={styles.textInput}
+                    onChangeText={setMessage}
+                    value={message}
+                    placeholder="Írj valami kedveset..."
+                    onSubmitEditing={send}
+                    ref={input}
+                    blurOnSubmit={false}
+                />
+                <TouchableOpacity onPress={send} style={styles.textButton} disabled={!message}>
+                    <Icon name="send" color={message ? "black" : "gray"} size={20}/>
+                </TouchableOpacity>
+            </View>
         </View>
     </View>)
 
 }
 const AutoMessage = (props) => {
-    const {text,time,uid,isMine,saleId} = props
-    const [saleData, setsaleData] = useState(null);
+    const {text,title,time,uid,isMine,saleId} = props
+    const [saleData, setSaleData] = useState(null);
     const [name, setName] = useState('');
     const [toLoad, setToLoad] = useState(false);
     useEffect(() => {
         if (toLoad)
             load();
     },[toLoad]);
-    useEffect(() => {
-        return (() => {
-            
-        })
-    }, []);
+
     const load = async () => {
         setName(await getNameOf(uid))
-        axios.get('sale/'+text,config()).then(res=>{
+        axios.get('sale/'+saleId,config()).then(res=>{
             console.log(res);
-            setsaleData(res.data)
+            setSaleData(res.data)
         }).catch(err=>{
             console.log(err);
-            
         })
     }
     return (
-        <View style={styles.autoMessageContainer}>
+        <View style={[styles.autoMessageContainer,{alignSelf:isMine?'flex-end':'flex-start'}]}>
+        <MyText>{text}</MyText>
         {!toLoad && <>
-            <MyText>Foglalás!</MyText>
             <NewButton onPress={()=>setToLoad(true)}
             title="Adatok betöltése" />
         </>}
         { toLoad && <>{saleData ? <>
-            <MyText style={[styles.center]}>
-            {isMine ? 'Lefoglaltad a '+saleData.title+'et!' :
-            name+' lefoglalta a '+saleData.title+'et!' }
-            </MyText>
-            
             {saleData && <SaleListItem data={saleData} readOnly/>}
             </>
             : <ActivityIndicator size='large' color='rgba(255,175,0,0.7)' />}
@@ -297,14 +290,17 @@ const styles = StyleSheet.create({
     input: {
         flexDirection: 'row',
         height: 50,
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        borderBottomLeftRadius:8,
+        borderBottomRightRadius:8
     },
     textInput: {
         flex:1,
         padding: 10,
         margin:5,
         fontSize:17,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        borderRadius:8
     },
     textButton: {
         width: 40,

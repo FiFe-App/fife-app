@@ -1,12 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { getDatabase } from "firebase-admin/database";
+import { getMessaging } from "firebase-admin/messaging";
+import { checkAuth, checkAuthNoVer } from "../lib/auth.mjs";
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
 // New user data
-router.post("/", async (req, res) => {
+router.post("/", checkAuthNoVer,async (req, res) => {
   console.log('create');
   const result = await prisma.user.create({
     data: {
@@ -91,16 +93,23 @@ router.post("/search", async (req, res) => {
 
   const results = await prisma.user.findMany({
       where: {
-        OR: [
-          {name: {
-            contains: search,
-            mode: 'insensitive',
-          }},
-          {username: {
-            contains: search,
-            mode: 'insensitive',
-          }},
-        ]
+        AND: [
+        {
+          OR: [
+            {name: {
+              contains: search,
+              mode: 'insensitive',
+            }},
+            {username: {
+              contains: search,
+              mode: 'insensitive',
+            }},
+          ]
+        },
+        {
+          NOT: {uid:req.uid}
+        }
+      ]
       }
     })
 
@@ -111,24 +120,24 @@ router.post("/search", async (req, res) => {
 });
 
 
-router.get("/mybuziness", async (req, res) => {
+router.get("/mybuziness", checkAuth, async (req, res) => {
 
+  console.log(req.uid);
   const result = await prisma.buziness.findMany({
     where: {
       uid: req.uid
     }
   })
-  console.log(result);
+  //console.log(result);
   if (!result) {
     res.send("Not found").status(404);
     return
   }
-//  res.send(result)
   res.send(result)
   return "hello"; 
 
 });
-router.patch("/", async (req, res) => {
+router.patch("/", checkAuthNoVer,async (req, res) => {
 
 
   if (req.body.page.buziness?.length > 5) {
@@ -150,11 +159,11 @@ router.patch("/", async (req, res) => {
         upsert: {
           create: {
             uid: req.uid,
-            location: location?.length==2 ? location : null
+            location: location?.length==2 ? location : undefined
           },
           update: {
             uid: req.uid,
-            location: location?.length==2 ? location : null
+            location: location?.length==2 ? location : undefined
           }
         }
       },
@@ -167,7 +176,7 @@ router.patch("/", async (req, res) => {
         connectOrCreate: {
           create: {
             uid: req.uid,
-            location: location?.length==2 ? location : null
+            location: location?.length==2 ? location : undefined
           },
           where: {
             uid: req.uid
@@ -247,7 +256,7 @@ router.patch("/", async (req, res) => {
 
 });
 
-router.post("/friend/:uid", async (req, res) => {
+router.post("/friend/:uid",checkAuth, async (req, res) => {
   
   const result = await prisma.friendship.create({
     data: {
@@ -260,11 +269,40 @@ router.post("/friend/:uid", async (req, res) => {
     res.send("Not found").status(404);
     return
   }
+
+
+  const db = getDatabase();
+  const ref = db.ref('users/'+req.params.uid+'/data/fcm/token');
+  const name = db.ref('users/'+req.uid+'/data/name');
+  ref.once("value", function(snapshot) {
+      name.once("value", function(nameSnapshot) {
+      const token = snapshot.val();
+      const name = nameSnapshot.val();
+      const payload = {
+          token: token,
+          notification: {
+              title: name+' pajtásnak jelölt téged!',
+              body: 'Juhú!',
+              image: 'https://i.ibb.co/KxgW84L/logo.png',
+          },
+          webpush: {
+            fcmOptions: {
+              link: "https://fifeapp.hu/profil?uid="+req.uid
+            }
+          }
+      };
+      getMessaging().send(payload).then(res=>{
+        console.log('siker',res,payload);
+      }).catch(err=>{
+        console.log('vmi mem jo',err);
+      })
+      })
+  });
   res.send(result)
   return "hello"; 
 
 });
-router.delete("/friend/:uid", async (req, res) => {
+router.delete("/friend/:uid",checkAuth, async (req, res) => {
   
   const result = await prisma.friendship.deleteMany({
     where: {
@@ -286,7 +324,7 @@ router.delete("/friend/:uid", async (req, res) => {
   return "hello"; 
 
 });
-router.patch("/friend/:uid", async (req, res) => {
+router.patch("/friend/:uid",checkAuth, async (req, res) => {
   
   const result = await prisma.friendship.updateMany({
     where: {

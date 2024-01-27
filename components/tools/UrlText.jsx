@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Linking, Pressable } from "react-native";
 
 const UrlText = ({text="asd asd www.fifeapp.hu adsas d",style}) => {
-    const regex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig
+    const regex = /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})(\.[a-zA-Z0-9]{2,})?/g
     const arr = text.match(regex);
     
     const [result, setResult ] = useState(null);
@@ -14,8 +14,9 @@ const UrlText = ({text="asd asd www.fifeapp.hu adsas d",style}) => {
 
         if (arr?.length)
         arr.map((link,ind)=>{
+            console.log('link',link);
             const start = text.indexOf(link)
-            const end = start+link.length;
+            const end = start+link?.length;
             list.push(<MyText key={ind+'s'}>{text.slice(pre,start)}</MyText>)
             list.push(
                 <MyText key={ind+'k'}><Pressable onPress={()=>{Linking.openURL(text.slice(start,end))}}>
@@ -29,6 +30,7 @@ const UrlText = ({text="asd asd www.fifeapp.hu adsas d",style}) => {
     
     }
     useEffect(() => {
+        console.log('arr',arr);
         makeText();
     }, [text]);
     

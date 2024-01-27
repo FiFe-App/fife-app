@@ -2,6 +2,7 @@ import express from "express";
 import adb from "../db/conn.mjs";
 import { ObjectId } from "mongodb";
 import { PrismaClient } from "@prisma/client";
+import { checkAuth } from "../lib/auth.mjs";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -11,11 +12,11 @@ router.patch("/", async (req, res) => {
     const blog = db.collection('blog')
     const {q='',skip,take,recommended,buziness} = req.body;
     console.log( buziness?.map(b=>`/^${b}/`));
-    let query = { 
+    let query = recommended ? { 
       title: {
         $in: buziness.map(function (e) { return new RegExp(e, "i"); })
       }
-    }
+    } : {};
     const results = await blog.find(query,{})
     .sort({created_at:-1})
     .skip( Number(skip) )
@@ -30,7 +31,7 @@ router.patch("/", async (req, res) => {
 
 });
 
-router.post("/",async (req, res) => {
+router.post("/",checkAuth,async (req, res) => {
     const result = await prisma.blog.create({
         data: {
             author: req.uid,

@@ -37,7 +37,7 @@ const Profile = ({ navigation, route }) => {
   const myuid = useSelector((state) => state.user.uid)
   const myName = useSelector((state) => state.user.name)
   const tempData = useSelector((state) => state.user.tempData)
-  const uid = route?.params?.uid || myuid 
+  const uid = route?.params?.uid ||route?.params?.id || myuid 
   const myProfile = uid === myuid;
   
   const [profile, setProfile] = React.useState(myProfile ? tempData : null);

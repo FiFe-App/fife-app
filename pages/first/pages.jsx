@@ -114,10 +114,13 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
                 </View>
               </Auto>
         </ScrollView>,
-        <ScrollView key="Hozzaallas" style={[pageStyle,{backgroundColor:'#ffd2c2'}]} contentContainerStyle={{paddingBottom:160}}>
+        <ScrollView key="Hozzaallas" style={[pageStyle,{backgroundColor:'#fdf6d1'}]} contentContainerStyle={{paddingBottom:160}}>
             <MyText style={titleStyle} adjustsFontSizeToFit>Hozzáállás</MyText>
             <Auto>
-              <View style={{flex:width<=900?'none':3}}>
+                <View style={{flex:small?'none':1,margin:20,marginTop:-5,alignItems:'flex-start'}}>
+                  <Image source={require('../../assets/logo.png')} resizeMode="contain" style={{minHeight:300,aspectRatio:1/1,width:'100%'}}/>
+                </View>
+              <View style={{flex:width<=900?'none':4}}>
                 <MyText style={styles.text}>
                 Ez a közösség a kölcsönös bizalomról és együttműködésről szól.
                 Segítjük egymást, hogy mindenki könyebben tudjon boldogulni ebben a bonyolult világban.
@@ -148,7 +151,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
               </View>
             </Auto>
         </ScrollView>,
-        <ScrollView key="Mierdekel" style={[pageStyle,{backgroundColor:'#9084d0'}]} contentContainerStyle={{paddingBottom:160}}>
+        <ScrollView key="Mierdekel" style={[pageStyle,{backgroundColor:'#06b075'}]} contentContainerStyle={{paddingBottom:160}}>
           <AmiKell data={data.interest} setData={(d)=>setData({...data,interest:d})}/>
         </ScrollView>,
         <ScrollView key="Biznisz" style={[pageStyle,{backgroundColor:'#9feeeb'}]} contentContainerStyle={{paddingBottom:160}}>
@@ -167,7 +170,7 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
             </Auto>
             
         </ScrollView>,
-        <ScrollView key="Iranyelvek" style={[pageStyle,{backgroundColor:'#39c0db'}]} contentContainerStyle={{paddingBottom:160}}>
+        <ScrollView key="Iranyelvek" style={[pageStyle,{backgroundColor:'#9feeeb'}]} contentContainerStyle={{paddingBottom:160}}>
             <MyText style={titleStyle}>Irányelveink</MyText>
             <MyText style={styles.text}>Ha ennek az online közösségnek tagja szeretnél lenni, komolyan kell venned az irányelveinket: </MyText>
             <Col style={{alignSelf:'flex-start',marginTop:20,width:'100%'}}>
@@ -198,9 +201,9 @@ export const Pages = ({newData,setNewData,pageData, setPageData}) => {
               </Pressable>
             </View>
         </ScrollView>,
-        <ScrollView key="Adatok" style={[pageStyle,{backgroundColor:'#ff668b'}]} contentContainerStyle={{paddingBottom:160,alignItems:'center'}}>
+        <ScrollView key="Adatok" style={[pageStyle,{backgroundColor:'#fdf6d1'}]} contentContainerStyle={{paddingBottom:160,alignItems:'center'}}>
             <MyText style={titleStyle}>Mindjárt kész is vagy!</MyText>
-            <MyText style={styles.text}>Adj meg kérlek még néhány adatot, az email-címed, és a jelszavad a befejezéshez.</MyText>
+            <MyText style={[styles.text,{marginBottom:5,width:'100%',maxWidth:1000}]}>Adj meg kérlek még néhány adatot, az email-címed, és a jelszavad a befejezéshez.</MyText>
             <Auto style={{justifyContent:'center',alignItems:small?'center':null}}>
               <MoreInfoForm style={styles.text} data={data.moreInfo} setData={(newData)=>setData({...data,name:newData.name,username:newData.username})} />
               <RegisterForm style={styles.text} dataToAdd={data}/>

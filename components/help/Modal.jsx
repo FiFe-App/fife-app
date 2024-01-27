@@ -2,8 +2,9 @@ import { Modal, ScrollView, StyleSheet, View, useWindowDimensions } from "react-
 import { MyText, NewButton, Row } from "../Components"
 import CustomInput from "../custom/CustomInput";
 import { useEffect, useState } from "react";
+import { TouchableRipple } from "react-native-paper";
 
-const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen}) => {
+const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen,children}) => {
     const small = useWindowDimensions().width <= 900;
     const height = useWindowDimensions().height
 
@@ -22,9 +23,14 @@ const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen}) => {
         }}>
         <View style={styles.centeredView}>
             <ScrollView style={[styles.modalView,{maxWidth:small?'95%':'70%',maxHeight:height*0.8,flexGrow:0}]}>
-                    {open!='submitted' ? <><MyText title>{title}</MyText>
+                    {open!='submitted' ? <>
+                    <Row>
+                      <MyText title style={{flexGrow:1}}>{title}</MyText>
+                      <TouchableRipple style={{margin:10}} onPress={()=>setOpen(false)}><MyText size={30}>x</MyText></TouchableRipple>
+                    </Row>
                     <MyText size={20}>{text}</MyText>
-                    <ScrollView style={{}}>
+                    {children}
+                    {!!inputs&&<ScrollView style={{}}>
                       {inputs.map((input,ind)=>{
                           return (
                             <View style={{padding:0}} key={'helpModal-'+ind}>
@@ -32,8 +38,8 @@ const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen}) => {
                             </View>
                           )
                       })}
-                    </ScrollView>
-                    <Row>
+                    </ScrollView>}
+                    {!!actions&&<Row>
                         {actions.map((action,ind)=>{
                             return (
                                 <NewButton {...action} key={'helpModalButton-'+ind}
@@ -42,7 +48,7 @@ const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen}) => {
                                 }} style={[{padding:10},action.style]}/>
                             )
                         })}
-                    </Row></>
+                    </Row>}</>
                     : <><MyText title>{success?.title}</MyText>
                     <MyText size={20}>{success?.text}</MyText>
                     <Row>

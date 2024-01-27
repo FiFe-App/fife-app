@@ -22,6 +22,8 @@ import Error from '../../components/tools/Error';
 import MessageModal from '../../components/help/MessageModal';
 import Posting from '../../components/homeComponents/Posting';
 import { setSettings as setStoreSettings } from "../../lib/userReducer";
+import StressModal from '../../components/homeComponents/StressModal';
+import Blog from '../posts/Posts';
 
 
   const HomeScreen = () => {
@@ -50,7 +52,7 @@ import { setSettings as setStoreSettings } from "../../lib/userReducer";
         if (uid) {
             if (database && settings) {
                 const dbRef = ref(database,'users/' + uid + "/settings/snowfall");
-                set(dbRef,settings.snowfall)
+                set(dbRef,settings?.snowfall||false)
                 dispatch(setStoreSettings(settings))
                 
             }
@@ -66,10 +68,16 @@ import { setSettings as setStoreSettings } from "../../lib/userReducer";
           setFilter(snapshot.val())
           else 
           setFilter({
-            sale: true,
-            work: true,
-            rent: false,
-            places: true
+            newPeople: true,
+            news: true,
+            places: true,
+            saleSeek: true,
+            saleGive: true,
+            rentSeek: true,
+            rentGive: true,
+            workSeek: true,
+            workGive: true,
+            
           })
         }).catch(err=>{
           setFilter({
@@ -132,64 +140,9 @@ import { setSettings as setStoreSettings } from "../../lib/userReducer";
         setFilterModal(false)
       })
     }
-    return (
-      <ScrollView style={{flex:1,backgroundColor:'#ffffd6',zIndex:0,elevation: 0,}} >
-        <HomeBackground >
-          <Row style={{flex:3,zIndex:0,elevation: 0,justifyContent:'center'}}>
-            <Col style={{flex:width<=900?1:2,alignItems:'center',shadowOpacity:2,}}>
-              <Animated.View style={{opacity:opacity,flex:opacity}}>
-                {false&&<Stickers style={{flex:1}}/>}
-                {<Row style={{alignItems:'center',textAlign:'center',paddingHorizontal:20,paddingVertical:20,opacity:textWidth}}>
-                  <MyText 
-                  onLayout={e=>setTextWidth(e.nativeEvent.layout.width)}
-                  style={{fontSize:small?14:20,marginRight:30,backgroundColor:'white',fontWeight:'300',borderRadius:100,padding:16,paddingHorizontal:32}} bold>
-                    <TextFor text={greeting} embed={name}/>
-                  </MyText>
-                  <View style={[styles.bubble,{marginLeft:textWidth-5}]} />
-                  <Smiley style={{marginTop:32,marginLeft:10}}/>
-                </Row>}
-              </Animated.View> 
-            </Col>
-            <Auto style={{padding:10,alignItems:'center',justifyContent:'center',zIndex:-1,width:'auto',flex:'none'}} >
-              <View>
 
-                <NewButton icon title={<Icon name={number?"notifications":"notifications-outline"} size={30} />} onPress={()=>setMailModal(true)}
-                  info="Értesítések"
-                />
-                {!!number && <MyText style={{
-                  position:'absolute',top:0,right:0,
-                  borderRadius:10,color:'white',backgroundColor:'black',width:20,height:20,alignItems:'center',textAlign:'center'}}>
-                {number}
-                </MyText>}
-              </View>
-              <NewButton icon title={<Icon name="options-outline" size={30} />} onPress={()=>setFilterModal(true)}
-                info="Beállítások"
-              />
-            </Auto>
-          </Row>
-          {false&&<Posting />}
-        </HomeBackground>
-          <View style={{zIndex:-1}}>
-            {
-              list?.error ?
-              <Error text={list?.error?.response?.data}/>
-              :
-              <>{width > 900 ? <>
-              <View>
-                {listToMatrix(list,2).map(row=>{
-                  return <Row>
-                    {row.map(e=><Module  data={e} />)}
-                  </Row>
-                })}
-              </View>
-            </> : <View style={{alignItems:'center'}}>
-                  {list.map(e=><Module data={e} />)}
-            </View>}</>}
-          </View>
-          {list?.[0] && <View style={{alignItems:'center',flex:1,margin:32}}>
-            <Smiley/>
-            <MyText>Vége a találatoknak</MyText>
-          </View>}
+    const modals = <>
+
           <HelpModal 
             title="Mi érdekel?"
             text={`Válaszd ki hogy mi jelenjen meg a főoldalon!
@@ -220,8 +173,69 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
               }) : []
             }
           />
-          <MessageModal
-          />
+          <MessageModal/>
+          <StressModal/>
+    </>
+
+    return (
+      <ScrollView style={{flex:1,backgroundColor:'#fdf6d1',zIndex:0,elevation: 0,}} >
+        <HomeBackground >
+                {true&&<Stickers style={{flex:1}}/>}
+          <Row style={{flex:3,zIndex:0,elevation: 0,justifyContent:'center'}}>
+            <Col style={{flex:width<=900?1:2,alignItems:'center',shadowOpacity:2,}}>
+              <Animated.View style={{opacity:opacity,flex:opacity}}>
+                {<Row style={{alignItems:'center',textAlign:'center',paddingHorizontal:20,paddingVertical:20,opacity:textWidth}}>
+                  <MyText 
+                  onLayout={e=>setTextWidth(e.nativeEvent.layout.width)}
+                  style={{fontSize:small?14:20,marginRight:30,backgroundColor:'white',fontWeight:'300',borderRadius:100,padding:16,paddingHorizontal:32}} bold>
+                    <TextFor text={greeting} embed={name}/>
+                  </MyText>
+                  <View style={[styles.bubble,{marginLeft:textWidth-5}]} />
+                  <Smiley style={{marginTop:32,marginLeft:10}}/>
+                </Row>}
+              </Animated.View> 
+            </Col>
+            {!!uid&&<Auto style={{padding:10,alignItems:'center',justifyContent:'center',zIndex:-1,width:'auto',flex:'none'}} >
+              <View>
+
+                <NewButton icon title={<Icon name={number?"notifications":"notifications-outline"} size={30} />} onPress={()=>setMailModal(true)}
+                  info="Értesítések"
+                />
+                {!!number && <MyText style={{
+                  position:'absolute',top:0,right:0,
+                  borderRadius:10,color:'white',backgroundColor:'black',width:20,height:20,alignItems:'center',textAlign:'center'}}>
+                {number}
+                </MyText>}
+              </View>
+              <NewButton icon title={<Icon name="options-outline" size={30} />} onPress={()=>setFilterModal(true)}
+                info="Beállítások"
+              />
+            </Auto>}
+          </Row>
+        </HomeBackground>
+          {false&&<Blog style={{paddingTop:0}} />}
+          <View style={{zIndex:-1}}>
+            {
+              list?.error ?
+              <Error text={list?.error?.response?.data}/>
+              :
+              <>{width > 900 ? <>
+              <View>
+                {listToMatrix(list,2).map(row=>{
+                  return <Row>
+                    {row.map(e=><Module  data={e} />)}
+                  </Row>
+                })}
+              </View>
+            </> : <View style={{alignItems:'center'}}>
+                  {list.map(e=><Module data={e} />)}
+            </View>}</>}
+          </View>
+          {list?.[0] && <View style={{alignItems:'center',flex:1,margin:32}}>
+            <Smiley/>
+            <MyText>Vége a találatoknak</MyText>
+          </View>}
+          {!!uid && modals}
       </ScrollView>
     );
   }
@@ -233,6 +247,8 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
     const {database, app, initMessaging} = useContext(FirebaseContext);
     const navigator = useNavigation()
     const uid = useSelector((state) => state.user.uid)
+    const user = useSelector((state) => state.user)
+    console.log('user',user);
     const allMessages = useSelector((state) => state.user.unreadMessage)
     const dispatch = useDispatch()
 
@@ -257,6 +273,7 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
 
         const getMessages = () => {
           //dispatch(emptyUnreadMessages())
+          console.log('allMessages',allMessages);
           if (allMessages.includes('notifications')) {
             setNotifications(old=>[...old,{
               press: initMessaging,
@@ -265,24 +282,6 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
               text:'Hali! Ha szeretnéd, hogy értesülj a pajtásaid üzeneteiről, kapcsold be az értesítéseket, úgy, hogy rám kattintasz!'
             }])
           }
-          onChildAdded(dbRef, (childSnapshot) => {
-            const childKey = childSnapshot.key;
-            const read = childSnapshot.child('read').exists()
-            const last = childSnapshot.child('last').val() 
-            if (!allMessages.includes(childKey))
-            if (!read && last?.from != uid) {
-              get(child(userRef,childKey+'/data/name')).then((snapshot) => {
-                  const name = snapshot.val()
-                  setNotifications(old=>[...old,{
-                    link:'beszelgetes',
-                    params:{uid:childKey},
-                    title:'Új üzenet '+name+'tól',
-                    key:childKey,
-                    text:last?.message}])
-                });
-                dispatch(setUnreadMessage(childKey))
-            }
-        });
 
         } 
         getMessages()

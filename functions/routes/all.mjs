@@ -1,25 +1,74 @@
+import { PrismaClient } from "@prisma/client";
 import express from "express";
 import adb from "../db/conn.mjs";
-import { ObjectId } from "mongodb";
-import { PrismaClient } from "@prisma/client";
-import { query, ref } from "firebase/database";
-import { getDatabase } from "firebase-admin/database";
+import { checkAuth, checkAuthNoVer } from "../lib/auth.mjs";
+import { getAuth } from "firebase-admin/auth";
+import { getStorage } from "firebase-admin/storage";
+
 
 const router = express.Router();
 const prisma = new PrismaClient()
 
-router.get("/latest", async (req, res) => {
+/**
+ * Update every user
+
+  const getUri = async () => {
+    const fileRef = getStorage().bucket();
+
+    return url
+  }
+
+  const listAllUsers = async (nextPageToken) => {
+    // List batch of users, 1000 at a time.
+    return (await getAuth()
+      .listUsers(1000, nextPageToken)
+      .catch((error) => {
+        console.log('Error listing users:', error);
+      })).users;
+    }
+
+    listAllUsers().then(async res=>{
+      console.log(res[0]);
+      res.map(async user=>{
+        const img = await getUri(user.uid)
+        prisma.user.update({
+          where: {
+            uid: user.uid
+          },
+          data: {
+            image: img
+          }
+        }).then(res=>{
+          console.log('success',user.uid);
+        })
+  
+      })
+    })
+  return
+   */
+router.get("/latest", checkAuthNoVer,async (req, res) => {
 
   const filters = req.query;
 
   console.log('filters',filters);
   const db = await adb
-
+  
   const results = {
+    newPeople: 'true'=='true' ? {
+      title: "Frissen regisztrált fifék!",
+      link: 'profil',
+      id: 'heeeee',
+      data: await (await db.collection("user")).aggregate([
+        {"$project": {"title": '$name', "created_at": 1, "category":'szia!','author':'$uid','_id':'$uid','image':undefined}},
+        {"$sort": {"created_at": -1}},
+        {"$limit": 3}
+      ]).toArray()
+    } : undefined,
     news: 'true'=='true' ? {
       title: "Hírek, cikkek",
-      link: 'cikkek',
+      link: 'uj-cikkek',
       id: 'docs',
+      newLink: 'cikkek?id=64bd12b7590741c9b1fae8d6',
       data: await (await db.collection("document")).aggregate([
         {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1,"image":1,"color":1}},
         {"$sort": {"created_at": -1}},
@@ -30,6 +79,7 @@ router.get("/latest", async (req, res) => {
         title: "Helyek amiket megismerhetsz",
         link: 'terkep',
         id: 'places',
+        newLink: 'terkep',
         data: await (await db.collection("place")).aggregate([
         {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1}},
         {"$sort": {"created_at": -1}},
@@ -40,6 +90,7 @@ router.get("/latest", async (req, res) => {
       title: "Tárgyakat keresnek",
       link: 'cserebere',
       id: 'sale',
+      newLink: 'uj-cserebere',
       data: await (await db.collection("sale")).aggregate([
       {"$project": {"title": 1, "category":1, "created_at": 1,"image":1, "author": 1}},
       {"$sort": {"created_at": -1}},
@@ -51,6 +102,7 @@ router.get("/latest", async (req, res) => {
       title: "Eladó cuccok",
       link: 'cserebere',
       id: 'sale',
+      newLink: 'uj-cserebere',
       data: await (await db.collection("sale")).aggregate([
       {"$project": {"title": 1, "category":1, "created_at": 1,"image":1, "author": 1}},
       {"$sort": {"created_at": -1}},
@@ -62,6 +114,7 @@ router.get("/latest", async (req, res) => {
       title: "Lakást keresek",
       link: 'cserebere',
       id: 'sale',
+      newLink: 'uj-cserebere',
       data: await (await db.collection("sale")).aggregate([
       {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1}},
       {"$sort": {"created_at": -1}},
@@ -73,6 +126,7 @@ router.get("/latest", async (req, res) => {
       title: "Elérhető lakások",
       link: 'cserebere',
       id: 'sale',
+      newLink: 'uj-cserebere',
       data: await (await db.collection("sale")).aggregate([
       {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1}},
       {"$sort": {"created_at": -1}},
@@ -84,6 +138,7 @@ router.get("/latest", async (req, res) => {
       title: "Álláskeresők",
       link: 'cserebere',
       id: 'sale',
+      newLink: 'uj-cserebere',
       data: await (await db.collection("sale")).aggregate([
       {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1}},
       {"$sort": {"created_at": -1}},
@@ -95,6 +150,7 @@ router.get("/latest", async (req, res) => {
       title: "Álláshirdetések",
       link: 'cserebere',
       id: 'sale',
+      newLink: 'uj-cserebere',
       data: await (await db.collection("sale")).aggregate([
       {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1}},
       {"$sort": {"created_at": -1}},
@@ -125,7 +181,7 @@ router.get("/latest", async (req, res) => {
   return "hello";
 });
 
-router.get("/notifications", async (req, res) => {
+router.get("/notifications",checkAuth, async (req, res) => {
 
   const results = await Promise.all([
     await prisma.friendship.findMany({

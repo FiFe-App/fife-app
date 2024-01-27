@@ -39,7 +39,7 @@ const About = ({navigation}) => {
     }
 
     const next = () => {
-        navigation.push('bejelentkezes');
+        navigation.push('fooldal');
         AsyncStorage.setItem('login',true)
     }
 
