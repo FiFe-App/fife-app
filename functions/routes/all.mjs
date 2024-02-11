@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 import adb from "../db/conn.mjs";
-import { checkAuth, checkAuthNoVer } from "../lib/auth.mjs";
+import { checkAuth, checkAuthIf, checkAuthNoVer } from "../lib/auth.mjs";
 import { getAuth } from "firebase-admin/auth";
 import { getStorage } from "firebase-admin/storage";
 
@@ -12,7 +12,7 @@ const prisma = new PrismaClient()
 /**
  * Update every user
 
-  const getUri = async () => {
+  const getUri = async () => {
     const fileRef = getStorage().bucket();
 
     return url
@@ -46,7 +46,7 @@ const prisma = new PrismaClient()
     })
   return
    */
-router.get("/latest", checkAuthNoVer,async (req, res) => {
+router.get("/latest",checkAuthIf,async (req, res) => {
 
   const filters = req.query;
 
@@ -66,7 +66,7 @@ router.get("/latest", checkAuthNoVer,async (req, res) => {
     } : undefined,
     news: 'true'=='true' ? {
       title: "Hírek, cikkek",
-      link: 'uj-cikkek',
+      link: 'cikk',
       id: 'docs',
       newLink: 'cikkek?id=64bd12b7590741c9b1fae8d6',
       data: await (await db.collection("document")).aggregate([
@@ -75,7 +75,7 @@ router.get("/latest", checkAuthNoVer,async (req, res) => {
         {"$limit": 3}
       ]).toArray()
     } : undefined,
-    places: filters?.places=='true' ? {
+    /*places: filters?.places=='true' ? {
         title: "Helyek amiket megismerhetsz",
         link: 'terkep',
         id: 'places',
@@ -85,7 +85,7 @@ router.get("/latest", checkAuthNoVer,async (req, res) => {
         {"$sort": {"created_at": -1}},
         {"$limit": 3}
       ]).toArray()
-    } : undefined,
+    } : undefined,*/
     saleSeek: filters?.saleSeek=='true' ? {
       title: "Tárgyakat keresnek",
       link: 'cserebere',
@@ -159,7 +159,7 @@ router.get("/latest", checkAuthNoVer,async (req, res) => {
     ]).toArray()
     } : undefined
   }
-  const number = await Promise.all([
+  const number = req?.uid ? await Promise.all([
     await prisma.friendship.count({
       where: {
         uid2: req.uid
@@ -171,7 +171,7 @@ router.get("/latest", checkAuthNoVer,async (req, res) => {
           author:req.uid
         }
     }
-  })])
+  })]) : []
 
   console.log('length:',Object.entries(results).length);
   res.send({
@@ -206,7 +206,7 @@ router.get("/notifications",checkAuth, async (req, res) => {
 
   console.log('results',sortedData);
 
-  res.send(sortedData || [])
+  res.send(sortedData || [])
 })
 
 

@@ -1,28 +1,30 @@
-  import Image from 'expo-fast-image';
-  import { Linking, View, useWindowDimensions, Share } from "react-native"
-import { Auto, MyText, NewButton, Row, TextInput } from "../components/Components"
-import { useNavigation } from "@react-navigation/native"
-import styles from "../styles/aboutDesign"
-import BasePage from "../components/BasePage"
-import Comments from "../components/tools/Comments"
-import { Smiley } from "./home/HomeScreenOld"
-import { useState } from 'react';
-import { getDatabase, push, ref, set } from 'firebase/database';
-import AuthoredImage from '../components/tools/AuthoredImage';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AmaticSC_700Bold, useFonts } from '@expo-google-fonts/amatic-sc';
-import { Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
 
-const About = ({navigation}) => {
+  import { AmaticSC_700Bold, useFonts } from '@expo-google-fonts/amatic-sc';
+import { Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Image from 'expo-fast-image';
+import { getDatabase, push, ref, set } from 'firebase/database';
+import { useState } from 'react';
+import { Linking, View, useWindowDimensions } from 'react-native';
+import BasePage from '../components/BasePage';
+import { Auto, MyText, NewButton, Row, TextInput } from '../components/Components';
+import AuthoredImage from '../components/tools/AuthoredImage';
+import Comments from '../components/tools/Comments';
+import styles from '../styles/aboutDesign';
+import { Smiley } from './home/HomeScreen';
+import { router } from 'expo-router';
+
+const About = () => {
     const small = useWindowDimensions().width <= 900;
     const db = getDatabase()
+    const navigation = router;
     const [email, setEmail] = useState('');
     const [sent, setSent] = useState(false);
 
     let [fontsLoaded] = useFonts({
         AmaticSC_700Bold, Raleway_800ExtraBold
       });
-    const handleSend = async () => {
+    const handleSend = async () => {
         if (email) {
             const newPostRef = push(ref(db,'about/emails'))
             set(newPostRef ,{
@@ -39,7 +41,8 @@ const About = ({navigation}) => {
     }
 
     const next = () => {
-        navigation.push('fooldal');
+        console.log('next');
+        navigation.push('/');
         AsyncStorage.setItem('login',true)
     }
 
@@ -51,7 +54,8 @@ const About = ({navigation}) => {
                 <Smiley size={1.5} style={{marginLeft:10}}/>
             </Row>
             <View style={{flex:1,alignItems:'center',justifyContent:'center',marginTop:10}}>
-                {true&&<NewButton title="Tovább az alkalmazásba" color="#fdcf99" style={{padding:10}} onPress={next}/>}
+                {true&&<NewButton title="Tovább a webalkalmazásba" color="#fdcf99" style={{padding:10}} onPress={next}/>}
+                <MyText style={{textAlign:'center'}}>Az appot jelenleg a böngészőben tudod megnyitni. Android és iOS alkalmazás a jövőben várható!</MyText>
             </View>
         </View>
         <View style={{marginHorizontal:small?0:100,flex:1}}>
@@ -59,7 +63,7 @@ const About = ({navigation}) => {
                     A mai elszigetelt világban szükség van egy olyan rendszerre, amely összehozza a jóérzésű embereket egy biztonságos közösségbe.
                 {'\n'}Ez a gondolat ihlette a Fiatal Felnőttek applikációt, amely sokrétű online felületet nyújt a nagyvárosban élőknek.
             </MyText>
-            <Auto style={{flex:'none'}}>
+            <Auto style={{flex:undefined}}>
                 <AuthoredImage authorName="Vitányi Regina"
                  source={require('../assets/img-prof.jpg')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
                 <MyText contained stlye={{flexGrow:1}}>
@@ -69,7 +73,7 @@ const About = ({navigation}) => {
                 </MyText>
             </Auto>
 
-            <Auto style={{flex:'none'}}>
+            <Auto style={{flex:undefined}}>
                 <MyText contained style={small&&{order:3}}>
                 <MyText title>Térkép</MyText>{'\n'}
                 Ezen az oldalon olyan hasznos helyeket fedezhetsz fel, mint turkálók, adományboltok, vásárok, kiskocsmák, csomagolásmentes boltok, vagy akár ingyenvécék.
@@ -78,7 +82,7 @@ const About = ({navigation}) => {
                  source={require('../assets/img-map.jpg')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
            </Auto>
 
-           <Auto style={{flex:'none'}}>
+           <Auto style={{flex:undefined}}>
                 <AuthoredImage authorName="Vitányi Regina"
                  source={require('../assets/img-main.jpg')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
                 <MyText contained>
@@ -87,7 +91,7 @@ const About = ({navigation}) => {
                 hogy miben vagy tehetséges. Akár kézműves termékeket készítesz, korrepetálsz, vagy tanácsot adsz, itt hirdetheted magad.
                 </MyText>
             </Auto>
-            <Auto style={{flex:'none'}}>
+            <Auto style={{flex:undefined}}>
                 
                 <MyText contained style={small&&{order:3}}>
                 <MyText title>Pajtások</MyText>{'\n'}Az oldal biztonságát az úgynevezett pajtásrendszerrel biztosítjuk. 
@@ -97,7 +101,7 @@ const About = ({navigation}) => {
                 <Image source={require('../assets/logo.png')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,flexOrder:0,alignSelf:'center'}}/>
             </Auto>
 
-            <Auto style={{flex:'none'}}>
+            <Auto style={{flex:undefined}}>
                 <Image source={require('../assets/en.jpeg')} resizeMode="cover" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
                 <MyText contained>
                 <MyText title>Rólam</MyText>{'\n'}

@@ -6,10 +6,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { MyText } from "../components/Components";
 import { FirebaseContext } from "../firebase/firebase";
 import { setSettings as setStoreSettings } from "../lib/userReducer";
+import { router } from "expo-router";
 
-const New = ({ navigation, route }) => {
+const New = () => {
     const {database} = useContext(FirebaseContext);
     const dispatch = useDispatch()
+    const navigation = router;
     const uid = useSelector((state) => state.user.uid)
     const [settings, setSettings] = useState(useSelector((state) => state.user.settings));
 

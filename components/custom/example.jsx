@@ -1,13 +1,8 @@
-import { Image, useWindowDimensions } from "react-native"
-import { Checkbox } from "react-native-paper";
-import { MyText, NewButton, Row, TextInput } from "../Components";
+import { Image } from "react-native";
 import BasePage from "../BasePage";
-import { useFocusEffect } from "@react-navigation/native";
-import { get, ref } from "firebase/database";
-import { useContext } from "react";
-import { FirebaseContext } from "../../firebase/firebase";
+import { MyText, Row } from "../Components";
 
-const banana = ({page,id}) => {
+const banana = ({page,id}) => {
 
 
     return (<BasePage>

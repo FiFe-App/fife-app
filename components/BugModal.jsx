@@ -1,30 +1,28 @@
-import { getDatabase, push, ref, set } from "firebase/database";
-import { useContext } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { FirebaseContext } from "../firebase/firebase";
-import { setBugData } from "../lib/userReducer";
-import HelpModal from "./help/Modal";
-import { useRoute } from "@react-navigation/native";
-import { getAuth } from "firebase/auth";
-import { MyText, NewButton } from "./Components";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
 import { getApp } from "firebase/app";
+import { getDatabase, push, ref, set } from "firebase/database";
+import { useDispatch, useSelector } from "react-redux";
+import { setBugData } from "../lib/userReducer";
+import { MyText, NewButton } from "./Components";
+import HelpModal from "./help/Modal";
+import { useLocalSearchParams, usePathname } from 'expo-router';
 
-const BugModal = () => {
+const BugModal = () => {
 
-  //const route = useRoute()
+  const params = useLocalSearchParams();
+  const route = usePathname();
   const app = getApp()
   const database = getDatabase(app)
   const uid = useSelector((state) => state.user.uid)
   const data = useSelector((state) => state.user.bugData)
   const dispatch = useDispatch()
-  const report = async () => {
+  const report = async () => {
 
     if (!data.message) return
     let res = null
     console.log({
       uid,
-      //route: {path:route.name,params:route?.params||null},
+      //route: {path:route.name,params:params||null},
       time: Date.now(),
       message: data.message
   });
@@ -33,7 +31,7 @@ const BugModal = () => {
 
     await set(newReportRef ,{
         uid,
-        route: {path:route.name,params:route?.params||null},
+        route: {path:route,params},
         time: Date.now(),
         message: data.message
     }).then(()=>{
@@ -53,7 +51,7 @@ const BugModal = () => {
     return res;
   }
 
-  const setData = (data) => {
+  const setData = (data) => {
     dispatch(setBugData(data))
   }
     return (<HelpModal

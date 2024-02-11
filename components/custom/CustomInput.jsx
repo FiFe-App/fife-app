@@ -1,12 +1,11 @@
-import { View, useWindowDimensions } from "react-native"
+import { router } from "expo-router";
+import { useWindowDimensions } from "react-native";
 import { Checkbox, TouchableRipple } from "react-native-paper";
-import { Col, MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from "../Components";
-import { useNavigation } from "@react-navigation/native";
+import { Col, MyText, NewButton, ProfileImage, Row, TextInput } from "../Components";
 import UserElement from "../tools/UserElement";
-import { MyImagePicker } from '../../components/tools/MyImagePicker';
 
-const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,placeholder,render,text,extra,extraAction}) => {
-    const navigation = useNavigation()
+const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,placeholder,render,text,extra,extraAction}) => {
+    const navigation = router
     const { width } = useWindowDimensions();
     const defStyle = {
         padding:10,
@@ -24,7 +23,7 @@ const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,pla
     if (type == 'text-input')
     return (<>{LabelElement}<TextInput style={[defStyle,style]} multiline
         placeholder={placeholder}
-     numberOfLines={lines} onChangeText={v=>setData({...data,[attribute]:v})} /></>)
+     rows={lines} onChangeText={v=>setData({...data,[attribute]:v})} /></>)
     if (type == 'checkbox')
     return (<Checkbox.Item label={label} 
         color="#000" style={[defStyle,style]} 
@@ -41,7 +40,7 @@ const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,pla
         style={{padding:8,borderRadius:8,}}
         onPress={()=>{
             setData()
-            navigation.push('profil',{uid:attribute})
+            navigation.push({pathname:'/profil',params:{uid:attribute}})
         }}>
             <Row style={{width:'100%'}}>
                 <ProfileImage uid={attribute} size={50}/>

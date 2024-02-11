@@ -29,7 +29,7 @@ router.post("/", checkAuthNoVer,async (req, res) => {
 
   console.log('res',result);
   const result2 = await Promise.all(req.body.buziness.map(async (buzi,ind)=>{
-    if (buzi && buzi.name && buzi.description)
+    if (buzi && buzi.name && buzi.description)
     return await prisma.buziness.create({
       data: {
         num: ind,
@@ -211,7 +211,7 @@ router.patch("/", checkAuthNoVer,async (req, res) => {
   return*/
 
   const result2 = await Promise.all(newB.map(async (buzi,ind)=>{
-    if (buzi && buzi.name && buzi.description)
+    if (buzi && buzi.name && buzi.description)
     return await prisma.buziness.upsert({
       where: {
         id: result.page.buziness[ind]?.id || '000000000000000000000000'

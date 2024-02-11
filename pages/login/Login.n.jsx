@@ -1,34 +1,34 @@
-import { StatusBar } from 'expo-status-bar';
-import React, { Component, useState, useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 //import { Image, MyText, View, Button, TextInput } from 'react-native';
-import { View, Button, TextInput } from 'react-native';
+import { Button, TextInput, View } from 'react-native';
 // routes
 
-import { styles } from '../../styles/styles'
+import { styles } from '../../styles/styles';
 
 // fonts
-import { useFonts, AmaticSC_700Bold } from '@expo-google-fonts/amatic-sc';
-import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins'
+import { AmaticSC_700Bold, useFonts } from '@expo-google-fonts/amatic-sc';
+import { Poppins_200ExtraLight } from '@expo-google-fonts/poppins';
 
-import { LinearGradient } from "expo-linear-gradient";
-import { FirebaseContext } from '../../firebase/firebase';
-import { getAuth, signOut, setPersistence, signInWithEmailAndPassword, browserSessionPersistence, onAuthStateChanged } from "firebase/auth";
+import { LinearGradient } from 'expo-linear-gradient';
 import { MyText } from '../../components/Components';
-import { useFocusEffect } from '@react-navigation/native';
+import { FirebaseContext } from '../../firebase/firebase';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 
-const LoginScreen = ({ navigation, route }) => {
+const LoginScreen = () => {
+    const navigation = router;
+    const params = useLocalSearchParams();
     const {app, auth, user, api}  = useContext(FirebaseContext);
-    const [email, onChangeUsername] = React.useState("");
-    const [password, onChangePassword] = React.useState("");
-    const [loginError, onChangeLoginError] = React.useState("");
-    const [canLogin, setCanLogin] = React.useState(route.params?.logout ? route.params.logout : false);
+    const [email, onChangeUsername] = React.useState('');
+    const [password, onChangePassword] = React.useState('');
+    const [loginError, onChangeLoginError] = React.useState('');
+    const [canLogin, setCanLogin] = React.useState(params?.logout ? params.logout : false);
   
     const signIn = (email, password, printMessage) => {
       console.log('sign in');
       
       api.login(email, password).then((res) => {
         if (res?.success) {
-          navigation.push('fooldal') 
+          navigation.push('/') 
         } else {
           onChangeLoginError(res?.error)
         }
@@ -42,7 +42,7 @@ const LoginScreen = ({ navigation, route }) => {
         if (api && !canLogin)
           api.login().then((res)=>{
             if (res?.success) {
-              navigation.push('fooldal') 
+              navigation.push('/') 
               console.log('auto singed in');
             }
           })
@@ -56,7 +56,7 @@ const LoginScreen = ({ navigation, route }) => {
     });
     return (
       (fontsLoaded) &&
-      <LinearGradient colors={["rgba(255,196,0,1)", "rgba(255,242,207,1)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.container}>
+      <LinearGradient colors={['rgba(255,196,0,1)', 'rgba(255,242,207,1)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.container}>
         <MyText style={styles.title} >fife. a közösség</MyText>
         <View style={{flexWrap:'wrap'}}>
           <TextInput

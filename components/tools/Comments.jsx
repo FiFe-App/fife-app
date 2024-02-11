@@ -1,16 +1,16 @@
-import { Pressable, View } from "react-native";
-import { B, Loading, MyText, NewButton, Row, TextInput } from "../Components";
-import { useEffect, useState } from "react";
-import { getDatabase, off, onChildAdded, push, ref, set } from "firebase/database";
-import { randomColor, shadeColor } from "../../lib/functions";
-import { useSelector } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
-import Icon from 'react-native-vector-icons/Ionicons';
-import UrlText from "./UrlText";
+import Icon from '@expo/vector-icons/Ionicons';
+import { getDatabase, off, onChildAdded, push, ref, set } from 'firebase/database';
+import { useEffect, useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { B, MyText, NewButton, Row, TextInput } from '../Components';
+import Loading from '../Loading';
+import UrlText from './UrlText';
+import { router } from 'expo-router';
 
-const Comments = ({style,path,placeholder}) => {
+const Comments = ({style,path,placeholder}) => {
     const [list, setList] = useState([]);
-    const navigation = useNavigation();
+    const navigation = router;
     const [width, setWidth] = useState(0);
     
     const uid = useSelector((state) => state.user.uid)
@@ -21,8 +21,8 @@ const Comments = ({style,path,placeholder}) => {
     const [downloading, setDownloading] = useState(true);
     const db = getDatabase()
 
-    const handleSend = async () => {
-        if (author && text) {
+    const handleSend = async () => {
+        if (author && text) {
             setLoading(true)
             const newPostRef = push(ref(db,path))
             set(newPostRef ,{
@@ -57,12 +57,12 @@ const Comments = ({style,path,placeholder}) => {
         <View style={[{flex:1},style]} onLayout={(e)=>setWidth(e.nativeEvent.layout.width)}>
             <Row style={{flex:1}}>
                 <View style={{flexGrow:1}}>
-                    {!name && <TextInput style={{marginRight:5,marginBottom:5,padding:10,backgroundColor:'#ffffff'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
-                    <TextInput style={{flex:1,marginRight:5,marginBottom:0,padding:10,backgroundColor:'#ffffff'}} multiline numberOfLines={2} value={text} 
+                    {!name && <TextInput style={{marginRight:5,marginBottom:5,padding:10,backgroundColor:'#ffffff'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
+                    <TextInput style={{flex:1,marginRight:5,marginBottom:0,padding:10,backgroundColor:'#ffffff'}} multiline rows={2} value={text} 
                     onChangeText={setText} 
-                    placeholder={(placeholder) ? placeholder : "Kommented"}/>
+                    placeholder={(placeholder) ? placeholder : 'Kommented'}/>
                 </View>
-                <NewButton title={width > 300 ? "Küldés" : <Icon name="arrow-redo-outline" size={30} color='black'/>} 
+                <NewButton title={width > 300 ? 'Küldés' : <Icon name="arrow-redo-outline" size={30} color='black'/>} 
                 onPress={handleSend} disabled={!author || !text} style={{height:'100%',margin:0}}
                     loading={loading}
                 />
@@ -72,10 +72,10 @@ const Comments = ({style,path,placeholder}) => {
                 {list.map((comment,ind)=>{
 
                     return (
-                        <View key={"comment"+ind} style={{background:'white',padding:5,margin:5,maxWidth:'100%'}}>
+                        <View key={'comment'+ind} style={{background:'white',padding:5,margin:5,maxWidth:'100%'}}>
                             <Pressable onPress={()=>{
                                 if (comment?.uid)
-                                    navigation.push('profil',{uid:comment.uid})
+                                    navigation.push({pathname:'profil',params:{uid:comment.uid}})
                                 }}>
                                 <MyText><B>{comment.author}</B></MyText>
                             </Pressable>
@@ -85,8 +85,8 @@ const Comments = ({style,path,placeholder}) => {
                     )
                 })}
             </View>}
-            {downloading ? <Loading /> :
-            !list?.length && <MyText style={{padding:20}}>Még nem érkezett komment</MyText>}
+            {downloading ? <Loading /> :
+            !list?.length && <MyText style={{padding:20}}>Még nem érkezett komment</MyText>}
         </View>)
 }
 

@@ -2,7 +2,7 @@
 import { ScrollView, View } from "react-native"
 import { MyText } from "../components/Components";
 
-const TermsAndServices = () => {
+const TermsAndServices = () => {
     return (<>
     
     <View>

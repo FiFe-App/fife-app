@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { config } from "../firebase/authConfig";
 import { MyText } from "../components/Components";
 
-const Server = () => {
+const Server = () => {
     const [list, setList] = useState([]);
     useEffect(() => {
         axios.get('/places',config()).then(res=>{

@@ -4,7 +4,7 @@ import CustomInput from "../custom/CustomInput";
 import { useEffect, useState } from "react";
 import { TouchableRipple } from "react-native-paper";
 
-const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen,children}) => {
+const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen,children}) => {
     const small = useWindowDimensions().width <= 900;
     const height = useWindowDimensions().height
 
@@ -22,7 +22,7 @@ const HelpModal = ({title,text,success,actions,inputs=[],open,setOpen,children})
           setOpen(false);
         }}>
         <View style={styles.centeredView}>
-            <ScrollView style={[styles.modalView,{maxWidth:small?'95%':'70%',maxHeight:height*0.8,flexGrow:0}]}>
+            <ScrollView style={[styles.modalView,{width:small?'95%':'70%',maxHeight:height*0.8,flexGrow:0}]}>
                     {open!='submitted' ? <>
                     <Row>
                       <MyText title style={{flexGrow:1}}>{title}</MyText>
@@ -73,7 +73,6 @@ const styles = StyleSheet.create({
       borderRadius:8,
       padding: 15,
       paddingHorizontal:25,
-      maxWidth:'70%',
       shadowColor: "#000",
       shadowOffset: {
         width: 0,

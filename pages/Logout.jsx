@@ -1,11 +1,12 @@
 import { useContext, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { Loading, MyText } from "../components/Components";
+import { MyText } from "../components/Components";
 import { logout } from "../lib/userReducer";  
 import { FirebaseContext } from "../firebase/firebase";
 import { View } from "react-native";
+import Loading from "../components/Loading";
 
-const Logout = ({navigation}) => {
+const Logout = ({navigation}) => {
     const dispatch = useDispatch();
     const {api,app,auth} = useContext(FirebaseContext);
     useEffect(() => {

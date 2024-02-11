@@ -1,7 +1,8 @@
+/* eslint-disable no-undef */
 
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
 import { MyText, NewButton } from '../../components/Components';
 
 
@@ -88,7 +89,7 @@ const MapElement = ({markers,center,index,editable,data,setData,style}) => {
           markers.forEach((location,index) => {
               const marker = L.marker([location.location[0], location.location[1]],selectedPlace?.id==location.id ? {icon: locationIcon } : {}).addTo(map)
               marker.bindPopup("<b>"+location.title+"</b><br>"+location.description)
-              marker.on('click',() => {
+              marker.on('click',() => {
                   marker.getPopup().openPopup();
                   setSelectedPlace(location);
               })
@@ -134,7 +135,7 @@ const MapElement = ({markers,center,index,editable,data,setData,style}) => {
     // FLY TO SELECTED
     useEffect(()=>{
       return
-        if (map && center.location[0] && center.location[1]) {
+        if (map && center.location[0] && center.location[1]) {
           map.flyTo([center?.location[0],center?.location[1]],16);
         }
     },[center])
@@ -158,7 +159,7 @@ const MapElement = ({markers,center,index,editable,data,setData,style}) => {
         markers.forEach((location,index) => {
             const marker = L.marker([location.location[0], location.location[1]],selectedPlace?.id==location.id ? {icon: locationIcon } : {}).addTo(map)
             marker.bindPopup("<b>"+location.title+"</b><br>"+location.description)
-            marker.on('click',() => {
+            marker.on('click',() => {
                 marker.getPopup().openPopup();
                 setSelectedPlace(location);
             })
@@ -212,7 +213,7 @@ const MapElement = ({markers,center,index,editable,data,setData,style}) => {
             console.log('marker',error);
         }
     })()
-    return () => {
+    return () => {
       setQuit(true);
       console.log('quit');
     }
@@ -241,10 +242,10 @@ const MapElement = ({markers,center,index,editable,data,setData,style}) => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="http://{s}.tile.osm.org/{z}/{x}/{y}.png"
               />
-              {editable && <>
+              {editable && <>
                 <Circle center={location} radius={400} fill fillColor={'#FFC372'} color={'#FFC372'}/>
               </>}
-              {oldLocation && <>
+              {oldLocation && <>
                 <Circle center={oldLocation} radius={400} fill fillColor={'#fff1a2'} color={'#fff1a2'}/>
               </>}
               {markers?.map((location)=>{

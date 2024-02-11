@@ -3,9 +3,10 @@ import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import ImageModal from 'react-native-image-modal';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
 import { useSelector } from "react-redux";
-import { B, Loading, MyText, NewButton, Row, TextInput, getUri } from "../../components/Components";
+import { B, MyText, NewButton, Row, TextInput, getUri } from "../../components/Components";
+import Loading from "../../components/Loading";
 
 import { FirebaseContext } from "../../firebase/firebase";
 
@@ -14,7 +15,7 @@ import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
 import Select from "../../components/Select";
 import { config } from "../../firebase/authConfig";
 import { categories as cats } from '../../lib/categories';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import GoBack from '../../components/Goback';
 import BasePage from '../../components/BasePage';
 import LabelInput from '../../components/tools/LabelInput';
@@ -22,9 +23,10 @@ import LabelInput from '../../components/tools/LabelInput';
 
 const categories = cats.sale.map(c=>{return c.name});
 
-const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
+const NewItem = ({route,data,toEdit}) => {
+    const params = useLocalSearchParams();
     const uid = useSelector((state) => state.user.uid)
-    const navigation = useNavigation();
+    const navigation = router;
     const width = useWindowDimensions().width
     const { app } = useContext(FirebaseContext);
     const [loading, setLoading] = useState(false);
@@ -35,7 +37,7 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
     const [imageTexts, setImageTexts] = useState([]);
     const [imageBookable, setImageBookable] = useState([]);
 
-    const save = () => {
+    const save = () => {
       setLoading(true)
       console.log('save');
 
@@ -52,7 +54,7 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
             category:category,
             imagesDesc: imageTexts
           },config()).then(async (res)=>{
-            navigation.push('cserebere',{id:toEdit})
+            navigation.push({pathname:'cserebere',params:{id:toEdit}})
           }).catch(error=>{
             console.log(error);
           })
@@ -72,14 +74,14 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
               setTitle('')
               setText('')
               setLoading(false)
-              navigation.push('cserebere',{id:res.data})
+              navigation.push({pathname:'cserebere',params:{id:res.data}})
             })
           }
           else {
               setTitle('')
               setText('')
               setLoading(false)
-              navigation.push('cserebere',{id:res.data})
+              navigation.push({pathname:'cserebere',params:{id:res.data}})
           }
         }).catch(error=>{
           console.log(error);
@@ -159,7 +161,7 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
           setText(data.description)
           setImageTexts(data.imagesDesc)
           setCategory(data.category)
-          const loadImgs = async () => {
+          const loadImgs = async () => {
             console.log(data.imagesDesc);
             if (data.imagesDesc?.length)
             setImages(
@@ -217,7 +219,7 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
                   console.log(selectedItem, index)
                   setCategory(index)
               }} />
-            <TextInput multiline numberOfLines={5} 
+            <TextInput multiline rows={5} 
               style={{ marginVertical:5, padding:5,fontSize:17, borderRadius:8,
                       backgroundColor: loading ? 'gray' : '#fff',
                         cursor: loading ? 'not-allowed' : 'text'
@@ -247,7 +249,7 @@ const NewItem = ({route,data,toEdit=route?.params?.toEdit}) => {
     )
 }
 
-const ImageAdder = ({editable,globalImages,setGlobalImages,globalImageTexts,setGlobalImageTexts,setGlobalImageBookbale}) => {
+const ImageAdder = ({editable,globalImages,setGlobalImages,globalImageTexts,setGlobalImageTexts,setGlobalImageBookbale}) => {
   const [images, setImages] = useState([]);
   const [separate, setSeparate] = useState([]);
   const [texts, setTexts] = useState([]);
@@ -279,7 +281,7 @@ const ImageAdder = ({editable,globalImages,setGlobalImages,globalImageTexts,setG
       setSeparate([...separate,false])
     }
   };
-  const deleteImage = (index) => {
+  const deleteImage = (index) => {
     setImages(images.filter((image,i) => i !== index))
     setGlobalImages(images.filter((image,i) => i !== index))
     setTexts(texts.filter((text,i) => i !== index))
@@ -287,13 +289,13 @@ const ImageAdder = ({editable,globalImages,setGlobalImages,globalImageTexts,setG
     setGlobalImageBookbale(separate.filter((text,i) => i !== index))
   }
 
-  const handleSeparate = (index) => {
+  const handleSeparate = (index) => {
     console.log(separate.map((s,i) => i == index ? !s : s));
     setSeparate(separate.map((s,i) => i == index ? !s : s))
     setGlobalImageBookbale(separate.map((s,i) => i == index ? !s : s))
   }
 
-  const handleTextChange = (text,index) => {
+  const handleTextChange = (text,index) => {
     console.log(text,index,'of'+texts.length);
     let arr = texts;
     console.log(texts.map((e,i)=>i==index ? text : e));
@@ -311,7 +313,7 @@ const ImageAdder = ({editable,globalImages,setGlobalImages,globalImageTexts,setG
           {editable&&<Pressable style={styles.close} onPress={()=>deleteImage(index)}><Icon name="close" size={20} color="white"/></Pressable>}
           <View style={{flex:1}}>
             <TextInput onChangeText={text=>handleTextChange(text,index)} value={texts[index]}
-            style={{height:150,padding:10,marginRight:10,backgroundColor:'#fff', borderTopRightRadius:8, borderBottomRightRadius:8}} multiline numberOfLines={3} 
+            style={{height:150,padding:10,marginRight:10,backgroundColor:'#fff', borderTopRightRadius:8, borderBottomRightRadius:8}} multiline rows={3} 
             placeholder={"Mondj valamit erről a képről"}/>
           </View>
         </View>

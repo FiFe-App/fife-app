@@ -1,33 +1,32 @@
 
 import { Animated, Easing, ImageBackground, ScrollView, TouchableOpacity, View } from 'react-native';
 
-import { useNavigation } from '@react-navigation/native';
+import { router } from 'expo-router';
 import homeDesign from '../../styles/homeDesign';
-import { MyText, ProfileBackground, ProfileImage, Row, getUri } from '../Components';
+import { MyText, Row, getUri } from '../Components';
 
 
-import { useWindowDimensions } from 'react-native';
-import { TextFor } from '../../lib/textService/textService';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { TouchableRipple } from 'react-native-paper';
 import axios from 'axios';
-import { FirebaseContext } from '../../firebase/firebase';
 import { getDatabase, limitToFirst, onChildAdded, query, ref } from 'firebase/database';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { useWindowDimensions } from 'react-native';
+import { TouchableRipple } from 'react-native-paper';
 import { config } from '../../firebase/authConfig';
+import { FirebaseContext } from '../../firebase/firebase';
 import { categories } from '../../lib/categories';
-import { getAuth } from 'firebase/auth';
+import { TextFor } from '../../lib/textService/textService';
 
 function Module(props) {
     const { firebasePath, serverPath } = props;
     const { width } = useWindowDimensions();
     const { api } = useContext(FirebaseContext);
     const database = getDatabase()
-    const navigation = useNavigation();
+    const navigation = router;
     const onPress = (to) => {
-      navigation.push(to, props.params);
+      navigation.push({pathname:to,params:props.params})
     }
     const [data, setData] = useState([]);
-    const fn = async () => {
+    const fn = async () => {
       let resList
       let collection = serverPath.split('/')[1]
       try {
@@ -69,7 +68,7 @@ function Module(props) {
         setData([]) 
       }
     }
-    const fn2 = async () => {
+    const fn2 = async () => {
           
       try {
         console.log('fn2');
@@ -91,7 +90,7 @@ function Module(props) {
         fn2()
       else 
         fn()
-      return ()=> {
+      return ()=> {
         setData([])
       }
     }, []);
@@ -109,7 +108,7 @@ function Module(props) {
               return (
                   <TouchableRipple key={ind+'one'} style={homeDesign.module} onPress={()=>{
                     //console.log(props.link)
-                    navigation.push(props.link,{id:one.id})
+                    navigation.push({pathname:props.link,params:{id:one.id}})
                   }}>
                       <><ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8}} 
                       source={{uri:one?.image}} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8}}>
@@ -136,7 +135,7 @@ function Module(props) {
     
   }
 
-  const LoadingModule = ({ind}) => {
+  const LoadingModule = ({ind}) => {
 
       const sweepAnim = useRef(new Animated.Value(0.5)).current  // Initial value for opacity: 0
 

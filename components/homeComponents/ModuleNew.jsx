@@ -1,12 +1,12 @@
 
 import { Animated, Easing, ImageBackground, ScrollView, TouchableOpacity, View } from 'react-native';
 
-import { useNavigation } from '@react-navigation/native';
+import { router } from 'expo-router';
 import homeDesign from '../../styles/homeDesign';
 import { MyText, Row, getUri } from '../Components';
 
 
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
 import { useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { TouchableRipple } from 'react-native-paper';
@@ -14,11 +14,11 @@ import { categories } from '../../lib/categories';
 import { TextFor } from '../../lib/textService/textService';
 
 function Module(props) {
-    const { title, link, list, params, data, id, newLink } = props?.data || {};
+    const { title, link, list, params, data, id, newLink } = props?.data || {};
     const { width } = useWindowDimensions();
-    const navigation = useNavigation();
+    const navigation = router;
     const onPress = (to) => {
-      navigation.push(to, params);
+      navigation.push({pathname:to,params})
     }
 
     const [images, setImages] = useState({});
@@ -40,14 +40,7 @@ function Module(props) {
             console.log(title,error);
             if (el?.author)
               try{image = await getUri(`profiles/${el.author}/profile.jpg`)} catch {
-                image = require('../../assets/profile.jpeg')
-              }
-            else {
-              try {
-                image = require('../../assets/icons/mapIcons/'+(Number(el.category)+1)+'.png')
-              } catch (error) {
-                
-              }
+                image = 'def'
             }
           }
           
@@ -77,12 +70,12 @@ function Module(props) {
                 const category = one.category?.length ? {name:one.category} :  categories?.[id]?.[(id=='places'?one.category-1:one.category)]
                 return (
                   <TouchableRipple key={ind+'one'} style={homeDesign.module} onPress={()=>{
-                    navigation.push(link,{id:one._id})
+                    
+                    navigation.push({ pathname: `/${link}`, params: {id:one._id} })
                   }}>
                       <><ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8,
-    resizeMode: 'cover',
     top: undefined,}} 
-                      source={{uri:images?.[ind]}} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8,justifyContent: 'flex-end'}}>
+                      source={images?.[ind]!='def'?{uri:images?.[ind]}:require('../../assets/profile.jpeg')} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8,justifyContent: 'flex-end'}}>
                         <View style={{alignSelf: 'flex-end'}}>
                           <MyText style={{margin:5,backgroundColor:('rgba(204, 255, 204,200)'),padding:5,borderRadius:8,fontSize:12}}>{category?.name}</MyText>
                         </View>
@@ -101,7 +94,7 @@ function Module(props) {
               return <LoadingModule ind={ind} key={ind+'blank'} />
             }))
             } 
-              {!!newLink&&<TouchableRipple key={'one'} style={[homeDesign.module,{backgroundColor:'#ffffff00',flexGrow:0,flex:'none',width:100}]} onPress={()=>{
+              {false&&<TouchableRipple key={'one'} style={[homeDesign.module,{backgroundColor:'#ffffff00',flexGrow:0,flex:undefined,width:100}]} onPress={()=>{
                     navigation.push(newLink)
                   }}>
                       <><View style={{height:100,borderRadius:8,justifyContent: 'center',alignItems:'center',backgroundColor:'#ffffff00'}}>
@@ -119,7 +112,7 @@ function Module(props) {
     
   }
 
-  const LoadingModule = ({ind,flat}) => {
+  const LoadingModule = ({ind,flat}) => {
 
       const sweepAnim = useRef(new Animated.Value(0.5)).current  // Initial value for opacity: 0
 
@@ -146,7 +139,7 @@ function Module(props) {
       })
       return (
           <Animated.View key={ind+'one'} style={[homeDesign.module,{backgroundColor:boxInterpolation,opacity:sweepAnim,borderRadius:8,height:120},
-          flat&&{height:20,flex:'none',width:300}]}>
+          flat&&{height:20,flex:undefined,width:300}]}>
           </Animated.View>
       )
   }

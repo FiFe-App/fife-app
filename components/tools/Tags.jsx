@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MyText, TextInput } from "../Components";
 import { View } from "react-native";
 
-const Tags = () => {
+const Tags = () => {
     const [text, setText] = useState('');
     const list = text.split(' ')
 

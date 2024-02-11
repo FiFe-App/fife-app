@@ -3,12 +3,12 @@ import { MyText } from "../Components"
 import { useState } from "react";
 import { Linking, Pressable } from "react-native";
 
-const UrlText = ({text="asd asd www.fifeapp.hu adsas d",style}) => {
+const UrlText = ({text="asd asd www.fifeapp.hu adsas d",style}) => {
     const regex = /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})(\.[a-zA-Z0-9]{2,})?/g
     const arr = text.match(regex);
     
     const [result, setResult ] = useState(null);
-    const makeText = () => {
+    const makeText = () => {
         let list = [];
         let pre = 0;
 

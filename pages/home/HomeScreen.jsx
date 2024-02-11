@@ -1,29 +1,26 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import Icon from '@expo/vector-icons/Ionicons';
+import axios from 'axios';
 import Image from 'expo-fast-image';
-import { child, get, getDatabase, onChildAdded, ref, set } from 'firebase/database';
+import { router, useFocusEffect } from 'expo-router';
+import { get, getDatabase, ref, set } from 'firebase/database';
 import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, ScrollView, View, useWindowDimensions, ActivityIndicator } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Animated, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Auto, B, Col, MyText, NewButton, Row, getNameOf } from '../../components/Components';
+import MessageModal from '../../components/help/MessageModal';
 import HelpModal from '../../components/help/Modal';
 import Module from '../../components/homeComponents/ModuleNew';
-import { FirebaseContext } from '../../firebase/firebase';
-import { TextFor, elapsedTime, getGreeting } from '../../lib/textService/textService';
-import { removeUnreadMessage, setTempData, setUnreadMessage } from '../../lib/userReducer';
-import HomeBackground from './HomeBackground';
-import styles from '../../styles/homeDesign';
-import axios from 'axios';
-import { onAuthStateChanged } from 'firebase/auth';
+import StressModal from '../../components/homeComponents/StressModal';
+import Error from '../../components/tools/Error';
 import { config } from '../../firebase/authConfig';
+import { FirebaseContext } from '../../firebase/firebase';
 import { categories } from '../../lib/categories';
 import { listToMatrix } from '../../lib/functions';
-import Error from '../../components/tools/Error';
-import MessageModal from '../../components/help/MessageModal';
-import Posting from '../../components/homeComponents/Posting';
-import { setSettings as setStoreSettings } from "../../lib/userReducer";
-import StressModal from '../../components/homeComponents/StressModal';
+import { TextFor, elapsedTime, getGreeting } from '../../lib/textService/textService';
+import { removeUnreadMessage, setSettings as setStoreSettings, setTempData, setUnreadMessage } from '../../lib/userReducer';
+import styles from '../../styles/homeDesign';
 import Blog from '../posts/Posts';
+import HomeBackground from './HomeBackground';
 
 
   const HomeScreen = () => {
@@ -36,7 +33,7 @@ import Blog from '../posts/Posts';
     const [searchText, setSearchText] = useState('');
     const [textWidth, setTextWidth] = useState(0); 
     const { width } = useWindowDimensions();
-    const small = width < 900;
+    const small = width < 900;
     const [greeting, setGreeting] = useState(getGreeting);
     const [docsList, setDocsList] = useState([]);
     const [mailModal, setMailModal] = useState(null);
@@ -51,7 +48,7 @@ import Blog from '../posts/Posts';
     useEffect(() => {
         if (uid) {
             if (database && settings) {
-                const dbRef = ref(database,'users/' + uid + "/settings/snowfall");
+                const dbRef = ref(database,'users/' + uid + '/settings/snowfall');
                 set(dbRef,settings?.snowfall||false)
                 dispatch(setStoreSettings(settings))
                 
@@ -105,7 +102,7 @@ import Blog from '../posts/Posts';
       console.log(list);
     }, [list]);
 
-    const loadData = () => {
+    const loadData = () => {
       console.log('load latest', filter);
       if (!Object.entries(filter).length) return 
       setList([null,null,null,null]);
@@ -134,7 +131,7 @@ import Blog from '../posts/Posts';
       })
     }, [mailModal]);
 
-    const save = () => {
+    const save = () => {
       const saveRef = ref(getDatabase(),'users/'+uid+'/settings/homeFilter')
       set(saveRef,filter).then(()=>{
         setFilterModal(false)
@@ -178,10 +175,15 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
     </>
 
     return (
-      <ScrollView style={{flex:1,backgroundColor:'#fdf6d1',zIndex:0,elevation: 0,}} >
+      <ScrollView style={{flex:1,backgroundColor:'#fdf6d1',zIndex:-1,elevation: 0,}} >
+
         <HomeBackground >
-                {true&&<Stickers style={{flex:1}}/>}
-          <Row style={{flex:3,zIndex:0,elevation: 0,justifyContent:'center'}}>
+          {!uid && <Row>
+            <NewButton title="Bejelentkezés" onPress={router.push('/bejelentkezes')}/>
+            <NewButton title="Regisztrálj!" onPress={router.push('/regisztracio')}/>
+          </Row>}
+          {true&&<Stickers style={{flex:1}}/>}
+          <Row style={{flex:3,zIndex:0,elevation: 0,justifyContent:'center',alignItems:'center'}}>
             <Col style={{flex:width<=900?1:2,alignItems:'center',shadowOpacity:2,}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
                 {<Row style={{alignItems:'center',textAlign:'center',paddingHorizontal:20,paddingVertical:20,opacity:textWidth}}>
@@ -195,13 +197,13 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
                 </Row>}
               </Animated.View> 
             </Col>
-            {!!uid&&<Auto style={{padding:10,alignItems:'center',justifyContent:'center',zIndex:-1,width:'auto',flex:'none'}} >
+            {!!uid&&<Auto style={{padding:10,alignItems:'center',justifyContent:'center',zIndex:-1,width:'auto',flex:undefined}} >
               <View>
 
-                <NewButton icon title={<Icon name={number?"notifications":"notifications-outline"} size={30} />} onPress={()=>setMailModal(true)}
+                <NewButton icon title={<Icon name={number?'notifications':'notifications-outline'} size={30} />} onPress={()=>setMailModal(true)}
                   info="Értesítések"
                 />
-                {!!number && <MyText style={{
+                {!!number && <MyText style={{
                   position:'absolute',top:0,right:0,
                   borderRadius:10,color:'white',backgroundColor:'black',width:20,height:20,alignItems:'center',textAlign:'center'}}>
                 {number}
@@ -219,33 +221,34 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
               list?.error ?
               <Error text={list?.error?.response?.data}/>
               :
-              <>{width > 900 ? <>
+              <>{width > 900 ? <>
               <View>
-                {listToMatrix(list,2).map(row=>{
-                  return <Row>
-                    {row.map(e=><Module  data={e} />)}
+                {listToMatrix(list,2).map((row,i)=>{
+                  return <Row key={'module'+i}>
+                    {row.map((e,i2)=><Module key={'moduleRow'+i2} data={e} />)}
                   </Row>
                 })}
               </View>
             </> : <View style={{alignItems:'center'}}>
-                  {list.map(e=><Module data={e} />)}
+                  {list.map((e,i)=><Module key={'modulerow'+i} data={e} />)}
             </View>}</>}
           </View>
+          <MyText>uid{uid}</MyText>
           {list?.[0] && <View style={{alignItems:'center',flex:1,margin:32}}>
             <Smiley/>
             <MyText>Vége a találatoknak</MyText>
           </View>}
-          {!!uid && modals}
+          {!!uid && modals}
       </ScrollView>
     );
   }
 
-  const Stickers = ({style}) => {
+  const Stickers = ({style}) => {
 
     const [notifications, setNotifications] = useState([
     ]);
     const {database, app, initMessaging} = useContext(FirebaseContext);
-    const navigator = useNavigation()
+    const navigator = router
     const uid = useSelector((state) => state.user.uid)
     const user = useSelector((state) => state.user)
     console.log('user',user);
@@ -267,11 +270,11 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
       
       if (database) {
         const dbRef = ref(database,`users/${uid}/messages`);
-        const userRef = ref(database,`users`);
+        const userRef = ref(database,'users');
 
         console.log('onChilAdded attatched');
 
-        const getMessages = () => {
+        const getMessages = () => {
           //dispatch(emptyUnreadMessages())
           console.log('allMessages',allMessages);
           if (allMessages.includes('notifications')) {
@@ -286,8 +289,8 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
         } 
         getMessages()
       }
-      
-      if (Platform.OS == 'web' && Notification.permission === 'default') {
+
+      if (!('Notification' in window) && Platform.OS == 'web' && Notification.permission === 'default') {
         dispatch(setUnreadMessage('notifications'))
       } else {
         dispatch(removeUnreadMessage('notifications'))
@@ -295,24 +298,23 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
     }, []);
 
     useEffect(() => {
-      if (Platform.OS == 'web' && Notification.permission !== 'default')
+      if (('Notification' in window) && Platform.OS == 'web' && Notification.permission !== 'default')
         setNotifications(notifications.filter(n=>n.key!='notifications'))
     }, [allMessages]);
 
     return (
-      <View style={style}>
-          {notifications.length ? notifications.map(
+      notifications.length && <View style={style}>
+          {notifications.map(
             (n,i)=>
               <Sticker key={'sticker'+i} onPress={()=>handleClose(n)}>
                 <B>{n.title}</B>
                 {' '+n?.text}
-              </Sticker>)
-            : null}
+              </Sticker>)}
       </View>
     )
 }
 
-  const Sticker = ({children,onPress}) => {
+  const Sticker = ({children,onPress}) => {
     const getRandom = (min, max) => Math.floor(Math.random()*(max-min+1)+min);
 
     const width = 300;
@@ -341,7 +343,7 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
   export const Smiley = ({style}) => {
     const size = useRef(new Animated.Value(1)).current 
 
-    const handleGrow = () => {
+    const handleGrow = () => {
       if (size._value > 60) 
       Animated.timing(
         size,
@@ -375,7 +377,7 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
     )
   }
 
-  const Popup = ({title,description,handlePress,handleClose,index}) => {
+  const Popup = ({title,description,handlePress,handleClose,index}) => {
     return (
       <Pressable 
         onPress={handlePress}
@@ -395,7 +397,7 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
 
 
   export const isBright = function(color) { // #FF00FF
-    var textCol = "black";
+    var textCol = 'black';
     var c = color.substring(1);      // strip #
     var rgb = parseInt(c, 16);   // convert rrggbb to decimal
     var r = (rgb >> 16) & 0xff;  // extract red
@@ -405,7 +407,7 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
     var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
 
     if (luma < 150) {
-        textCol = "white";
+        textCol = 'white';
     }
 
     return textCol;

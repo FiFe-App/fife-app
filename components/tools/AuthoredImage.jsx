@@ -1,21 +1,21 @@
-import ExpoFastImage from "expo-fast-image";
-import { MyText } from "../Components";
-import { Pressable, View } from "react-native";
-import { useRef } from "react";
-import { useHover } from "react-native-web-hooks";
-import { useNavigation } from "@react-navigation/native";
-import { useDispatch, useSelector } from "react-redux";
+import ExpoFastImage from 'expo-fast-image';
+import { useRef } from 'react';
+import { Pressable, View } from 'react-native';
+import { useHover } from 'react-native-web-hooks';
+import { useSelector } from 'react-redux';
+import { MyText } from '../Components';
+import { router } from 'expo-router';
 
-const AuthoredImage = (props) => {
+const AuthoredImage = (props) => {
     const ref = useRef(null);
-    const navigation = useNavigation()
+    const navigation = router;
     const { authorUid, authorName } = props;
     const uid = useSelector((state) => state.user.uid)
     const isHovered = useHover(ref);
 
-    const handlePress = () => {
-        if (authorUid && uid)
-            navigation.push('profil',{uid:authorUid})
+    const handlePress = () => {
+        if (authorUid && uid)
+            navigation.push({pathname:'profil',params:{uid:authorUid}})
     }
     return (                
         <View ref={ref} >

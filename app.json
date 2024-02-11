@@ -5,7 +5,6 @@
     "slug": "fife-app",
     "owner": "Kristóf Ákos",
     "version": "1.0.1",
-    "image": "./assets/logo.png",
     "scheme": "fifeapp",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -13,9 +12,9 @@
     "backgroundColor": "#ffde7e",
     "primaryColor": "#edeeda",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/web_splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffde7e"
+      "backgroundColor": "#FCEFA2"
     },
     "updates": {
       "fallbackToCacheTimeout": 0,
@@ -35,17 +34,14 @@
       "versionCode": 2
     },
     "web": {
-      "plugins": [
-        "@babel/plugin-proposal-nullish-coalescing-operator",
-        "@babel/plugin-proposal-optional-chaining"
-      ],
       "favicon": "./assets/logo.png",
-      "output": "static",
+      "output": "single",
+      "bundler":"metro" ,
       "name": "FiFe App",
       "lang": "hu",
       "description": "A biztonságos online tér.",
       "splash": {
-        "image": "./assets/logo.png"
+        "image": "./assets/web_splash.png"
       }
     },
     "extra": {

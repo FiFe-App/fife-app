@@ -1,34 +1,34 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Auto, FAB, Loading, MyText, NewButton, Row, TextInput } from '../../components/Components';
+import { Auto, FAB, MyText, NewButton, Row, TextInput } from '../../components/Components';
+import Loading from "../../components/Loading";
 import { FirebaseContext } from '../../firebase/firebase';
-import { default as NewSaleItem } from "./NewItem";
 
 import { useWindowDimensions } from 'react-native';
 
-import { useFocusEffect } from "@react-navigation/native";
-import axios from "axios";
-import Icon from 'react-native-vector-icons/Ionicons';
-import DateTimePicker from "../../components/DateTimePicker";
-import DeleteModal, { UserModal } from "../../components/Modal";
-import Select from "../../components/Select";
-import { config } from "../../firebase/authConfig";
-import { deepEqual, listToMatrix } from "../../lib/functions";
-import { Item } from "./Item";
-import { SaleListItem } from "./SaleListItem";
-import { categories as cats } from "../../lib/categories";
-import HelpModal from "../../components/help/Modal";
+import Icon from '@expo/vector-icons/Ionicons';
+import axios from 'axios';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import BasePage from '../../components/BasePage';
+import GoBack from '../../components/Goback';
+import DeleteModal from '../../components/Modal';
+import Select from '../../components/Select';
+import HelpModal from '../../components/help/Modal';
+import ShareModal from '../../components/tools/ShareModal';
+import { config } from '../../firebase/authConfig';
+import { categories as cats } from '../../lib/categories';
+import { deepEqual, listToMatrix } from '../../lib/functions';
+import { Item } from './Item';
 import { SaleContext } from './SaleContext';
-import BasePage from "../../components/BasePage";
-import GoBack from "../../components/Goback";
-import ShareModal from "../../components/tools/ShareModal";
+import { SaleListItem } from './SaleListItem';
 
 
 const categories = ['Kategória: Minden',...cats.sale.map(c=>{return c.name})];
 
-const Sale = ({ navigation, route }) => {
-    const { id, category=0 } = route.params || {};
+const Sale = () => {
+    const params = useLocalSearchParams();
+    const { id, category=0 } = params || {};
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -50,7 +50,7 @@ const Sale = ({ navigation, route }) => {
         skip: 0,
         take: itemsPerRow*3,
         searchText: undefined
-    },...{...route.params,id:undefined} });
+    },...{...params,id:undefined} });
     const [moreFilter, setMoreFilter] = useState(true);
     const [changed, setChanged] = useState(false);
     const [keys, setKeys] = useState([]);
@@ -63,7 +63,7 @@ const Sale = ({ navigation, route }) => {
 
     const [searchText, setSearchText] = useState('');
     const [searchResult, setSearchResult] = useState([]);
-    const [selected, setSelected] = useState(id || null);
+    const [selected, setSelected] = useState(id || null);
     const [toDelete, setToDelete] = useState(null);
     const [toEdit, setToEdit] = useState(null);
     const [hide, setHide] = useState(false);
@@ -79,23 +79,20 @@ const Sale = ({ navigation, route }) => {
         return contentOffset.y >= 20
     }
 
-    const loadMoreData = () => {
+    const loadMoreData = () => {
         if (loading) return 
 
         search(itemsPerRow*3)
     }
 
     useEffect(() => {
-        console.log(settings);
         setChanged(true);
-        if (!id)
-        navigation.setParams({...settings,id:undefined})
     }, [settings]);
 
     useEffect(() => {
         setToEdit(null)
         console.log('selected',selected);
-        if (!id && selected && width <= 900) navigation.push('cserebere',{id:selected})
+        if (!id && selected && width <= 900) router.push('cserebere',{id:selected})
     }, [selected]);
 
     useFocusEffect(
@@ -107,10 +104,10 @@ const Sale = ({ navigation, route }) => {
         }, [])
       );
 
-    const deleteItem = () => {
+    const deleteItem = () => {
         console.log('delete',selected);
         if (selected)
-        (async ()=> {
+        (async ()=> {
             axios.delete('/sale/'+selected,config()).then(res=>{
                 setList(list.filter(e=>e._id!=toDelete))
             }).catch(err=>{
@@ -119,10 +116,10 @@ const Sale = ({ navigation, route }) => {
         })()
     }
 
-    const interestItem = async (index,isInterest) => {
+    const interestItem = async (index,isInterest) => {
         console.log('interest',interestModal,isInterest);
         if (interestModal.message)
-        return (async ()=> {
+        return (async ()=> {
             const res = await axios.patch('/sale/'+interestModal.id+'/interest', {
                 interested: interestModal.isInterest,
                 message: interestModal.message
@@ -138,25 +135,25 @@ const Sale = ({ navigation, route }) => {
               })
               .catch(error=>{
                 console.error(error)
-                setInterestModal({error:"Nem vagy bejelentkezve!"})
+                setInterestModal({error:'Nem vagy bejelentkezve!'})
             })
               console.log(res);
             return !isInterest;
         })()
     }
 
-    const search = async (skip,initial=false) => {
+    const search = async (skip,initial=false) => {
         console.log(settings);
         setChanged(false)
         if (list.length != 0 && deepEqual(lastQuery,{
-            ...(settings||route.params),
+            ...(settings||params),
             skip,
             search:searchText
         })) console.log('no');
         if (lastQuery?.skip && lastQuery?.skip == skip) return
         setLoading(true)
         await axios.get('/sale',{...config(),params:{
-            ...(settings||route.params),
+            ...(settings||params),
             id: undefined,
             category: settings.category-1,
             take:itemsPerRow*3,
@@ -186,7 +183,6 @@ const Sale = ({ navigation, route }) => {
     const toShare = {interestModal,setInterestModal,IList,setIList,userModal,setToEdit,deleteModal,setDeleteModal,selected,setSelected,shareModal,setShareModal}
     const modals = <>
             <DeleteModal modalVisible={deleteModal} setModalVisible={setDeleteModal} handleOK={deleteItem}/>
-            <UserModal modalVisible={userModal} setModalVisible={setUserModal} uid={selected?.uid} name={selected?.name} handleOK={()=>navigation.push('uzenetek',{selected:selected?.uid})}/>
             <HelpModal
                 title="Érdekel a hirdetés?"
                 text='Írj üzenetet a hirdetőnek! Foglald bele, mi érdekel téged.'
@@ -215,7 +211,7 @@ const Sale = ({ navigation, route }) => {
                         return {type:'user',attribute:e.author,label:'üzenet: '+e.message,setData:setIList,style:{
                             backgroundColor:'rgb(253, 245, 203)',
                             borderRadius: 8
-                        },extra:'message',extraAction:()=>navigation.push('üzenetek',{uid:e.author})}
+                        },extra:'message',extraAction:()=>router.push('üzenetek',{uid:e.author})}
                     })
                 }
             />
@@ -227,26 +223,65 @@ const Sale = ({ navigation, route }) => {
     if (id)
     return <SaleContext.Provider value={toShare}>
     <GoBack breakPoint={10000} text={null} floating icon style={{backgroundColor:'#FFC372'}} color='black'/>
-    <BasePage style={{paddingTop:0}}>
+    <BasePage style={{paddingTop:0}} title="Cserebere">
         <Item data={list.find(e=>e._id == selected)} toLoadId={selected} 
             setSelected={setSelected} interestItem={setInterestModal}   deleteItem={()=>setDeleteModal(true)}/>
         {modals}
         </BasePage>
     </SaleContext.Provider>
-    return (
+    else return (
     <SaleContext.Provider value={toShare}>
-        <BasePage>
-            <View style={{flex:3}}>
+        <BasePage title="Cserebere" full style={{paddingTop:12}}>
+            <Auto style={{flex:1,justifyContent:'center'}}>
+                <View style={{minWidth:300}}>
+                    <View style={{padding:0}}>
+                        <TextInput
+                            onChangeText={(e)=>setSettings({...settings,searchText:e})}
+                            style={{fontSize:17,padding:10,margin:10,marginBottom:0,backgroundColor:'white',borderRadius:8}}
+                            placeholder="Keress csereberében"
+                            value={settings.searchText}
+                        />
+                        {(!hide || width > 600) && <><Select
+                            list={categories}
+                            defaultValue={settings.category}
+                            style={{fontSize:17,padding:10,margin:10,paddingRight:20,backgroundColor:'white',borderWidth:0,width:'auto',borderRadius:8}}
+                            placeholder="Válassz kategóriát"
+                            onSelect={(selectedItem, index) => {
+                                const i = index == 0 ? 0 : index
+                                console.log(i)
+                                setSettings({...settings,category:i})
+                            }} />
+                        </>}
+                    </View>
+                    {(!hide || width > 600) && <View style={{margin:5,marginTop:-5}}>
+                        <View style={{flexDirection:'row', alignItems:'center',borderBottomWidth:5,borderColor:'#ffffff',marginHorizontal:5,minHeight:50}}>
+                            <NewButton color={settings.author ? '#d0c582dd' : '#ffffff'} onPress={(e)=>{setSettings({...settings, author: null})}}
+                            style={{flex:1,marginBottom:0,marginLeft:0,borderBottomLeftRadius:0,borderBottomRightRadius:0,padding:10}}
+                            title="Mindenki másé"/>
+                            <NewButton color={!settings.author ? '#d0c582dd' : '#ffffff'} onPress={(e)=>{setSettings({...settings, author: uid})}}
+                            style={{flex:1,marginBottom:0,marginRight:0,borderBottomLeftRadius:0,borderBottomRightRadius:0,padding:10}}
+                            title="Sajátjaim" />
+                        </View>
+                        <Row style={{flex:1}}>
+                            <NewButton color={changed?'#FFC372':undefined} title="Keresés!" onPress={()=>{setList([]);search(0)}} textStyle={{fontSize:24}} style={{flex:5}}/>
+                            <NewButton title={<Icon name="refresh" size={30} />} onPress={()=>{setList([]);search(0)}} style={{flex:1}}/>
+                        </Row>
+                    </View>}
+                    {changed && <MyText style={{textAlign:'center',padding:10,backgroundColor:'white'}}>Kattints a Keresésre, hogy frissítsd a találatokat!</MyText>}
+                </View>
+                
                 <ScrollView
                     ref={scrollView}
+                    style={{maxWidth:800}}
+                    contentContainerStyle={{alignItems:'center',paddingBottom:100}}
                     onLayout={(e)=>{
                         setWidth(e.nativeEvent.layout.width)
                     }}
                     scrollEventThrottle={16}
                     onScroll={event => {
-                            if (isCloseToBottom(event.nativeEvent)) 
+                            if (isCloseToBottom(event.nativeEvent))
                                 loadMoreData()
-                            
+                
                             const down = isScrollDown(event.nativeEvent);
                             if (down != hide) {
                                 setHide(down)
@@ -254,49 +289,11 @@ const Sale = ({ navigation, route }) => {
                         }
                         }
                     >
-                    <Auto breakPoint={width > 900 ? 1300 : 600} style={{flex:'none'}}>
-                        <View style={{padding:0}}>
-                            <TextInput
-                                onChangeText={(e)=>setSettings({...settings,searchText:e})}
-                                style={{fontSize:17,padding:10,margin:10,backgroundColor:'white'}}
-                                placeholder="Keress csereberében"
-                                value={settings.searchText}
-                            />
-                            {(!hide || width > 600) && <><Select
-                                list={categories}
-                                defaultValue={settings.category}
-                                style={{fontSize:17,padding:10,margin:10,paddingRight:-10,backgroundColor:'white',borderWidth:0,width:'auto'}}
-                                placeholder="Válassz kategóriát"
-                                onSelect={(selectedItem, index) => {
-                                    const i = index == 0 ? 0 : index
-                                    console.log(i)
-                                    setSettings({...settings,category:i})
-                                }} />
-
-                            </>}
-                        </View>
-                        {(!hide || width > 600) && <View style={{flex:1,margin:5,marginLeft:0}}>
-                            <View style={{flexDirection:'row', alignItems:'center',borderBottomWidth:5,borderColor:'#ffffff',marginHorizontal:5,minHeight:50}}>
-                                <NewButton color={settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: null})}} 
-                                style={{flex:1,marginBottom:0,marginLeft:0,borderBottomLeftRadius:0,borderBottomRightRadius:0,padding:10}} 
-                                title="Mindenki másé"/>
-                                <NewButton color={!settings.author ? "#d0c582dd" : "#ffffff"} onPress={(e)=>{setSettings({...settings, author: uid})}} 
-                                style={{flex:1,marginBottom:0,marginRight:0,borderBottomLeftRadius:0,borderBottomRightRadius:0,padding:10}}
-                                title="Sajátjaim" />
-                            </View>
-                            <Row style={{flex:1}}>
-                                <NewButton color={changed?'#FFC372':undefined} title="Keresés!" onPress={()=>{setList([]);search(0)}} textStyle={{fontSize:24}} style={{flex:5}}/>
-                                <NewButton title={<Icon name="refresh" size={30} />} onPress={()=>{setList([]);search(0)}} style={{flex:1}}/>
-                            </Row>
-                        </View>}
-                    </Auto>
-                    {changed && <MyText style={{textAlign:'center',padding:10,backgroundColor:'white'}}>Kattints a Keresésre, hogy frissítsd a találatokat!</MyText>}
-                    
                     {list.length ?
-                    <View>
+                    <View style={{width:'100%',alignItems:'center'}}>
                         {listToMatrix(list,itemsPerRow).map((row,i)=>{
                             return (
-                                <Row>
+                                <Row key={'saleRow'+i} style={{width:'100%'}}>
                                 {row.map((e,ind,rowL)=>
                                     <SaleListItem
                                         data={e}
@@ -321,12 +318,11 @@ const Sale = ({ navigation, route }) => {
                     </View> }
                     {loading && <Loading color='#FFC372' height={10}/>}
                 </ScrollView>
-                
-            </View>
+            </Auto>
         </BasePage>
-            <FAB color="#FFC372" size={80} icon="chevron-up" onPress={()=>scrollView.current.scrollTo(0,0)}/>
-            {uid&&<FAB color="#FFC372" size={80} icon="add" onPress={()=> navigation.push('uj-cserebere')}/>}
-            {modals}
+        <FAB color="#FFC372" size={80} icon="chevron-up" onPress={()=>scrollView.current.scrollTo(0,0)}/>
+        {uid&&<FAB color="#FFC372" size={80} icon="add" onPress={()=> router.push('uj-cserebere')}/>}
+        {modals}
     </SaleContext.Provider>
     )
 }

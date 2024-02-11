@@ -2,12 +2,12 @@ import { View, useWindowDimensions } from "react-native"
 import { Checkbox } from "react-native-paper";
 import { Loading, MyText, NewButton, Row, TextInput } from "../Components";
 import BasePage from "../BasePage";
-import { useFocusEffect } from "@react-navigation/native";
 import React, { useContext, useEffect, useState } from "react";
 import { FirebaseContext } from "../../firebase/firebase";
 import { getDownloadURL, getStorage, ref } from "firebase/storage";
+import { useFocusEffect } from "expo-router";
 
-const CustomPage = ({page,id}) => {
+const CustomPage = ({page,id}) => {
     const { width } = useWindowDimensions();
     const {database} = useContext(FirebaseContext)
 
@@ -40,7 +40,7 @@ const CustomPage = ({page,id}) => {
         console.log('Bricks',Bricks);
       }, [Bricks]);
 
-    const buildPage = () => {
+    const buildPage = () => {
 
     }
 

@@ -1,13 +1,12 @@
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { useEffect, useState } from "react";
-import { Dimensions, ScrollView, useWindowDimensions } from "react-native"
-import { Pages } from "../first/pages"
+import { usePathname } from "expo-router";
+import { useState } from "react";
+import { ScrollView, useWindowDimensions } from "react-native";
+import { Pages } from "../first/pages";
 
-export default () => {
-    const navigation = useNavigation()
-    const route = useRoute()
+export default () => {
+    const route = usePathname()
     const { width } = useWindowDimensions();
-    const [page, setPage] = useState(route.params?.p || 0);
+    const [page, setPage] = useState(params?.p || 0);
     const [newData, setNewData] = useState({
       name: '',
       username: '',

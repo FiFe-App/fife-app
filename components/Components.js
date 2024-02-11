@@ -1,37 +1,27 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import Icon from '@expo/vector-icons/Ionicons';
 import Image from 'expo-fast-image';
+import { router } from 'expo-router';
 import { getDownloadURL, getStorage, ref as sRef } from "firebase/storage";
 import React, { useEffect, useRef, useState } from 'react';
-import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Animated, Dimensions, Easing, Modal, Platform, Pressable, TextInput as RNTextInput, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { ActivityIndicator, Animated, Dimensions, Modal, Platform, Pressable, TextInput as RNTextInput, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { styles as newStyles } from '../styles/styles';
 
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ExpoFastImage from 'expo-fast-image';
-import { child, get, getDatabase, ref } from 'firebase/database';
-import { useHover } from 'react-native-web-hooks';
-import { shadeColor } from '../lib/functions';
-import { TextFor, elapsedTime } from '../lib/textService/textService';
-import { isBright } from '../pages/home/HomeScreenOld';
-import { config } from '../firebase/authConfig';
-import axios from 'axios';
-import { Button, TouchableRipple } from 'react-native-paper';
+import { useLocalSearchParams } from 'expo-router';
+import { get, getDatabase, ref } from 'firebase/database';
 import ImageModal from 'react-native-image-modal';
+import { TouchableRipple } from 'react-native-paper';
+import { useHover } from 'react-native-web-hooks';
 import { useDispatch, useSelector } from 'react-redux';
+import { shadeColor } from '../lib/functions';
 import { push } from '../lib/searchReducer';
+import { TextFor } from '../lib/textService/textService';
+import { isBright } from '../pages/home/HomeScreen';
 
 
 //Dimensions.get('window');
 
-const Loading = ({color='#ffde7e',style}) => {
-  return (
-    <View style={[{flex:1,alignItems:'center',justifyContent:'center'},style]}>
-      <ActivityIndicator color={color} size={'large'} />
-    </View>
-  )
-}
 
 const getUri = async (path) => {
   const storage = getStorage();
@@ -41,7 +31,7 @@ const getUri = async (path) => {
   return url
 } 
 
-const getNameOf = async (uid) => {
+const getNameOf = async (uid) => {
   const name = await AsyncStorage.getItem('name-'+uid)
 
   if (name != null && name != 'NINCS NÉV') {
@@ -61,7 +51,7 @@ const getNameOf = async (uid) => {
 }
 
 
-const ProfileImage = ({uid,size=40,style,path,modal}) => {
+const ProfileImage = ({uid,size='100%',style,path,modal}) => {
   // eslint-disable-next-line no-undef
   const defaultUrl = require('../assets/profile.jpeg');
   const [url, setUrl] = React.useState(null);
@@ -87,7 +77,7 @@ const ProfileImage = ({uid,size=40,style,path,modal}) => {
   </View>
 
   if (!url) return loading
-  return modal ? <ImageModal style={[size!=40&&{width: size, height: size},style]}
+  return modal ? <ImageModal style={[{width: size, height: size},style]}
       cachePolicy='memory-disk'
       modalImageResizeMode='contain'
       cacheKey={`${uid || path}-uid`}
@@ -95,8 +85,8 @@ const ProfileImage = ({uid,size=40,style,path,modal}) => {
       placeholderContent={( 
         loading
       )} 
-      source={{ uri: url }}  />:
-      <Image style={[size!=40&&{width: size, height: size},style]}
+      source={url}  />:
+      <Image style={[{width: size, height: size},style]}
       cachePolicy='memory-disk'
       onError={()=>{
         console.log('eerr')
@@ -108,7 +98,7 @@ const ProfileImage = ({uid,size=40,style,path,modal}) => {
       placeholderContent={( 
         loading
       )} 
-      source={{ uri: url }}/>
+      source={url}/>
     
     
 }
@@ -138,7 +128,7 @@ function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color =
     setBgColor(color)
   }, [color]);
 
-  const handleFocus = () => {
+  const handleFocus = () => {
     setBgColor(shadeColor(color,-10))
   }
   useEffect(() => {
@@ -155,15 +145,15 @@ function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color =
             style={[styles.newButton,
             floating && {shadowColor: "#000",shadowOffset: {width: 4, height: 4 },shadowOpacity: 0.5,shadowRadius: 3,},
             { backgroundColor: bgColor, opacity: disabled ? 0.2 : 1, height:50 },
-            icon && { width:50, borderRadius: 100 },
+            icon && { width:50, borderRadius: 100 },
             ,style,{}]} 
             onPress={onPress} disabled={disabled}>
             {!loading ? 
-              <MyText style={[{ fontWeight: 'bold', color: isBright(bgColor) , fontSize:16, whiteSpace:'break-space' },textStyle]}>{title}</MyText>
+              <MyText style={[{ fontWeight: 'bold', color: isBright(bgColor) , fontSize:16},textStyle]}>{title}</MyText>
             : <ActivityIndicator color={isBright(bgColor)}/> }
       </TouchableRipple>
     </View>
-    {info && rect && isHovered && <MyText 
+    {info && rect && isHovered && <MyText 
     style={{position:'absolute',backgroundColor:'white',borderWidth:1,borderRadius:8,
       marginTop:rect.height+10,
       left: (width/2 > rect.x ? rect.x : undefined),
@@ -213,7 +203,7 @@ class Slideshow extends React.Component {
               );
             })}
           </ScrollView>          
-          {this.props.photos.length > 1 && <View style={{justifyContent:'center',padding:20,position:'absolute',left:10,top:this.width/4-30}}>
+          {this.props.photos.length > 1 && <View style={{justifyContent:'center',padding:20,position:'absolute',left:10,top:this.width/4-30}}>
             <TouchableRipple 
             style={{borderRadius:30}}
             onPress={()=>{
@@ -284,7 +274,7 @@ function Auto({children,style,breakPoint=900,reverse}) {
       flexDirection: reverse ? 
       width > breakPoint ? 'column' : 'row':
       width <= breakPoint ? 'column' : 'row'
-      ,width:'100%',flex: width <= breakPoint ? 'none' : 1},style]}>
+      ,width:'100%',flex: width <= breakPoint ? undefined : 1},style]}>
       {children}
     </View>
   )
@@ -380,16 +370,16 @@ const SearchBar = (props) => {
   const dispatch = useDispatch();
   const history = [...useSelector((state) => state.search.history)]
 
-  const navigation = useNavigation();
-  const route = useRoute();
-  const [text, setText] = useState(route?.params?.key || '');
+  const navigation = router;
+  const params = useLocalSearchParams();
+  const [text, setText] = useState(params?.key || '');
 
   const onSubmit = (newText=text) => {
     dispatch(push(newText))
     setShowHistory(false);
     console.log('search submit');
     console.log('search',newText);
-    navigation.push("kereses", { key: newText||'' });
+    navigation.push("kereses?key="+newText);
   };
   const onBlur = () => {
     setShowHistory(false)
@@ -400,11 +390,11 @@ const SearchBar = (props) => {
   const listItems = history.reverse().map((element) =>
     {
       if (element.includes(text))
-    return <Pressable key={'search'+element} onPress={()=>onSubmit(element)} 
-      style={[newStyles.searchList,{width:rect?.width}]}>
-        <Icon name="time-outline" size={25} color="black" style={{ margin: 5 }} />
-        <MyText>{element}</MyText>
-    </Pressable>}
+      return <Pressable key={'search'+element} onPress={()=>onSubmit(element)} 
+                style={[newStyles.searchList,{width:rect?.width}]}>
+                  <Icon name="time-outline" size={25} color="black" style={{ margin: 5 }} />
+                  <MyText>{element}</MyText>
+              </Pressable>}
   );
   return (
     <View style={[{alignSelf:'center',flexWrap:'wrap',flexGrow:1,marginHorizontal:20,marginVertical:17},style]}>
@@ -448,7 +438,7 @@ const SearchBar = (props) => {
 
 }
 
-const OpenNav = ({open,children,style,height}) => {
+const OpenNav = ({open=false,children,style,height=0}) => {
 
   const width = useWindowDimensions().width;
   const size = useRef(new Animated.Value(-390)).current 
@@ -466,7 +456,7 @@ const OpenNav = ({open,children,style,height}) => {
       {
         toValue: height,
         duration: 500,
-        useNativeDriver: true
+        useNativeDriver: false
       }
     ).start();
     else
@@ -475,19 +465,24 @@ const OpenNav = ({open,children,style,height}) => {
       {
         toValue: -myHeight+60,
         duration: 500,
-        useNativeDriver: true
+        useNativeDriver: false
       }
     ).start();
 
   }, [open,height]);
 
-  if (width > 900) return null
+  useEffect(() => {
+    
+  console.log(size._value);
+  }, [size._value]);
+
+  if (width > 900) return null
   return (
     <View style={{zIndex:0,elevation: 0}}>
       <View style={{height:height,top:-520,width:'100%',backgroundColor:'#FDEEA2',position:'absolute',zIndex:10,elevation: 10}}></View>
       <Animated.View
       onLayout={e=>setMyHeight(e.nativeEvent.layout.height)}
-       style={[{position:'absolute',top:size,width:'100%',zIndex:5,elevation:5,shadowOffset: {width: 0, height: 6 },shadowOpacity: 0.2,shadowRadius: 2},
+       style={[{position:'absolute',top:size,width:'100%',zIndex:5,elevation:5,shadowOffset: {width: 0, height: 6 },shadowOpacity: open?0.1:0,shadowRadius: 2},
       ]}>
         {children}
       </Animated.View>
@@ -495,7 +490,7 @@ const OpenNav = ({open,children,style,height}) => {
   )
 }
 
-export const MyText = (props) => {
+export const MyText = (props) => {
   const {title, size, contained, bold, light, selectable} = props;
   return <Text  {...props} style={[{
     fontFamily:'SpaceMono_400Regular',
@@ -520,7 +515,7 @@ const TextInput = React.forwardRef((props,ref) => {
       ref={ref}
       placeholderTextColor="#555"
       style={[props.style,{fontFamily:'SpaceMono_400Regular'}, 
-      isFocused && {backgroundColor:'#fff6d5'},
+      isFocused && {backgroundColor:'#fffbeb'},
       Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => {
         setIsFocused(false)
@@ -599,7 +594,7 @@ export const Openable = ({open,children,style}) => {
 }
 
 export {
-  Auto, B, Col, FAB, Loading, NewButton, OpenNav, ProfileImage, Row, SearchBar, Slideshow, TextInput, getNameOf, getUri, ProfileName
+  Auto, B, Col, FAB, NewButton, OpenNav, ProfileImage, ProfileName, Row, SearchBar, Slideshow, TextInput, getNameOf, getUri
 };
 
 const styles = StyleSheet.create({

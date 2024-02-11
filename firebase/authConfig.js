@@ -1,10 +1,7 @@
-import { store } from "../lib/store"
-import Constants from 'expo-constants';
-import { setUserData } from "../lib/userReducer";
-import { getAuth } from "firebase/auth";
-import { Platform } from "react-native";
+import { Platform } from 'react-native';
+import { store } from '../lib/store';
 
-export const config = () => {
+export const config = () => {
     const data = store.getState()
 
     return ({

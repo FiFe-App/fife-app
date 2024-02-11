@@ -6,7 +6,8 @@ import { Auto, MyText, Popup, Row, TextInput } from "../../components/Components
 import styles from "../../styles/profileDesign";
 import Section from "../profile/Section";
 import axios from "axios";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
+import LabelInput from "../../components/tools/LabelInput";
 
 
 
@@ -29,7 +30,7 @@ const Buziness = ({data,setData}) => {
     }
     const addHelp = () => {
         console.log(list);
-        if (!list?.length || list[0]?.name=='' ){
+        if (!list?.length || list[0]?.name=='' ){
             setList([help[0]])
             setData({...data,buziness:[help[0]]})
         }
@@ -73,10 +74,11 @@ const Buziness = ({data,setData}) => {
                                 </Pressable>
                             </View>
                             <View style={{flex:1,justifyContent:'center'}}>
-                                <TextInput placeholder="kulcsszavak" onChangeText={(val)=>set(val,i,'name')} 
-                                value={prof.name} style={{fontSize:17}}/>
+                            
+                                <LabelInput placeholder="kulcsszavak" onChange={(val)=>set(val,i,'name')} 
+                                defaultValue={prof.name} style={{fontSize:17}}/>
                                 <TextInput placeholder="leírás" onChangeText={(val)=>set(val,i,'description')} 
-                                style={{fontSize:17}} value={prof.description} multiline numberOfLines={2}/>
+                                style={{fontSize:17}} value={prof.description} multiline rows={2}/>
                             </View>
                         </View>)}
                     )}            
@@ -95,7 +97,7 @@ const Buziness = ({data,setData}) => {
         )
 }
 
-const BuzinessItem = ({prof,uid,index}) => {
+const BuzinessItem = ({prof,uid,index}) => {
     const { width } = useWindowDimensions();
     const small = width < 500;
     const Href = useRef(null);
@@ -116,7 +118,7 @@ const BuzinessItem = ({prof,uid,index}) => {
         },
         isHovered && {backgroundColor:'#faffcc'}
       ]} ref={Href}>
-        <View style={{flex:small?'none':3,order:small?1:0}}>
+        <View style={{flex:small?0:3,order:small?1:0}}>
           <MyText title>{prof.name}</MyText>
           <MyText>{prof.description}</MyText>
         </View>

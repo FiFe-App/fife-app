@@ -12,10 +12,10 @@ const prisma = new PrismaClient();
 router.get("/", async (req, res) => {
   const db = await adb
   const sale = db.collection('sale')
-  const { author, search, category, take=6, skip=0 } = req.query
+  const { author, searchText, category, take=6, skip=0 } = req.query
   
   let query = { 
-    title: {$regex: search || ''}
+    title: {$regex: searchText || ''}
   }
   if (category != -1) query.category =  Number(category)
   if (author) query.author = author

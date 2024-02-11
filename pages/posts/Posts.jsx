@@ -1,21 +1,19 @@
-import { useNavigation } from "@react-navigation/native";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { FlatList, ImageBackground, Pressable, View, useWindowDimensions } from "react-native";
-import { TouchableRipple } from "react-native-paper";
-import Icon from 'react-native-vector-icons/Ionicons';
-import BasePage from "../../components/BasePage";
-import { Auto, Loading, MyText, NewButton, ProfileImage, ProfileName, Row, TextInput, getNameOf } from "../../components/Components";
-import { config } from "../../firebase/authConfig";
-import homeDesign from '../../styles/homeDesign';
-import Comments from "../../components/tools/Comments";
-import { elapsedTime } from "../../lib/textService/textService";
-import Tags from "../../components/tools/Tags";
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { FlatList, Pressable, View, useWindowDimensions } from 'react-native';
+import BasePage from '../../components/BasePage';
+import { MyText, NewButton, ProfileImage, ProfileName, Row } from '../../components/Components';
+import Loading from '../../components/Loading';
 import Posting from '../../components/homeComponents/Posting';
+import Comments from '../../components/tools/Comments';
+import { config } from '../../firebase/authConfig';
+import { elapsedTime } from '../../lib/textService/textService';
+import homeDesign from '../../styles/homeDesign';
+import { router } from 'expo-router';
 
-const Blog = ({style}) => {
+const Blog = ({style}) => {
 
-    const navigation = useNavigation()
+    const navigation = router;
     const [searchText, setSearchText] = useState('');
     const [recommended, setRecommended] = useState(true);
     const [myBuziness, setMyBuziness] = useState(null);
@@ -58,8 +56,8 @@ const Blog = ({style}) => {
         })
     }
 
-    const createPost = () => {
-        if (newData.text && newData.title)
+    const createPost = () => {
+        if (newData.text && newData.title)
         axios.post('/blog',newData,config()).then(res=>{
             searchDirectory();
             setNewData({
@@ -72,7 +70,7 @@ const Blog = ({style}) => {
     const renderItem = ({item,ind}) => {
         //console.log(Number(item.created_at.$timestamp).getHighBits());
         //console.log(Date.now());
-        return <View key={ind+'one'} style={[homeDesign.module,{width:'100%'}]} onPress={()=>navigation.push('cikkek',{id:item._id})}>
+        return <View key={ind+'one'} style={[homeDesign.module,{width:'100%'}]} onPress={()=>navigation.push({pathname:'cikkek',params:{id:item._id}})}>
                 <View style={{padding:10}}>
                     <Row style={{alignItems:'center'}}>
                         <ProfileImage uid={item.author} size={30}/>
@@ -82,7 +80,7 @@ const Blog = ({style}) => {
                     <View style={{flex:4}}>
                         {!!item.title && <View style={{flexWrap:'wrap',flexDirection:'row',margin:0,marginRight:15}}>
                             {item.title.split(' ').map((cat,ind)=>
-                                    <View key={"category"+ind} style={{background:'#555555',padding:5,margin:5,maxWidth:'100%'}}>
+                                    <View key={'category'+ind} style={{background:'#555555',padding:5,margin:5,maxWidth:'100%'}}>
                                         <MyText style={{color:'white'}}>{cat}</MyText>
                                     </View>
                             )}

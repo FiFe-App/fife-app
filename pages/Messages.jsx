@@ -1,34 +1,35 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { getDatabase, off, onChildAdded, onValue, orderByChild, query, ref } from "firebase/database";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { Pressable, ScrollView, TouchableOpacity, View,useWindowDimensions } from 'react-native';
+import Icon from '@expo/vector-icons/Ionicons';
+import axios from 'axios';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { getDatabase, off, onChildAdded, onValue, orderByChild, query, ref } from 'firebase/database';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { ScrollView, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useSelector } from 'react-redux';
 import { MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from '../components/Components';
-import { FirebaseContext } from '../firebase/firebase';
-import { elapsedTime } from "../lib/textService/textService";
-import { styles } from "../styles/styles";
-import Chat from "./Chat";
-import Icon from 'react-native-vector-icons/Ionicons';
-import axios from 'axios';
 import { config } from '../firebase/authConfig';
+import { FirebaseContext } from '../firebase/firebase';
+import { elapsedTime } from '../lib/textService/textService';
+import { styles } from '../styles/styles';
+import Chat from './Chat';
 
-const Messages = ({route,navigation}) => {
+const Messages = () => {
     const { width } = useWindowDimensions();
+    const params = useLocalSearchParams();
+    const navigation = router;
     
     const [list, setList] = useState([]);
     const [extraList, setExtraList] = useState([]);
     const finalExtraList = (extraList.filter(x => !list.find(e=>e.uid==x.uid)));
     const [filteredList, setFilteredList] = useState([]);
     const [search, setSearch] = useState('');
-    const { app, auth} = useContext(FirebaseContext);
     const database = getDatabase()
     const uid = useSelector((state) => state.user.uid)
-    const [selected, setSelected] = useState(route?.params?.uid);
+    const [selected, setSelected] = useState(params?.uid);
     const msgQuery = query(ref(database,`users/${uid}/messages`),orderByChild('last/date'))
     const unreadMessages = useSelector((state) => state.user.unreadMessage)
 
-    const getRandom = () => {
-        const dbRef = ref(database,`users`);
+    const getRandom = () => {
+        const dbRef = ref(database,'users');
 
         onValue(dbRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -45,7 +46,7 @@ const Messages = ({route,navigation}) => {
                             getRandom()
                             return;
                         } else 
-                        navigation.push('uzenetek',{uid:childSnapshot.key});
+                        navigation.push({pathname:'uzenetek',params:{uid:childSnapshot.key}});
                     }
                 })
             }
@@ -94,7 +95,7 @@ const Messages = ({route,navigation}) => {
         useCallback(() => {
             if (database) {    
 
-                if (route?.params?.random) getRandom()
+                if (params?.random) getRandom()
                 setList([])
                 onChildAdded(msgQuery,async (childSnapshot) => {
                     const last = childSnapshot.child('last').val() || null
@@ -121,7 +122,7 @@ const Messages = ({route,navigation}) => {
       useEffect(() => {
         if (selected)
         if (width <= 900) {
-            navigation.push("beszelgetes", {uid:selected});
+            navigation.push({pathname:'beszelgetes', params:{uid:selected}});
         }
         else
         navigation.setParams({
@@ -129,17 +130,16 @@ const Messages = ({route,navigation}) => {
         });
       }, [selected]);
     return (
-    <View style={{flex:1, flexDirection:'row',backgroundColor:'#fdf6d1'}}>
+    <View style={{flex:1, flexDirection:'row',backgroundColor:'#fdf6d1',zIndex:-1}}>
         <View style={{flex:1}}>
-            <Row style={{padding:10}}>
+            <Row style={{}}>
                 <TextInput 
                 placeholder="Keresés a fifék közt"
                 style={{flexGrow:1,height:50,padding:15,margin:5,backgroundColor:'#ffffff',borderRadius:8}} 
                 onChangeText={setSearch} value={search} />
-                <NewButton title={<Icon name="close" size={20}  style={{left:30,color:'#555555'}} />} 
-                style={{position:'absolute',right:55}} icon color="#fdf7d800"
+                <NewButton title={<Icon name="close" size={20}  style={{left:0,color:'#555555'}} />} 
+                style={{position:'absolute',right:0}} icon color="#fdf7d800"
                 onPress={()=>{setSearch('')}}/>
-                <NewButton title={<Icon name="search" size={30} style={{padding:10}} />} />
             </Row>
             <ScrollView style={{flex:1}} contentContainerStyle={{}}>
 
@@ -174,9 +174,9 @@ const Messages = ({route,navigation}) => {
 }
 
 function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
-    const navigation = useNavigation();
+    const navigation = router;
     const { width } = useWindowDimensions();
-    const [newMessage, setNewMessage] = useState( typeof newMessageProp == "boolean" && !newMessageProp);
+    const [newMessage, setNewMessage] = useState( typeof newMessageProp == 'boolean' && !newMessageProp);
     const elapsed = elapsedTime(last?.date)
     
     const onPress = () => {
@@ -188,11 +188,11 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
               });
         }
         else 
-            navigation.push("beszelgetes", {uid:uid});
+            navigation.push({pathname:'beszelgetes', params:{uid:uid}});
     }
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#ffde7e' : '#fff'},
+        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: 'row', backgroundColor: selected ? '#ffde7e' : '#fff'},
             {shadowOffset: {width: 2, height: 4},shadowOpacity: 0.2,shadowRadius: 1,}]}>
             <ProfileImage style={styles.listIcon} size={50} uid={uid}/>
             <View style={{marginLeft: 5,flexGrow:1}}>

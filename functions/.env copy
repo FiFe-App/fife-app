@@ -1,4 +1,0 @@
-ATLAS_URI=mongodb+srv://kristofakos1229:LEGOlego2000@cluster0.sbh0ygm.mongodb.net/?retryWrites=true&w=majority
-
-
-export GOOGLE_APPLICATION_CREDENTIALS="/fife-app-firebase-adminsdk-cgi8x-8f0f1c9a6f.json"

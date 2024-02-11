@@ -37,3 +37,17 @@ export function checkAuthNoVer(req, res, next) {
     res.status(403).send('Unauthorized')
   }
 }
+export function checkAuthIf(req, res, next) {
+  if (req.headers.authtoken) {
+    getAuth().verifyIdToken(req.headers.authtoken)
+      .then((token) => {
+        const uid = token.uid;
+        req.uid = uid;
+        next()
+      }).catch(() => {
+        next();
+      });
+  } else {
+    next();
+  }
+}

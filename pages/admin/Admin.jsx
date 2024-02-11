@@ -1,20 +1,22 @@
-import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
+import { router, useFocusEffect, useLocalSearchParams, usePathname } from "expo-router";
 import { get, getDatabase, ref } from "firebase/database";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { ScrollView, useWindowDimensions } from "react-native";
 import { BottomNavigation } from "react-native-paper";
 import BasePage from "../../components/BasePage";
-import { Loading, MyText } from "../../components/Components";
+import { MyText } from "../../components/Components";
+import Loading from "../../components/Loading";
 import GoBack from "../../components/Goback";
 import { config } from "../../firebase/authConfig";
 import { FirebaseContext } from "../../firebase/firebase";
 import List from "./List";
 
-const Admin = ({}) => {
-    const navigation = useNavigation();
-    const route = useRoute();
-    const [index, setIndex] = useState(Number(route.params?.index||0));
+const Admin = ({}) => {
+    const navigation = router;
+    const route = usePathname();
+    const params = useLocalSearchParams();
+    const [index, setIndex] = useState(Number(params?.index||0));
     const {database,api} = useContext(FirebaseContext)
     const [routes] = useState([
       { key: 'reports', title: 'Jelentések', focusedIcon: 'alert-circle', unfocusedIcon: 'alert-circle-outline'},
@@ -41,7 +43,8 @@ const Admin = ({}) => {
         setData(null)
         setLoading(true)
         console.log('index',index);
-        navigation?.setParams({index});
+        if (params?.index && Number(params?.index) != index)
+          navigation?.setParams({index});
         (async ()=>{
           switch (index) {
             case 0:
@@ -81,7 +84,7 @@ const Admin = ({}) => {
         })()
       }, [index]);
 
-      const fn = async (serverPath) => {
+      const fn = async (serverPath) => {
         let resList
         try {
           resList = (await axios.get(serverPath,config())).data
@@ -98,7 +101,7 @@ const Admin = ({}) => {
           console.log('server not reachable',error);
         }
       }
-      const fn2 = async (firebasePath) => {
+      const fn2 = async (firebasePath) => {
             
         try {
             const db = getDatabase()
@@ -145,7 +148,7 @@ const Admin = ({}) => {
       }, [data]);
 
     return (<BasePage style={{backgroundColor:data?.color || '#FDEEA2'}}>
-        <GoBack text="Vissza" previous="fooldal" breakPoint={10000}/>
+        <GoBack text="Vissza" previous="/" breakPoint={10000}/>
         <BottomNavigation
         navigationState={{ index, routes }}
         onIndexChange={setIndex}

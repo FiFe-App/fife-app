@@ -3,7 +3,7 @@ import { MyText, TextInput } from "../../components/Components";
 import { useContext, useState } from "react";
 import { FirebaseContext } from "../../firebase/firebase";
 
-const Forgot = () => {
+const Forgot = () => {
     const {api}  = useContext(FirebaseContext);
     const [email, setEmail] = useState('');
     const [response, setResponse] = useState(null);

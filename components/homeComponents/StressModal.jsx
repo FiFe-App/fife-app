@@ -4,11 +4,11 @@ import { getDatabase, ref, set } from "firebase/database";
 import { useSelector } from "react-redux";
 import axios from "axios";
 
-const StressModal = () => {
+const StressModal = () => {
     const [open, setOpen] = useState(false);
     const uid = useSelector((state) => state.user.uid)
 
-    const send = () => {
+    const send = () => {
         console.log(open);
         setOpen(false);
         axios.post('stress/'+open.rate)

@@ -1,17 +1,16 @@
-import React, {useEffect, useState} from 'react';
-import { StyleSheet, View, Pressable, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
-import { Pages } from "./pages";
-import { useNavigation, useRoute } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons'
-import { useWindowDimensions } from 'react-native'
-import { MyText, NewButton } from '../../components/Components';
+import { router, useLocalSearchParams, usePathname } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { NewButton } from '../../components/Components';
+import { Pages } from './pages';
 
 
 const First = ({scrollView}) => {
-    const navigation = useNavigation()
-    const route = useRoute()
+    const navigation = router;
+    const route = usePathname()
+    const params = useLocalSearchParams()
     const { width } = useWindowDimensions();
-    const [page, setPage] = useState(route.params?.p || 0);
+    const [page, setPage] = useState(params?.p || 0);
     const [percent, setPercent] = useState(0);
     const [newData, setNewData] = React.useState({
       name: '',
@@ -27,14 +26,14 @@ const First = ({scrollView}) => {
     const [pages, setPages] = useState([]);
     const allPages = Pages({newData, setNewData,pageData, setPageData});
     
-    const goTo = (page) => {
+    const goTo = (page) => {
       if (page < allPages.length && page >= 0)
         setPage(page)
       if (page == allPages.length)
-        navigation.push('fooldal');
+        navigation.push('/');
     }
 
-    const handleToHome = () => {
+    const handleToHome = () => {
         navigation.push('bejelentkezes')
     }
 
@@ -44,10 +43,9 @@ const First = ({scrollView}) => {
     }, [scrollView2]);
 
     useEffect(() => {
-      if (page != null) {
-        navigation.setParams({
-          p: page,
-        });
+      if (page != params.p) {
+        
+        navigation.setParams({p: page});
       }
       //scrollView2.scrollTo({x:(page)*width,y:0,animated:true})
     }, [page]);
@@ -93,7 +91,7 @@ const First = ({scrollView}) => {
       {<NewButton floating
       color='#ffffff'
       style={[styles.button,{left:10},width>=450&&{padding:40},]} onPress={()=>backDisabled ? handleToHome() : scrollView2.scrollTo({x:(page-1)*width,y:0,animated:true})} 
-        title={backDisabled ? "Bejelentkezés" : "Vissza"}
+        title={backDisabled ? 'Bejelentkezés' : 'Vissza'}
         textStyle={[styles.buttonText,width<450&&{fontSize:17}]}
       />
       }
@@ -132,7 +130,7 @@ const styles = StyleSheet.create({
     
   },
   buttonText: {
-    fontSize:30
+    fontSize:24
   },
   progressBar: {
     height: 12,

@@ -2,13 +2,13 @@
 import { getDatabase } from 'firebase/database';
 import React, { useContext, useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
 import { AutoPrefix } from '../lib/textService/textService';
 import { getPlaces } from '../pages/maps/mapService';
 import { Loading, MyText, NewButton, Row } from './Components';
 import { MapContext } from '../pages/maps/MapContext';
 
-export const MapList = ({map}) => {
+export const MapList = ({map}) => {
     //const placeList = [];
     const {selected,setSelected,selectedPlace,setSelectedPlace,placeList,setPlaceList,setNewPlace,secure,starred,setStarred} = useContext(MapContext);
     const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ export const MapList = ({map}) => {
     }, [selected]);
 ;
 
-    const getData = async () => {
+    const getData = async () => {
       setLoading(true);
       try {
         const locations = Object.values(await getPlaces(selected.id+1,secure));
@@ -38,7 +38,7 @@ export const MapList = ({map}) => {
       setLoading(false)
     }
 
-    const press = () => {
+    const press = () => {
       console.log('press');
       if (selected.id==map.id) {
         setSelected({id:null,name:null});

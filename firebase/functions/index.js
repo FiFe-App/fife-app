@@ -1,7 +1,7 @@
 const functions = require("firebase-functions");
 const admin = require('firebase-admin');
 
-var serviceAccount = require("./firebase-service-key.json");
+const serviceAccount = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
 const { log } = require("firebase-functions/logger");
 
 // Initialize the app with a service account, granting admin privileges

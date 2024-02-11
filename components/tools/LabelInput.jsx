@@ -1,10 +1,9 @@
-import { Pressable, View } from "react-native";
-import { MyText, Row, TextInput } from "../Components";
-import { useEffect, useState } from "react";
+import { Pressable, View } from 'react-native';
+import { MyText, Row, TextInput } from '../Components';
+import { useEffect, useState } from 'react';
 
-const LabelInput = (props) => {
+const LabelInput = (props) => {
     const {onChange,defaultValue} = props 
-    console.log('list.',defaultValue);
     const [text, setText] = useState('');
     const l = text?.includes(' ') ? text.split(' ') : []
     const [list, setList] = useState(defaultValue?.split(' ')||[]);
@@ -28,8 +27,8 @@ const LabelInput = (props) => {
         onChange(list.reduce((partialSum, a) => partialSum +  a, ''))
     }, [list]);
 
-    const edit = (e) => {
-        if (e.code == 'Backspace' && text == '') {
+    const edit = (e) => {
+        if (e.code == 'Backspace' && text == '') {
             console.log(list.slice(0, -1));
             setList(list.slice(0, -1))
         }

@@ -14,7 +14,7 @@ import { listToMatrix } from "../../lib/functions";
 
 const categories = ['Kategória: Minden',...cats.sale.map(c=>{return c.name})];
 
-const SaleModule = () => {
+const SaleModule = () => {
 
     const { api} = useContext(FirebaseContext);
     const { width } = useWindowDimensions();
@@ -41,7 +41,7 @@ const SaleModule = () => {
         })
     }, [saleCategory]);
 
-    return (<Section title="Cserebere" flex={width <= 900 ? 'none' : 2} >
+    return (<Section title="Cserebere" flex={width <= 900 ? 0 : 2} >
                 <Select
                 list={categories}
                 style={{fontSize:17, padding:5,marginTop:5,borderWidth:0,

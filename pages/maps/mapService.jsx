@@ -1,4 +1,4 @@
-import { ProfileImage, Loading, Row, MyText } from '../../components/Components'
+import { Row, MyText } from '../../components/Components'
 
 import { ref, child, get, set, onValue } from "firebase/database";
 import React, { useEffect, useContext, useState, useRef } from 'react';
@@ -6,7 +6,7 @@ import React, { useEffect, useContext, useState, useRef } from 'react';
 import { useSelector } from 'react-redux'
 import { FirebaseContext } from '../../firebase/firebase';
 import { Pressable, StyleSheet, TouchableOpacity, ScrollView, Animated, PanResponder, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'
+import Icon from '@expo/vector-icons/Ionicons'
 
 import { TextFor } from "../../lib/textService/textService";
 import { useWindowDimensions } from 'react-native'
@@ -21,7 +21,7 @@ import { categories } from '../../lib/categories';
 
 
 
-export const getMaps = async (db) => {
+export const getMaps = async (db) => {
     try {
       return categories.places;
     } catch (error) {
@@ -30,7 +30,7 @@ export const getMaps = async (db) => {
     }
 }
 
-export const getPlaces = async (id,secure) => {
+export const getPlaces = async (id,secure) => {
 
   try {
     const data = await axios.get('/places/'+id,{...config(),params:{
@@ -43,7 +43,7 @@ export const getPlaces = async (id,secure) => {
   }
 }
 
-export const getPlaceById = async (id) => {
+export const getPlaceById = async (id) => {
 
   try {
     const data = await axios.get('/places/'+id+'/search',config())
@@ -57,7 +57,7 @@ export const getPlaceById = async (id) => {
 
 
 
-export const getHearts = async (locationId) => {
+export const getHearts = async (locationId) => {
     if (locationId ) {
       const heart = await axios.get('/places/' + locationId + '/like',config());
       console.log('heart',heart.data);
@@ -66,7 +66,7 @@ export const getHearts = async (locationId) => {
     
 }
 
-export const heartLocation = async (locationId,toHeart) => {
+export const heartLocation = async (locationId,toHeart) => {
   if (!(locationId)){
     console.log(locationId);
     throw new Error('Something is null')
@@ -77,7 +77,7 @@ export const heartLocation = async (locationId,toHeart) => {
   return success
 }
 
-export const helpLocation = async (db,uid,mapId,locationId,toHelp) => {
+export const helpLocation = async (db,uid,mapId,locationId,toHelp) => {
     
   let success = false
   const dbRef = ref(db, 'help/'+uid);
@@ -119,12 +119,12 @@ export const LocationData = (props) => {
 
     if (!selectedPlace) return null
 
-    const handleHeart = async () => {
+    const handleHeart = async () => {
       const success = await heartLocation(selectedPlace.id,hearted)
       if (success)
       setHearted(!hearted)
     }
-    const handleHelp = async () => {
+    const handleHelp = async () => {
       const success = await helpLocation(database,uid,mapId,locationId,help)
       if (success)
       setHelp(!help)

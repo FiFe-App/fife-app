@@ -1,8 +1,9 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import { Auto, Loading, MyText, NewButton, ProfileImage, Row, SearchBar } from '../components/Components';
+import { Auto, MyText, NewButton, ProfileImage, Row, SearchBar } from '../components/Components';
+import Loading from "../components/Loading";
 import { config } from '../firebase/authConfig';
 import { FirebaseContext } from '../firebase/firebase';
 import { TextFor, toldalek } from '../lib/textService/textService';
@@ -11,14 +12,15 @@ import PostForm from '../components/tools/Post';
 import { TouchableRipple } from 'react-native-paper';
 import * as Location from 'expo-location';
 
-import { categories as allCategories } from "../lib/categories";
+import { categories as allCategories } from '../lib/categories';
 import { listToMatrix } from '../lib/functions';
 
-const Search = ({ route, style }) => {
+const Search = () => {
     const { api } = useContext(FirebaseContext);
     const { width } = useWindowDimensions();
+    const params = useLocalSearchParams();
     const small = width <= 900;
-    const key = route.params?.key || null;
+    const key = params?.key || null;
     const [categories, setCategories] = useState({
         all: {
             name:'Minden',
@@ -43,7 +45,6 @@ const Search = ({ route, style }) => {
     });
     const [selected, setSelected] = useState(0);
     const itemsPerRow = width < 900 ? Math.round(width/200) : 4;
-    //const itemsPerRow = preItemsPerRow == 1 ? 2 : preItemsPerRow
     
     const [array, setArray] = React.useState({
         sale: [],
@@ -79,23 +80,22 @@ const Search = ({ route, style }) => {
 
     useFocusEffect(
         useCallback(() => {
-            (async()=>{
-                handleSearch2(myLocation)
-            })()
-            //if (array.length == 0)
-            //handleSearch()
-          return () => {
-            setArray({
-                sale: [],
-                users: [],
-                maps: [],
-                buziness: [],
-                categories: []
-            })
-          };
-        }, [route.params])
-      );
-    const handleSearch2 = (loc) => {
+            console.log('focusEffect');
+            handleSearch2(myLocation)
+            return () => {
+                setArray({
+                    sale: [],
+                    users: [],
+                    maps: [],
+                    buziness: [],
+                    categories: []
+                })
+            };
+        }, [key])
+    );
+
+    const handleSearch2 = (loc) => {
+        console.log('search');
         if (!myLocation) getLocation()
 
         if (key) {
@@ -125,23 +125,19 @@ const Search = ({ route, style }) => {
     }
 
     useEffect(() => {
-        //console.log(allCategories.places.filter(e=>e.name.toLowerCase().includes(key.toLowerCase())));
         if (!array?.categories || array.categories == [])
         setArray({...array,categories:allCategories.places.filter(e=>e.name.toLowerCase().includes(key.toLowerCase()))})
     }, [array]);
 
-    //console.log(array);
-    const text = route.params?.key+" kifejezésre"//toldalek(route.params?.key||null,'ra')
-
     return(
         <BasePage style={{backgroundColor:'#fdf6d1'}}>
-            {width < 1340 && <SearchBar style={{flexGrow:0,flex:'none',width:'100%',marginRight:40}}/>}
+            {width < 1340 && <SearchBar style={{flexGrow:0,flex:undefined,width:'100%',marginRight:40}}/>}
 
             <View style={{justifyContent:'center',width:'100%',flexWrap:small?'wrap':'none',flexDirection:'row',zIndex:-1}}>
                         {Object.keys(categories).map((cat,ind) =>
                             {
-                                if(array[cat]?.length || selected == ind || ind==0 || progress== 0)
-                                return <NewButton title={categories[cat].name} key={ind+"cat"}
+                                if(array[cat]?.length || selected == ind || ind==0 || progress== 0)
+                                return <NewButton title={categories[cat].name} key={ind+'cat'}
                                 color={selected==ind?'#fdfbf0':'#fdf6d1'}
                                 style={{userSelect:'none',padding:small?3:8,marginBottom:0,borderBottomLeftRadius:0,borderBottomRightRadius:0}}
                                 textStyle={{fontSize:small?11:18,fontWeight:'400'}}
@@ -150,7 +146,7 @@ const Search = ({ route, style }) => {
             </View>
             <ScrollView style={{backgroundColor:'#fdfbf0',borderRadius:8,padding:16,flex:1,zIndex:-1}}>
                 <View style={{marginHorizontal:25,width:'90%'}}>
-                    {!route.params?.key &&
+                    {!params?.key &&
                         <MyText>Keress profilokra, bizniszre, helyekre, cserebere cikkekre</MyText>}
                 </View>
                 {myLocation==null && progress>0 && array && 
@@ -160,7 +156,7 @@ const Search = ({ route, style }) => {
                     
                     {progress < ready ?
                         <>
-                        {route.params?.key && <Loading color="#f5d761" />}
+                        {params?.key && <Loading color="#f5d761" />}
                         </>:
                         (
                             error ?   <View>
@@ -169,14 +165,14 @@ const Search = ({ route, style }) => {
                                 </View>
                             :   <View contentContainerStyle={{alignItems:'center',flex:1}}>
                                         {Object.keys(categories).map((cat,ind) =>{
-                                            if ((selected == 0 || selected==ind))
+                                            if ((selected == 0 || selected==ind))
                                             if (array[cat]?.length)
                                             return <View style={{width:'100%'}}>
                                                 <MyText title>{categories[cat].name}</MyText>
                                                 <View style={{marginTop:16}}>
                                                 {!!array[cat]?.length && listToMatrix(array[cat],itemsPerRow).map((row,i)=>{
                                                     return (
-                                                        <Row style={{marginBottom:8}}>
+                                                        <Row style={{marginBottom:8}} key={'item'+i}>
                                                             {row.map((item,ind,rowL)=>
                                                             {if (item)
                                                                 return<Item key={'sale'+ind+'r'+i} cat={cat} data={item}  />
@@ -188,9 +184,6 @@ const Search = ({ route, style }) => {
 
                                                 </View>
                                             </View>
-                                            if (false) return <View style={{marginLeft:ind*20}}>
-                                                        <MyText size={24}>Nincs találat!</MyText>
-                                                    </View>
                                         })}
                                 </View>)
                     }
@@ -205,7 +198,7 @@ const Search = ({ route, style }) => {
 }
 
 function Item({data,cat}) {
-    const navigation = useNavigation();
+    const navigation = router;
 
     const [title, setTitle] = useState(null);
     const [text, setText] = useState(null);
@@ -216,7 +209,7 @@ function Item({data,cat}) {
 
 
     const onPress = () => {
-        navigation.push(link,params || {});
+        navigation.push({pathname:link,params:params || {}});
         }
     useEffect(() => {
         //cica
@@ -262,11 +255,12 @@ function Item({data,cat}) {
                 break;
         }
     }, [cat]);
+
     return (
         <View style={[styles.list, { aspectRatio:1/1}]}>
         <TouchableRipple onPress={onPress}  style={{width:'100%',backgroundColor:'#ffffff',borderRadius:8}}>
-                <>{image ? <ProfileImage path={image} style={{flex:1,aspectRatio: 1/1,margin:0,borderRadius:8,}}/>
-                : <ProfileImage uid={data?.author} style={{flex:1,aspectRatio: 1/1,margin:0,borderRadius:8}}/>}
+                <>{image ? <ProfileImage path={image} size={'100%'} style={{flex:1,aspectRatio: 1,margin:0,borderRadius:8,}}/>
+                : <ProfileImage uid={data?.author} size={10} style={{flex:1,aspectRatio: 1,margin:0,borderRadius:8}}/>}
                     <View style={{position:'absolute',bottom:0,backgroundColor:'#ffffff',padding:4,width:'100%',borderBottomLeftRadius:8,borderBottomRightRadius:8}}>
                         
                                         <View style={{marginLeft: 5}}>
@@ -274,7 +268,7 @@ function Item({data,cat}) {
                         <MyText style={{ flex:1,maxHeight:20,overflow:'hidden' }}>{text}</MyText>
                                         </View>
                                         <View style={{marginLeft: 5}}>
-                        <MyText style={{ flex:1,maxHeight:20,overflow:'hidden' }}>{!!sortData && sortData+" km"}</MyText>
+                        <MyText style={{ flex:1,maxHeight:20,overflow:'hidden' }}>{!!sortData && sortData+' km'}</MyText>
                                         </View>
                     </View>
                     </>
@@ -291,7 +285,7 @@ function Item({data,cat}) {
 const styles = StyleSheet.create({
 
     list: {
-        alignItems: "center",
+        alignItems: 'center',
         flex:1,
         borderBottomWidth: 0,
         borderTopWidth: 0,
@@ -317,7 +311,7 @@ const styles = StyleSheet.create({
         backgroundColor: 1,
         borderBottomWidth: 1,
         borderBottomColor: 0,
-        alignItems: "center",
+        alignItems: 'center',
     },
   })
 

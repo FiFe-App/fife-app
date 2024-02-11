@@ -118,7 +118,7 @@ router.get("/:id", async (req, res) => {
 router.post("/:id",checkAuth, async (req, res) => {
   console.log('create',req.body);
   const cat = Number(req.params.id)
-  if (!(cat >= 0 && cat <= 20)) {
+  if (!(cat >= 0 && cat <= 20)) {
     res.send({
       error:'Category not allowed!'
     }).status(401)

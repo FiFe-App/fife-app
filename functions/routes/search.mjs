@@ -11,7 +11,7 @@ const replace = (text) => {
   .replace(/[aáeéoóöőiíuúüű]/g, '.')
 }
 
-const getBuziness = async (key,myLocation) => {
+const getBuziness = async (key,myLocation) => {
   const db = await adb
   const b = await db.collection('buziness')
   console.log('myLocation',myLocation);

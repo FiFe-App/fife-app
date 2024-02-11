@@ -1,21 +1,22 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { child, getDatabase, off, onChildAdded, onValue, orderByChild, push, query, ref, set } from "firebase/database";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { Pressable, ScrollView, TouchableOpacity, View,useWindowDimensions } from 'react-native';
-import { useSelector } from 'react-redux';
-import { MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from '../Components';
-import { FirebaseContext } from '../../firebase/firebase';
-import { elapsedTime } from "../../lib/textService/textService";
-import { styles } from "../../styles/styles";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
-import { config } from '../../firebase/authConfig';
-import HelpModal from '../help/Modal';
+import { child, getDatabase, off, onChildAdded, orderByChild, push, query, ref, set } from 'firebase/database';
+import { useContext, useEffect, useState } from 'react';
+import { ScrollView, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Checkbox } from 'react-native-paper';
+import { useSelector } from 'react-redux';
+import { config } from '../../firebase/authConfig';
+import { FirebaseContext } from '../../firebase/firebase';
+import { elapsedTime } from '../../lib/textService/textService';
+import { styles } from '../../styles/styles';
+import { MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from '../Components';
+import HelpModal from '../help/Modal';
 
-const ShareModal = ({open,setOpen}) => {
+const ShareModal = ({open,setOpen}) => {
     
     const [list, setList] = useState([]);
+    const width = useWindowDimensions().width
+
     const [extraList, setExtraList] = useState([]);
     const finalExtraList = (extraList.filter(x => !list.find(e=>e.uid==x.uid)));
     const [filteredList, setFilteredList] = useState([]);
@@ -63,7 +64,7 @@ const ShareModal = ({open,setOpen}) => {
         else setExtraList([])
     }, [search]);
 
-    const send = () => {
+    const send = () => {
         selectedUids.map(e=>{
             const uid2 = e.uid;
             if (database) {
@@ -128,22 +129,21 @@ const ShareModal = ({open,setOpen}) => {
     success={{
         title: 'Elküldted az üzenetedet!'
     }}
-    title={"Oszd meg ezt a posztot valakivel!"}>
+    title={'Oszd meg ezt a posztot valakivel!'}>
         <View style={{minHeight:300}}>
-            <Row style={{padding:10}}>
+            <Row style={{padding:0}}>
                 <TextInput 
                 placeholder="Keresés a fifék közt"
                 style={{flexGrow:1,height:50,padding:15,margin:5,backgroundColor:'#ffffff',borderRadius:8}} 
                 onChangeText={setSearch} value={search} />
-                <NewButton title={<Icon name="close" size={20}  style={{left:30,color:'#555555'}} />} 
-                style={{position:'absolute',right:55}} icon color="#fdf7d800"
+                <NewButton title={<Icon name="close" size={20}  style={{left:0,color:'#555555'}} />} 
+                style={{position:'absolute',right:0}} icon color="#fdf7d800"
                 onPress={()=>{setSearch('')}}/>
-                <NewButton title={<Icon name="search" size={30} style={{padding:10}} />} />
             </Row>
             <ScrollView style={{height:300}} contentContainerStyle={{}}>
 
             {selectedUids.map(e=>{
-                if (!filteredList.find(f=>f.uid==e.uid) && !finalExtraList.find(f=>f.uid==e.uid))
+                if (!filteredList.find(f=>f.uid==e.uid) && !finalExtraList.find(f=>f.uid==e.uid))
                 return (                            
                     <Item title={e?.name} selected={selected == e?.uid} last={e.last} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected} selectedUids={selectedUids} setSelectedUids={setSelectedUids}/>
                 )
@@ -151,11 +151,8 @@ const ShareModal = ({open,setOpen}) => {
 
             {!!filteredList.length && <MyText style={{padding:8}}>korábbi beszélgetések</MyText>}
                 {!!filteredList.length && filteredList.map((e,i)=>{
-                    console.log(i)
                     return (
-                        <>
                             <Item title={e?.name} selected={selected == e?.uid} last={e.last} newMessageProp={!e.read} text={e?.last} uid={e?.uid} key={e?.uid} setSelected={setSelected} selectedUids={selectedUids} setSelectedUids={setSelectedUids}/>
-                        </>
                     )
                 })}
 
@@ -188,7 +185,7 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp,selectedU
     }
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: "row", backgroundColor: selected ? '#ffde7e' : '#fff'},
+        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: 'row', backgroundColor: selected ? '#ffde7e' : '#fff'},
             {shadowOffset: {width: 2, height: 4},shadowOpacity: 0.2,shadowRadius: 1,}]}>
             <ProfileImage style={styles.listIcon} size={50} uid={uid}/>
             <View style={{marginLeft: 5,flexGrow:1}}>

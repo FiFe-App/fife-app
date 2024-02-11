@@ -1,31 +1,31 @@
 
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import axios from "axios";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
-import ImageModal from "react-native-image-modal";
-import Icon from 'react-native-vector-icons/Ionicons';
-import { useSelector } from "react-redux";
-import { Auto, Loading, MyText, NewButton, ProfileImage, Row, Slideshow, getNameOf, getUri } from "../../components/Components";
-import Comments from "../../components/tools/Comments";
-import { config } from "../../firebase/authConfig";
-import { FirebaseContext } from "../../firebase/firebase";
-import { categories } from "../../lib/categories";
-import { elapsedTime } from "../../lib/textService/textService";
-import GoBack from "../../components/Goback";
-import { SaleContext } from "./SaleContext";
+import Icon from '@expo/vector-icons/Ionicons';
+import axios from 'axios';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import ImageModal from 'react-native-image-modal';
+import { useSelector } from 'react-redux';
+import { Auto, MyText, NewButton, ProfileImage, Row, Slideshow, getNameOf, getUri } from '../../components/Components';
+import Loading from "../../components/Loading";
+import Comments from '../../components/tools/Comments';
+import { config } from '../../firebase/authConfig';
+import { FirebaseContext } from '../../firebase/firebase';
+import { categories } from '../../lib/categories';
+import { elapsedTime } from '../../lib/textService/textService';
+import { SaleContext } from './SaleContext';
+import { router, useFocusEffect } from 'expo-router';
 
 
 
-export const Item = ({data,toLoadId}) => {
+export const Item = ({data,toLoadId}) => {
     const { selected,setSelected,setDeleteModal,setToEdit,interestModal,setInterestModal, IList, setIList,shareModal,setShareModal } = useContext(SaleContext);
     const uid = useSelector((state) => state.user.uid)
     const {api} = useContext(FirebaseContext);
-    const navigation = useNavigation();
+    const navigation = router;
     const width = useWindowDimensions().width
     const [loadData, setLoadData] = useState(data);
     const [images, setImages] = useState([]);
-    const { title, description, author, category, created_at, interested, id, imagesDesc, imagesInterestable, saleInterest, authorName, interestedByName } = loadData || {};
+    const { title, description, author, category, created_at, interested, id, imagesDesc, imagesInterestable, saleInterest, authorName, interestedByName } = loadData || {};
     const [loading, setLoading] = useState(true);
     const [elapsed, setElapsed] = useState();
     const [openedImage, setOpenedImage] = useState(null);
@@ -40,12 +40,12 @@ export const Item = ({data,toLoadId}) => {
         
         axios.get('/sale/'+toLoadId,config()).then(async res=>{
           console.log('res',res);
-          res.data.authorName = res.authorName || await getNameOf(res.data.author)
+          res.data.authorName = res.authorName || await getNameOf(res.data.author)
           setLoadData(res.data)
           setElapsed(elapsedTime(res.data.created_at))
           console.log(res.data);
           setLoading(false)
-          const loadImgs = async () => {
+          const loadImgs = async () => {
             console.log(res.data.imagesDesc);
             if (res.data.imagesDesc?.length)
             setImages(
@@ -71,7 +71,7 @@ export const Item = ({data,toLoadId}) => {
     );
 
     const edit = () => {
-        navigation.push('uj-cserebere',{toEdit:id});
+        navigation.push({pathname:'uj-cserebere',params:{toEdit:id}});
     }
 
     const del = () => {
@@ -91,7 +91,7 @@ export const Item = ({data,toLoadId}) => {
         setHaveInterested(true)
     }, [interestModal]);
 
-    const goBack = () => {
+    const goBack = () => {
       if (width <= 900)
       navigation.push('cserebere')
       else
@@ -107,17 +107,15 @@ export const Item = ({data,toLoadId}) => {
             {images.length?<Slideshow
               photos={images.length ? images : []}
               style={{backgroundColor:'rgb(253, 245, 203)',maxHeight:400,zIndex:0}}
-            />:<ProfileImage uid={author} style={{width:'100%',height:300}}/>}
+            />:<ProfileImage uid={author} style={{width:'100%'}}/>}
 
             <View style={{position:'absolute',bottom:5,left:0,alignSelf: 'flex-start',marginTop:5,zIndex:1}}>
               <MyText size={24} style={{marginHorizontal:10,backgroundColor:categories.sale[category].color,padding:5}}>{categories.sale[category].name}</MyText>
             </View>
           </View>
           
-          <Auto style={{flex:'none'}}>
-            <MyText size={30} style={{marginTop:0}} selectable>{title}</MyText>
-          </Auto>
-          {uid!=author && 
+          <MyText size={30} style={{marginTop:0}} selectable>{title}</MyText>
+          {uid!=author && 
             <MyText style={[styles.author,{}]}>{'Ezt '}
             <NewButton title={
               <Row style={{backgroundColor:'#fff',borderRadius:8,alignItems:'center',justifyContent:'center'}}>
@@ -125,7 +123,7 @@ export const Item = ({data,toLoadId}) => {
                 <MyText bold>{authorName}</MyText>
               </Row>}
               color={'#ffffff'}
-              onPress={()=>navigation.push('profil',{uid:author})}
+              onPress={()=>navigation.push({pathname:'profil',params:{uid:author}})}
               info={'Nyisd meg '+authorName+' profilját'}
               />
             {' töltötte fel '}<MyText bold>{elapsed}</MyText></MyText>
@@ -141,19 +139,19 @@ export const Item = ({data,toLoadId}) => {
             {uid!=author && uid!=null &&
               <NewButton
                 style={{marginHorizontal:0,flexGrow:1}}
-                title={haveInterested||saleInterest?.find(e=>e.author==uid)?"Már érdeklődtél":"Érdekel"}
-                onPress={haveInterested||saleInterest?.find(e=>e.author==uid)?()=>navigation.push('uzenetek',{uid:author}):()=>handleInterest(!saleInterest?.find(e=>e.author==uid))}
+                title={haveInterested||saleInterest?.find(e=>e.author==uid)?'Már érdeklődtél':'Érdekel'}
+                onPress={haveInterested||saleInterest?.find(e=>e.author==uid)?()=>navigation.push({pathname:'uzenetek',params:{uid:author}}):()=>handleInterest(!saleInterest?.find(e=>e.author==uid))}
               />}
-              {uid==author && <NewButton
+              {uid==author && <NewButton
                 style={{marginHorizontal:0,flexGrow:1}}
-                title={saleInterest?.length?"Érdeklődők megtekintése":"Még senki sem érdeklődik."}
+                title={saleInterest?.length?'Érdeklődők megtekintése':'Még senki sem érdeklődik.'}
                 onPress={saleInterest?.length?()=>{
                   setIList(saleInterest)
                 }:undefined}
               />}
               {uid==null&&<NewButton
                 style={{marginHorizontal:0,flexGrow:1}}
-                title={"Jelentkezz be a érdeklődéshez!"}
+                title={'Jelentkezz be a érdeklődéshez!'}
                 onPress={()=>{
                   navigation.push('bejelentkezes')
                 }}
@@ -162,7 +160,7 @@ export const Item = ({data,toLoadId}) => {
           <MyText style={{marginBottom:20,fontSize:17,padding:10,backgroundColor:'#fff',borderRadius:8}} selectable>{description}</MyText>
           {!!images.length && <ScrollView horizontal style={{backgroundColor:'rgb(253, 245, 203)',flex:1,marginBottom:20}}>
             {images.map((img,ind)=>
-              <View key={"img"+ind} style={styles.image}>
+              <View key={'img'+ind} style={styles.image}>
 
                 <Pressable onPress={()=>setOpenedImage(ind)}>
                   <ImageModal renderFooter={()=>

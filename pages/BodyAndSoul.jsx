@@ -38,7 +38,7 @@ const padding = {
   left: 10
 }
 
-const fn = (ind) => {
+const fn = (ind) => {
   return -(Math.pow(ind,2) / 4)
 }
 

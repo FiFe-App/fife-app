@@ -60,16 +60,14 @@ const styles = StyleSheet.create({
     inputView:{
       backgroundColor:'white',
       padding:10,
-      borderWidth:2,
-      whiteSpace: 'break-space'
+      borderWidth:2
     },
     input:{
       backgroundColor:'#ffffff',
       padding:10,
       fontSize:22,
       letterSpacing:-1,
-      color:'black',
-      whiteSpace: 'break-space'
+      color:'black'
     },
     absolute:{
       padding:10,
@@ -78,8 +76,7 @@ const styles = StyleSheet.create({
       userSelect: "none",
       backgroundColor:'transparent',
       color:'gray',
-      cursor:'text',
-      whiteSpace: 'break-space'
+      cursor:'text'
     }
   });
   export default styles;

@@ -3,11 +3,11 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        fontFamily: "Poppins_200ExtraLight",
+        fontFamily: 'Poppins_200ExtraLight',
         backgroundColor: '#fff',
         justifyContent: 'center',
         paddingHorizontal: 16,
-        alignItems: "center"
+        alignItems: 'center'
     },
     bigButton: {
         backgroundColor:'white',
@@ -28,13 +28,13 @@ export const styles = StyleSheet.create({
       textAlign:'left',
     },
     title: {
-        fontFamily: "AmaticSC_700Bold",
+        fontFamily: 'AmaticSC_700Bold',
         fontSize: 50,
-        fontWeight: "bold"
+        fontWeight: 'bold'
     },
     subTitle: {
         fontSize: 40,
-        fontWeight: "bold",
+        fontWeight: 'bold',
         margin: 10,
         textAlign: 'left'
     },
@@ -45,22 +45,21 @@ export const styles = StyleSheet.create({
     },
     button: {
         width: 40,
-        borderColor: "black",
+        borderColor: 'black',
         borderRadius: 10,
-        backgroundColor: "yellow",
-        color: "black"
+        backgroundColor: 'yellow',
+        color: 'black'
     },
     searchInput: {
         textAlign:'center',
         width:'100%',
         margin: 5,
-        borderColor: "black",
+        borderColor: 'black',
         borderRadius: 8,
-        backgroundColor: "#ffffff",
+        backgroundColor: '#ffffff',
         padding: 10,
         fontSize:17,
-        fontWeight: "500",
-        borderRadius:8,
+        fontWeight: '500'
     },
     searchList: {
         flexDirection:'row',
@@ -73,7 +72,7 @@ export const styles = StyleSheet.create({
     },
     navbar: {
         height: 50,
-        flexDirection: "row",
+        flexDirection: 'row',
     },
     body: {
         alignItems: 'center',
@@ -89,7 +88,6 @@ export const styles = StyleSheet.create({
     },
     error: {
         textAlign: 'center', // <-- the magic
-        backgroundColor:'#fdf4c8',
         bottom:0,
         padding:8,
         fontWeight: 'bold',
@@ -119,7 +117,7 @@ export const styles = StyleSheet.create({
         position:'absolute',
         right:0,
         top:0,
-        textAlignVertical: 'center',
+        verticalAlign: 'center',
         marginHorizontal: 12,
         fontSize:15,
         backgroundColor:'white',
@@ -129,7 +127,7 @@ export const styles = StyleSheet.create({
         height:20,
     },
     list: {
-        alignItems: "center",
+        alignItems: 'center',
         padding:10,
         flex:1,
         borderBottomWidth: 0,

@@ -17,7 +17,7 @@ const actionCodeSettings = {
   };
   
 
-const EmailVerification = ({navigation}) => {
+const EmailVerification = ({navigation}) => {
     const user = useSelector((state) => state.user.userData);
     const dispatch = useDispatch();
     const [loading,setLoading] = useState(true)
@@ -31,7 +31,7 @@ const EmailVerification = ({navigation}) => {
             if (user?.emailVerified) {
                 user.reload();
                 dispatch(setUserData({ ...user }))
-                navigation.push('fooldal')
+                navigation.push('/')
             } else send();
 
         })
@@ -62,7 +62,7 @@ const EmailVerification = ({navigation}) => {
         })
     }
 
-    const update = async () => {
+    const update = async () => {
         if (edit) {
             return updateEmail(auth.currentUser,email)
         }
@@ -95,7 +95,7 @@ const EmailVerification = ({navigation}) => {
                     value={email} onChangeText={setEmail}/>
                 </>}
                 <NewButton onPress={send} title="Email újra-küldése" loading={loading} disabled={!email} />
-                {res && <MyText size={16} 
+                {res && <MyText size={16} 
                 style={{textAlign:'center',backgroundColor:'#ffc795',
                         padding:20,borderRadius:8,margin:5}}>
                         {res}

@@ -1,17 +1,15 @@
-import { useNavigation } from "@react-navigation/native";
+import Icon from '@expo/vector-icons/Ionicons';
 import { child, get, onChildAdded, ref } from "firebase/database";
 import { useContext, useEffect, useState } from "react";
-import { View, Pressable, ScrollView } from "react-native";
+import { Pressable, ScrollView, View, useWindowDimensions } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import { Auto, Col, MyText, NewButton, Row } from "../../components/Components";
 import { FirebaseContext } from "../../firebase/firebase";
 import { emptyUnreadMessages, removeHelp, setUnreadMessage } from "../../lib/userReducer";
-import Chat from "../Chat";
-import { Auto, Col, NewButton, Row, MyText } from "../../components/Components";
-import Icon from 'react-native-vector-icons/Ionicons'
-import { useWindowDimensions } from "react-native";
 import { styles } from "../../styles/styles";
+import Chat from "../Chat";
 
-export const HomeSide = ({tabProp})  => {
+export const HomeSide = ({tabProp})  => {
     const { width } = useWindowDimensions();
     const [tab, setTab] = useState('navigation');
 
@@ -20,13 +18,13 @@ export const HomeSide = ({tabProp})  => {
     }, [tabProp]);
 
     useEffect(() => {
-      if (width > 900 && tab == 'navigation')
+      if (width > 900 && tab == 'navigation')
         setTab('messenger')
       else if (width <= 900 && tab != 'none') setTab('navigation')
     }, [width]);
 
     return (
-        <View style={{flex:tab == 'none' ? 'none' : 1}}>
+        <View style={{flex:tab == 'none' ? 0 : 1}}>
             <Row style={{width:'100%'}}>
                 {width <= 900 && <NewButton style={{flex:1,margin:0}} color={tab=='navigation'?'white':'#fdeea2'} title="Gombok" onPress={()=>setTab('navigation')}/>}
                 <NewButton style={{flex:1,margin:0}} color={tab=='messenger'?'white':'#fdeea2'} title="Üzenőfal" onPress={()=>setTab('messenger')}/>
@@ -42,12 +40,12 @@ export const HomeSide = ({tabProp})  => {
 }
 
 
-const Notifications = ({style}) => {
+const Notifications = ({style}) => {
 
     const [notifications, setNotifications] = useState([
     ]);
     const {database, app, auth} = useContext(FirebaseContext);
-    const navigator = useNavigation()
+    const navigator = router
     const uid = useSelector((state) => state.user.uid)
     const dispatch = useDispatch()
 
@@ -63,7 +61,7 @@ const Notifications = ({style}) => {
 
           console.log('onChilAdded attatched');
 
-          const getMessages = () => {
+          const getMessages = () => {
             //console.log('listening');
             dispatch(emptyUnreadMessages())
             onChildAdded(dbRef, (childSnapshot) => {
@@ -116,7 +114,7 @@ const Notifications = ({style}) => {
     )
 }
 
-const Messenger = () => {
+const Messenger = () => {
     const uid = useSelector((state) => state.user.uid)
     const help = useSelector((state) => state.user.help.messenger);
     const dispatch = useDispatch()
@@ -134,21 +132,21 @@ const Messenger = () => {
     )
 }
 
-const Navigation = () => {
+const Navigation = () => {
   const { width } = useWindowDimensions();
-  const navigation = useNavigation()
+  const navigation = router
 
   return (
     <Col>
-      <Pressable style={[styles.bigButton,{flex:width<=900?'none':1}]}  onPress={()=>navigation.push('cserebere')}>
+      <Pressable style={[styles.bigButton,{flex:width<=900?0:1}]}  onPress={()=>navigation.push('cserebere')}>
         <MyText style={styles.bigButtonText}>Cserebere</MyText>
         <Icon name="shirt" color="#71bbff" size={60}/>
       </Pressable>
-      <Pressable style={[styles.bigButton,{flex:width<=900?'none':1}]}  onPress={()=>navigation.push('terkep')}>
+      <Pressable style={[styles.bigButton,{flex:width<=900?0:1}]}  onPress={()=>navigation.push('terkep')}>
         <MyText style={styles.bigButtonText}>Térkép</MyText>
         <Icon name="map" color="#8de264" size={60}/>
       </Pressable>
-      <Pressable style={[styles.bigButton,{flex:width<=900?'none':1}]} onPress={()=>navigation.push('esemenyek')}>
+      <Pressable style={[styles.bigButton,{flex:width<=900?0:1}]} onPress={()=>navigation.push('esemenyek')}>
         <MyText style={styles.bigButtonText}>Programok</MyText>
         <Icon name="calendar" color="#ff3e6f" size={60}/>
       </Pressable>

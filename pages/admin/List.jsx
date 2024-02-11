@@ -1,13 +1,13 @@
-import { View } from "react-native";
-import { Col, MyText, ProfileImage, Row, getNameOf } from "../../components/Components";
 import { useEffect, useState } from "react";
+import { View } from "react-native";
 import { TouchableRipple } from "react-native-paper";
-import { useNavigation } from "@react-navigation/native";
+import { Col, MyText, ProfileImage, Row, getNameOf } from "../../components/Components";
+import { router } from "expo-router";
 
-const List = ({data,author,message,title}) => {
+const List = ({data,author,message,title}) => {
         const [name,setName] = useState(null)
         const [authorName, setAuthorName] = useState(title);
-        const navigation = useNavigation()
+        const navigation = router;
         const [open, setOpen] = useState(false);
         useEffect(() => {
             console.log(data);

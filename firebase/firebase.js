@@ -8,44 +8,56 @@ import {
     fetchSignInMethodsForEmail,
     getAuth,
     inMemoryPersistence,
+    initializeAuth,
     onAuthStateChanged,
     sendPasswordResetEmail,
     setPersistence,
     signInWithEmailAndPassword,
     signInWithPopup,
-    signOut
-} from "firebase/auth";
+    signOut,
+    getReactNativePersistence
+} from 'firebase/auth';
 import React, { createContext, useEffect, useState } from 'react';
 import firebaseConfig from './firebaseConfig';
 
 import { getApp, initializeApp } from 'firebase/app';
-import { get, getDatabase, ref, set } from "firebase/database";
+import { get, getDatabase, ref, set } from 'firebase/database';
 import { Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { removeUnreadMessage, setName, setSettings, setUserData, login as sliceLogin, logout as sliceLogout } from '../lib/userReducer';
 
 import axios from 'axios';
-import { deleteToken, getMessaging, getToken } from "firebase/messaging";
+import { deleteToken, getMessaging, getToken } from 'firebase/messaging';
 import { config } from './authConfig';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
-const { initializeAppCheck, ReCaptchaV3Provider } = require("firebase/app-check");
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
+import { router } from 'expo-router';
 
 // we create a React Context, for this to be accessible
 // from a component later
+
 const FirebaseContext = createContext(null)
 export { FirebaseContext };
 
-export default ({ children }) => {
+const ctx = ({ children }) => {
     const dispatch = useDispatch()
     const [messaging, setMessaging] = useState(null);
     const uid = useSelector((state) => state.user.uid);
 
-    const app = () => {
+    const app = () => {
         let app;
         try {
             app = getApp()
         } catch (error) {
             app = initializeApp(firebaseConfig)
+        }
+        try {
+            initializeAuth(app(), {
+                persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+                })
+        } catch (error) {
+          console.log(error);  
         }
         return app;
     }
@@ -57,7 +69,7 @@ export default ({ children }) => {
     const init = async () => {
         if (true) {
 
-            console.log("INIT");
+            console.log('INIT');
 
             // Initialize Firebase
             initializeApp(firebaseConfig);
@@ -74,7 +86,7 @@ export default ({ children }) => {
                 })
             } else {
                 console.log('FIREBASE user not logged in')
-                dispatch(sliceLogout())
+                //dispatch(sliceLogout())
             }
             });
 
@@ -83,9 +95,13 @@ export default ({ children }) => {
     }
 
     const initMessaging = async () => {
+
         const messaging = getMessaging();
         const db = getDatabase()
-        console.log('msg init');
+        console.log('msg init'); 
+        
+        if (!('Notification' in window)) return;
+        
         await Notification.requestPermission().then((permission) => {
             console.log(permission);
           if (permission !== 'granted') {
@@ -121,8 +137,9 @@ export default ({ children }) => {
         })
     }
 
-    const appCheck = () => {
+    const appCheck = () => {
 
+        return;
         // Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
         // key is the counterpart to the secret key you set in the Firebase console.
         try{const appCheckObj = initializeAppCheck(getApp(), {
@@ -132,16 +149,16 @@ export default ({ children }) => {
         // tokens as needed.
         isTokenAutoRefreshEnabled: true
         });}catch(err){
-            console.log(err);
+            console.log('appcheck',err);
         }
     }
 
-    const forgotPassword = async (email) => {
+    const forgotPassword = async (email) => {
         const retApp = getApp()
         const a = getAuth(retApp)
-        if (!email || email == '') return 'Email nélkül nem tudjuk visszaállítani a jelszavad'
+        if (!email || email == '') return 'Email nélkül nem tudjuk visszaállítani a jelszavad'
         return sendPasswordResetEmail(a,email).then(res=>{
-            return "Küldtünk egy emailt, amivel vissza tudod állítani a fiókodat a rendes kerékvágásba!\n(Nézd meg a spam mappát is!)"
+            return 'Küldtünk egy emailt, amivel vissza tudod állítani a fiókodat a rendes kerékvágásba!\n(Nézd meg a spam mappát is!)'
         }).catch(err=>{
             console.log(err);
             console.log(err.code);
@@ -151,7 +168,7 @@ export default ({ children }) => {
         })
     }
 
-    const logout = () => {
+    const logout = () => {
         console.log('logout1');
         signOut(getAuth());
         if (Platform.OS != 'web') {
@@ -216,14 +233,14 @@ export default ({ children }) => {
                     }
                     dispatch(setName(firstLogin.name))
                 } else {
-                const dbRef = ref(getDatabase(getApp()),'users/' + user.uid + "/settings");
+                const dbRef = ref(getDatabase(getApp()),'users/' + user.uid + '/settings');
                 get(dbRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     dispatch(setSettings(snapshot.val()))
                 }
                 
                 })
-                const nameRef = ref(getDatabase(getApp()),'users/' + user.uid + "/data/name");
+                const nameRef = ref(getDatabase(getApp()),'users/' + user.uid + '/data/name');
                 get(nameRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     dispatch(setName(snapshot.val()))
@@ -232,6 +249,7 @@ export default ({ children }) => {
                 
                 })
             }
+                router.push('/')
                 response = {success:true}
             })
             .catch((error) => {
@@ -239,16 +257,16 @@ export default ({ children }) => {
                 const errorMessage = error.message;
                 console.error(error);
             
-                if (errorCode == "auth/invalid-email" || errorCode == "auth/user-not-found")
-                    response = {error:"Bakfitty! Nem jó az email cím, amit megadtál!"};
-                else if (errorCode == "auth/internal-error")
-                    response = {error:"Azáldóját! A szerveren hiba történt, próbáld újra!"};
-                else if (errorCode == "auth/wrong-password")
-                    response = {error:"Azt a hét meg a nyolcát! Lehet elírtad a jelszavad."};
-                else if (errorCode == "auth/too-many-requests")
-                    response = {error:"Ó te jó ég! Túl sokszor próbáltál bejelentkezni, próbálkozz később!"};
+                if (errorCode == 'auth/invalid-email' || errorCode == 'auth/user-not-found')
+                    response = {error:'Bakfitty! Nem jó az email cím, amit megadtál!'};
+                else if (errorCode == 'auth/internal-error')
+                    response = {error:'Azáldóját! A szerveren hiba történt, próbáld újra!'};
+                else if (errorCode == 'auth/wrong-password')
+                    response = {error:'Azt a hét meg a nyolcát! Lehet elírtad a jelszavad.'};
+                else if (errorCode == 'auth/too-many-requests')
+                    response = {error:'Ó te jó ég! Túl sokszor próbáltál bejelentkezni, próbálkozz később!'};
                 else
-                    response = {error:"error: " + errorCode + " - " + errorMessage};
+                    response = {error:'error: ' + errorCode + ' - ' + errorMessage};
             });
         })
 
@@ -268,14 +286,14 @@ export default ({ children }) => {
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
-                if (errorCode == "auth/invalid-email")
-                    response = {error:"Nem jó az email, amit megadtál :("};
-                else if (errorCode == "auth/weak-password")
-                    response = {error:"A jelszavad nem elég bonyi\nlegyen legalább 6 karakter"};
-                else if (errorCode == "auth/wrong-password")
-                    response = {error:"Rossz jelszavat adtál meg :/"};
+                if (errorCode == 'auth/invalid-email')
+                    response = {error:'Nem jó az email, amit megadtál :('};
+                else if (errorCode == 'auth/weak-password')
+                    response = {error:'A jelszavad nem elég bonyi\nlegyen legalább 6 karakter'};
+                else if (errorCode == 'auth/wrong-password')
+                    response = {error:'Rossz jelszavat adtál meg :/'};
                 else
-                    response = {error:"error: " + errorCode + " - " + errorMessage};
+                    response = {error:'error: ' + errorCode + ' - ' + errorMessage};
                 console.log(response);
             });
             try {
@@ -315,7 +333,7 @@ export default ({ children }) => {
                 //const email = error.customData.email;
                 // The AuthCredential type that was used.
                 const credential = FacebookAuthProvider.credentialFromError(error);
-                response = {error:"error: " + errorCode + " - " + errorMessage};
+                response = {error:'error: ' + errorCode + ' - ' + errorMessage};
                 if (errorCode === 'auth/account-exists-with-different-credential') {
                     var pendingCred = error.credential;
                     var email = error.email;
@@ -327,7 +345,7 @@ export default ({ children }) => {
                       if (methods[0] === 'password') {
                         // Asks the user their password.
                         // In real scenario, you should handle this asynchronously.
-                        var password = "password"//promptUserForPassword(); // TODO: implement promptUserForPassword.
+                        var password = 'password'//promptUserForPassword(); // TODO: implement promptUserForPassword.
                         auth.signInWithEmailAndPassword(email, password).then(function(result) {
                           // Step 4a.
                           return result.user.linkWithCredential(pendingCred);
@@ -351,9 +369,7 @@ export default ({ children }) => {
             app:app(),
             auth:getAuth(app()),
             database:getDatabase(app()),
-            api:{
-                login,register,facebookLogin,logout,forgotPassword
-            },
+            api:{login,register,facebookLogin,logout,forgotPassword},
             messaging,
             initMessaging
         }}>
@@ -362,3 +378,5 @@ export default ({ children }) => {
     )
 
 }
+
+export default ctx;

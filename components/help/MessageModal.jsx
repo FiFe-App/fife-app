@@ -6,7 +6,7 @@ import { MyText, NewButton, Row } from "../Components";
 import { useDispatch, useSelector } from "react-redux";
 import { seenMessage } from "../../lib/userReducer";
 
-const MessageModal = ({}) => {
+const MessageModal = ({}) => {
     const small = useWindowDimensions().width <= 900;
     const dispatch = useDispatch();
     const myuid = useSelector((state) => state.user.uid)
@@ -34,7 +34,7 @@ const MessageModal = ({}) => {
       })
     }, []);
 
-    const close = () => {
+    const close = () => {
       set(ref(getDatabase(),'users/'+myuid+'/settings/messages/'+key),true);
       dispatch(seenMessage(key))
       setOpen(null);

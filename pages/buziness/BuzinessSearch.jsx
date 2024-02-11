@@ -1,6 +1,6 @@
 import BasePage from "../../components/BasePage";
 
-const BuzinessSearch = () => {
+const BuzinessSearch = () => {
 
     return (
         <BasePage>

@@ -1,15 +1,15 @@
-import { Modal, StyleSheet, View } from "react-native";
-import { MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from "./Components";
-import UserElement from "./tools/UserElement";
-import Icon from 'react-native-vector-icons/Ionicons';
-import axios from "axios";
-import { config } from "../firebase/authConfig";
-import { useEffect, useState } from "react";
-import CustomInput from "./custom/CustomInput";
-import { TouchableRipple } from "react-native-paper";
-import { AutoPrefix, embedWord } from "../lib/textService/textService";
+import { Modal, StyleSheet, View } from 'react-native';
+import { MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from './Components';
+import UserElement from './tools/UserElement';
+import Icon from '@expo/vector-icons/Ionicons';
+import axios from 'axios';
+import { config } from '../firebase/authConfig';
+import { useEffect, useState } from 'react';
+import CustomInput from './custom/CustomInput';
+import { TouchableRipple } from 'react-native-paper';
+import { AutoPrefix, embedWord } from '../lib/textService/textService';
 
-const BuzinessModal = ({open,setOpen,user1,user2,b1,b2}) => {
+const BuzinessModal = ({open,setOpen,user1,user2,b1,b2}) => {
     console.log(open);
     const [myB, setMyB] = useState(null);
     const selected = open?.index;
@@ -17,6 +17,7 @@ const BuzinessModal = ({open,setOpen,user1,user2,b1,b2}) => {
 
     useEffect(() => {
         (async ()=>{
+            console.log('buziness',open);
             if (open)
             axios.get('users/mybuziness',config()).then(res=>{
                 setMyB(res.data)
@@ -45,7 +46,7 @@ const BuzinessModal = ({open,setOpen,user1,user2,b1,b2}) => {
             <View style={styles.centeredView}>
                 <View style={styles.modalView}>
                     <Row>
-                        <MyText size={20}>Válassz <UserElement uid={user2} style={{fontWeight:'bold'}} onlyText/> bizniszei közül!</MyText>
+                        <MyText size={20}>Válassz <UserElement uid={user2} style={{}} onlyText/> bizniszei közül!</MyText>
                     </Row>
                     <View style={{flexDirection:'row'}}>
                         <View style={{flex:1,flexGrow:1}}>
@@ -57,8 +58,8 @@ const BuzinessModal = ({open,setOpen,user1,user2,b1,b2}) => {
                     </View>
                     <View style={styles.table}>
                         <View style={styles.cell}>
-                            {myB?.map(b=>{
-                                return <TouchableRipple style={[{padding:8,borderRadius:8,boxSizing:'border-box',width:'100%'}]}>
+                            {myB?.map((b,i)=>{
+                                return <TouchableRipple key={'b'+i} style={[{padding:8,borderRadius:8,boxSizing:'border-box',width:'100%'}]}>
                                     <MyText>{b.name}</MyText>
                                 </TouchableRipple>
                             })}
@@ -66,7 +67,7 @@ const BuzinessModal = ({open,setOpen,user1,user2,b1,b2}) => {
                         <View style={{alignItems:'center',justifyContent:'center'}}><Icon name="swap-horizontal-outline" size={30}/></View>
                         <View style={styles.cell}>
                             {b2?.map((b,i)=>{
-                                return <TouchableRipple style={[{padding:8,borderRadius:8,boxSizing:'border-box',width:'100%'},
+                                return <TouchableRipple key={'b2'+i} style={[{padding:8,borderRadius:8,boxSizing:'border-box',width:'100%'},
                                 selected==i?{backgroundColor:'#99999955'}:{}]} onPress={()=>{
                                     setOpen({...open,index:i})
                                 }}>
@@ -75,8 +76,8 @@ const BuzinessModal = ({open,setOpen,user1,user2,b1,b2}) => {
                             })}</View>
 
                     </View>
-                    <CustomInput type="text-input" data={open} setData={setOpen} attribute="message" label={"Miért szeretnél vele bizniszelni?"} 
-                    placeholder={"Azért érdekel "+embedWord(b2?.[selected].name)+" mert.."} lines={3}/>
+                    <CustomInput type="text-input" data={open} setData={setOpen} attribute="message" label={'Miért szeretnél vele bizniszelni?'} 
+                    placeholder={'Azért érdekel '+embedWord(b2?.[selected].name)+' mert..'} lines={3}/>
                     <NewButton title="Mehet!" onPress={send}/>
                 </View>
             </View>
@@ -86,16 +87,16 @@ const BuzinessModal = ({open,setOpen,user1,user2,b1,b2}) => {
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor:'rgba(0,0,0,0.5)'
   },
   modalView: {
     margin: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius:8,
     padding: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
     borderRadius:8,
     borderWidth:1,
     alignItems:'center',
-    justifyContent:"center"
+    justifyContent:'center'
   }
 });
 

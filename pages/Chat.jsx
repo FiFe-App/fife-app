@@ -1,33 +1,37 @@
-import { useNavigation } from "@react-navigation/native";
-import { child, limitToLast, off, onChildAdded, onValue, orderByValue, push, query, ref, set } from "firebase/database";
-import { useContext, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
+import { child, limitToLast, off, onChildAdded, onValue, orderByValue, push, query, ref, set } from 'firebase/database';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Loading, MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from "../components/Components";
+import { MyText, NewButton, ProfileImage, Row, TextInput, getNameOf } from '../components/Components';
 import { FirebaseContext } from '../firebase/firebase';
 import { removeUnreadMessage } from '../lib/userReducer';
 
-import axios from "axios";
-import GoBack from "../components/Goback";
-import { config } from "../firebase/authConfig";
+import axios from 'axios';
+import { TouchableRipple } from 'react-native-paper';
+import GoBack from '../components/Goback';
+import { config } from '../firebase/authConfig';
 import chatStyles from '../styles/chatDesign';
-import { SaleListItem } from "./sale/SaleListItem";
-import { TouchableRipple } from "react-native-paper";
+import { SaleListItem } from './sale/SaleListItem';
+import { router, useLocalSearchParams, usePathname } from 'expo-router';
+import Loading from '../components/Loading';
 
 const color = '#ffde9e'
 
-const Chat = ({route, navigation, propUid, global}) => {
+const Chat = ({ propUid, global}) => {
     const small = useWindowDimensions().width <= 900;
     const [loading, setLoading] = useState(true);
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
     const [header, setHeader] = useState(null);
-    const nav = navigation || useNavigation()
+    const nav = router
+    const navigation = router
+    const params = useLocalSearchParams();
+    const route = usePathname();
     const {database, app, auth} = useContext(FirebaseContext);
     const uid = useSelector((state) => state.user.uid)
     const myName = useSelector((state) => state.user.name)
-    const [uid2, setUid2] = useState(propUid || route?.params?.uid);
+    const [uid2, setUid2] = useState(propUid || params?.uid);
     const [scrollView, setScrollView] = useState(null);
     const input = useRef();
     const dispatch = useDispatch()
@@ -72,7 +76,7 @@ const Chat = ({route, navigation, propUid, global}) => {
         }
 
         if (database && message && global) {
-            const messageListRef = ref(database, `globalChat`);
+            const messageListRef = ref(database, 'globalChat');
             const newMessageRef = push(messageListRef);
             set(newMessageRef, {
                 text: message,
@@ -97,15 +101,15 @@ const Chat = ({route, navigation, propUid, global}) => {
     useEffect(() => {
 
         //const unsubscribe = nav.addListener('focus', () => {
-            console.log(route?.params);
+            console.log(params);
             console.log('chat with',uid2);
             if (database) {
                 if (!global) {
                     const profileListRef = ref(database, `users/${uid2}/data`);
                     onValue(profileListRef, (snapshot) => {
                         setHeader(
-                            <TouchableRipple onPress={()=>nav.push('profil',{uid:uid2})} style={chatStyles.header}>
-                                <>{route?.name == 'beszelgetes' &&<GoBack breakPoint={10000} text={null} style={{backgroundColor:'#FFC372',left:0,top:0,marginRight:10}} color='black'/>}
+                            <TouchableRipple onPress={()=>nav.push({pathname:'profil',params:{uid:uid2}})} style={chatStyles.header}>
+                                <>{route == '/beszelgetes' &&<GoBack breakPoint={10000} text={null} style={{backgroundColor:'#FFC372',left:0,top:0,marginRight:10}} color='black'/>}
 
                                 <Row style={{justifyContent:'center',alignItems:'center',flexGrow:1}}>
                                     <ProfileImage style={styles.listIcon} size={70} uid={uid2}/>
@@ -122,7 +126,7 @@ const Chat = ({route, navigation, propUid, global}) => {
                 }
                 
                 const messageListRef = 
-                global ? ref(database, `globalChat`)
+                global ? ref(database, 'globalChat')
                 : query(ref(database, `users/${uid}/messages/${uid2}`),limitToLast(40),orderByValue('time'));
                 off(messageListRef,'child_added')
                 setMessages([])
@@ -151,7 +155,7 @@ const Chat = ({route, navigation, propUid, global}) => {
     <View style={{flex:1,backgroundColor:'#fdf6d1'}}>
         <View style={[{flex:1,backgroundColor:'#FDEEA2'},small?{}:{margin:10,borderRadius:30}]}>
             <View style={{flex:1,backgroundColor:'#fdf6d1'}}>
-                {!global && header}
+                {!global && header}
                 <ScrollView
                 snapToEnd
                 ref={(scroll) => {setScrollView(scroll)}}
@@ -192,7 +196,7 @@ const Chat = ({route, navigation, propUid, global}) => {
                     blurOnSubmit={false}
                 />
                 <TouchableOpacity onPress={send} style={styles.textButton} disabled={!message}>
-                    <Icon name="send" color={message ? "black" : "gray"} size={20}/>
+                    <Icon name="send" color={message ? 'black' : 'gray'} size={20}/>
                 </TouchableOpacity>
             </View>
         </View>
@@ -209,7 +213,7 @@ const AutoMessage = (props) => {
             load();
     },[toLoad]);
 
-    const load = async () => {
+    const load = async () => {
         setName(await getNameOf(uid))
         axios.get('sale/'+saleId,config()).then(res=>{
             console.log(res);
@@ -221,7 +225,7 @@ const AutoMessage = (props) => {
     return (
         <View style={[styles.autoMessageContainer,{alignSelf:isMine?'flex-end':'flex-start'}]}>
         <MyText>{text}</MyText>
-        {!toLoad && <>
+        {!toLoad && <>
             <NewButton onPress={()=>setToLoad(true)}
             title="Adatok betöltése" />
         </>}

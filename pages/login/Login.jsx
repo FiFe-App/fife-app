@@ -8,24 +8,24 @@ import { styles } from '../../styles/styles';
 import { AmaticSC_700Bold, useFonts } from '@expo-google-fonts/amatic-sc';
 import { Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
 
-import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from "expo-linear-gradient";
+import { LinearGradient } from 'expo-linear-gradient';
 import { Helmet } from 'react-helmet';
 import { useWindowDimensions } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '@expo/vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
 import { Auto, B, MyText, NewButton, Row, TextInput } from '../../components/Components';
 import { FirebaseContext } from '../../firebase/firebase';
 import First from '../first/First';
 import { equalTo, get, query, ref } from 'firebase/database';
-import { Smiley } from '../home/HomeScreenOld';
 import { ActivityIndicator, TouchableRipple } from 'react-native-paper';
+import { router, usePathname, useSegments } from 'expo-router';
 
 
-const LoginScreen = ({ navigation, route }) => {
+const LoginScreen = () => {
   const { width } = useWindowDimensions();
   const small = useWindowDimensions().width<900;
-  const [canLogin, setCanLogin] = React.useState(route.params?.logout || false);
+  const segments = useSegments();
+  const [canLogin, setCanLogin] = React.useState(segments || false);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const {app, auth, user, api}  = useContext(FirebaseContext);
@@ -44,7 +44,7 @@ const LoginScreen = ({ navigation, route }) => {
     const handleMoreInfo = () => {
       console.log('more');
       if (width <= 900)
-        navigation.push('regisztracio')
+        router.push('regisztracio')
       else
         scrollView.scrollToEnd(true)
     }
@@ -65,11 +65,11 @@ const LoginScreen = ({ navigation, route }) => {
       showsVerticalScrollIndicator={false}>
 
       <Helmet>
-        <meta name="theme-color" content="#FDEEA2"/>
+        <title>Bejelentkezés</title>
       </Helmet>
-      <LinearGradient colors={["#fdf9e5", "#fdf9e5"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
+      <LinearGradient colors={['#fdf9e5', '#fdf9e5']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={containerStyle}>
         
-      <NewButton title={<><Icon name="chevron-back" size={25}/>Rólunk</>} onPress={()=>navigation.push('rolunk')} style={{padding:10,alignSelf:'flex-start'}} textStyle={{fontSize:25}} color='#fdf9e5'/>
+      <NewButton title={<><Icon name="chevron-back" size={25}/>Rólunk</>} onPress={()=>router.push('rolunk')} style={{padding:10,alignSelf:'flex-start'}} textStyle={{fontSize:25}} color='#fdf9e5'/>
         
       <View style={[{backgroundColor:'#fdf4c8',borderRadius:50,padding:small?30:50,paddingTop:0,margin:5,marginTop:20,maxWidth:'95%',alignItems:'center'}]}>
           {width >= 900 ?
@@ -106,13 +106,13 @@ const LoginScreen = ({ navigation, route }) => {
   };
 
 
-const  LoginForm = () => {
+const  LoginForm = () => {
   const { width } = useWindowDimensions();
   const small = useWindowDimensions().width<900;
-  const navigation = useNavigation()
+  const router = usePathname();
   const [loading, setLoading] = useState(false);
-  const [username, onChangeUsername] = React.useState("");
-  const [password, onChangePassword] = React.useState("");
+  const [username, onChangeUsername] = React.useState('');
+  const [password, onChangePassword] = React.useState('');
   const [loginError, onChangeLoginError] = React.useState(null);
   const context  = useContext(FirebaseContext);
   const user = useSelector((state) => state.user)
@@ -123,7 +123,7 @@ const  LoginForm = () => {
     console.log(context);
     context?.api?.login(email,password).then((res) => {
       if (res?.success) {
-        //navigation.push('fooldal')
+        //router.push('fooldal')
         
         console.log('user',user);
       } else {
@@ -137,12 +137,12 @@ const  LoginForm = () => {
     
   }
 
-  const forgot = () => {
-    navigation.push('elfelejtett-jelszo')
+  const forgot = () => {
+    router.push('elfelejtett-jelszo')
   }
 
   return (
-    <View style={{justifyContent:'center',alignItems:"center",zIndex:-1,width:'100%'}}>
+    <View style={{justifyContent:'center',alignItems:'center',zIndex:-1,width:'100%'}}>
       <View style={{flexDirection:'column',flexGrow:1,width:'100%'}}>
           <TextInput
             style={[styles.searchInput,{width: width <= 900 ? 200 : '100%',WebkitBoxShadow: '0 0 0 30px white inset'} ]}
@@ -160,7 +160,7 @@ const  LoginForm = () => {
             placeholder="Jelszó"
             onSubmitEditing={()=>signIn(username, password, onChangeLoginError)}
           />
-        <Pressable style={{backgroundColor:'#fdcf99',justifyContent:'center',alignItems:"center",margin:5,padding:10,borderRadius:8,width:'100%'}} 
+        <Pressable style={{backgroundColor:'#fdcf99',justifyContent:'center',alignItems:'center',margin:5,padding:10,borderRadius:8,width:'100%'}} 
           onPress={() => signIn(username, password, onChangeLoginError)}>
           {!loading ?
           <MyText bold size={17}>Bejelentkezés!</MyText>
@@ -176,12 +176,12 @@ const  LoginForm = () => {
     </View>
   )
 }
-export const RegisterForm = ({setData,dataToAdd,style}) => {
-  const navigation = useNavigation()
-  const [email, onChangeEmail] = React.useState("");
-  const [password, onChangePassword] = React.useState("");
-  const [passwordAgain, onChangePasswordAgain] = React.useState("");
-  const [loginError, onChangeLoginError] = React.useState("");
+export const RegisterForm = ({setData,dataToAdd,style}) => {
+  const router = usePathname();
+  const [email, onChangeEmail] = React.useState('');
+  const [password, onChangePassword] = React.useState('');
+  const [passwordAgain, onChangePasswordAgain] = React.useState('');
+  const [loginError, onChangeLoginError] = React.useState('');
   const {app, auth, user, api}  = useContext(FirebaseContext);
   const width = useWindowDimensions().width
 
@@ -209,7 +209,7 @@ export const RegisterForm = ({setData,dataToAdd,style}) => {
     api.facebookLogin().then((res) => {
       console.log('res',res);
       if (res?.success) {
-        navigation.push('fooldal') 
+        router.push('/') 
       } else {
         onChangeLoginError(res?.error)
       }
@@ -218,7 +218,7 @@ export const RegisterForm = ({setData,dataToAdd,style}) => {
     })
   }
   return (
-    <View style={[{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,width:'100%'},style]}>
+    <View style={[{flex:width <= 900 ? undefined : 1,alignItems:'flex-start',maxWidth:500,width:'100%'},style]}>
         <MyText style={styles.text}>Email-cím</MyText>
         <TextInput
           style={styles.searchInput}
@@ -245,7 +245,7 @@ export const RegisterForm = ({setData,dataToAdd,style}) => {
             placeholder="***************"
         />
         {!!loginError&&<MyText style={styles.error} >{loginError}</MyText>}
-        <NewButton style={styles.headline} title="Kész!" disabled={password != passwordAgain || password == ""} color="black" onPress={() =>
+        <NewButton style={[styles.headline,{alignSelf:'flex-end'}]} title="Regisztráció befejezése!" disabled={password != passwordAgain || password == ''} color="#fdcf99" onPress={() =>
           signUp(email,password)
         } />
       
@@ -255,8 +255,8 @@ export const RegisterForm = ({setData,dataToAdd,style}) => {
   )
 }
 
-export const MoreInfoForm = ({setData,style}) => {
-  const navigation = useNavigation()
+export const MoreInfoForm = ({setData,style}) => {
+  const router = usePathname();
   const [name, onChangeName] = useState('');
   const [username, onChangeUsername] = useState('');
   const [usernameValid, setUsernameValid] = useState(true);
@@ -279,10 +279,10 @@ export const MoreInfoForm = ({setData,style}) => {
   }, [username]);
 
   useEffect(() => {
-    setData({name,bio,username:usernameValid?username:null})
+    setData({name:name.trim(),bio,username:usernameValid?username:null})
   }, [name,bio,username,usernameValid]);
   return (
-    <View style={[{flex:width <= 900 ? 'none' : 1,alignItems:'flex-start',maxWidth:500,width:'100%'},style]}>
+    <View style={[{flex:width <= 900 ? undefined : 1,alignItems:'flex-start',maxWidth:500,width:'100%'},style]}>
         <MyText style={styles.text}>A Neved</MyText>
         <TextInput
           style={styles.searchInput}
@@ -292,7 +292,7 @@ export const MoreInfoForm = ({setData,style}) => {
         />
         <MyText style={styles.text}>Az egyedi felhasználóneved</MyText>
         <View style={[{flexDirection:'row',width:'100%'}]}>
-            <Icon style={{position:"absolute",alignSelf:'center',top:10,left:10}} name={usernameValid ? "checkmark-circle" : "close-circle"} size={30} color={'#fdcf99'}/>
+            <Icon style={{position:'absolute',alignSelf:'center',top:10,left:10}} name={usernameValid ? 'checkmark-circle' : 'close-circle'} size={30} color={'#fdcf99'}/>
             <TextInput
               style={[styles.searchInput,{paddingLeft:50,marginRight:0}]}
               onChangeText={onChangeUsername}
@@ -306,7 +306,7 @@ export const MoreInfoForm = ({setData,style}) => {
   )
 }
 
-const Loading = () => {
+const Loading = () => {
   const spinValue = new Animated.Value(0);
 
     // First set up animation 
@@ -336,7 +336,7 @@ const Loading = () => {
 
 const localStyle = StyleSheet.create({
   title: {
-    fontFamily: "Raleway_800ExtraBold",
+    fontFamily: 'Raleway_800ExtraBold',
     fontSize:'4.0vw', 
     marginHorizontal:27,
     color:'black',

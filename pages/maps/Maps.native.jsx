@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Pressable, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Row, MyText } from '../../components/Components';
-import Icon from 'react-native-vector-icons/Ionicons'
+import Icon from '@expo/vector-icons/Ionicons'
 import { AntDesign } from '@expo/vector-icons';
 
 const mapData = [

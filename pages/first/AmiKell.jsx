@@ -17,7 +17,7 @@ const modules = [
     ],
 ]
 
-const AmiKell = ({data,setData}) => {
+const AmiKell = ({data,setData}) => {
     const { width } = useWindowDimensions()
 
     const inputs = categories.options.map((e,i)=>{ 
@@ -41,10 +41,10 @@ const AmiKell = ({data,setData}) => {
             funkciókat, frissítéseket kapni! Ezeken a beállításokon bármikor változtathatsz a főoldalon majd.
         </MyText>
         <Auto>
-            <View style={{flex:width<=900?'none':3}}>
+            <View style={{flex:width<=900?0:3}}>
                 {inputs.slice(0,half).map((input,ind)=><CustomInput {...input} key={'inp'+ind} style={[{padding:10,margin:5},input.style]}/>)}
             </View>
-            <View style={{flex:width<=900?'none':3}}>
+            <View style={{flex:width<=900?0:3}}>
                 {inputs.slice(half).map((input,ind)=><CustomInput {...input} key={'inp2'+ind}  style={[{padding:10,margin:5},input.style]}/>)}
             </View>
         </Auto>
@@ -52,7 +52,7 @@ const AmiKell = ({data,setData}) => {
     </>)
 }
 
-const Module = ({title,description}) => {
+const Module = ({title,description}) => {
     const [selected, setSelected] = useState(false);
     return (
         <Pressable style={[styles.module,{backgroundColor:selected?'#6ee9ff':'#c3b7ff'}]} onPress={()=>setSelected(!selected)}>

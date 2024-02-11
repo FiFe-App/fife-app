@@ -17,10 +17,10 @@ const AddDoc = () => {
     const [forms, setForms] = useState([]);
     return ((
     <BasePage style={{backgroundColor:'#FDEEA2'}}>
-        <GoBack text="Vissza" previous="fooldal" breakPoint={1000}/>
+        <GoBack text="Vissza" previous="/" breakPoint={1000}/>
         <MyText title>Van valami amit megosztanál minden felhasználóval?</MyText>
         <MyText size={18}>Írd le az üzeneted, hogy eljuthasson mindenkihez</MyText>
-        <TextInput multiline numberOfLines={15} style={defStyle}/>
+        <TextInput multiline rows={15} style={defStyle}/>
 
         <View style={{padding:20}}>
             <MyText title>{data?.title}</MyText>

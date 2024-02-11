@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet";
 import { MyText } from "../components/Components";
 import { View, ScrollView } from "react-native";
 
-const PrivacyPolicy = () => {
+const PrivacyPolicy = () => {
     return (<>
     <Helmet>
         <title>Fife app</title>

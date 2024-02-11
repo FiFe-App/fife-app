@@ -1,13 +1,14 @@
 import { View } from "react-native";
-import { Loading, MyText, NewButton, Row, TextInput } from "../Components";
-import Icon from 'react-native-vector-icons/Ionicons';
+import { MyText, NewButton, Row, TextInput } from "../Components";
+import Icon from '@expo/vector-icons/Ionicons';
 import { useState } from "react";
 import { Checkbox } from "react-native-paper";
 import CustomInput from "../custom/CustomInput";
 import axios from "axios";
 import { config } from "../../firebase/authConfig";
+import Loading from "../Loading";
 
-const Posting = ({open}) => {
+const Posting = ({open}) => {
     const [text, setText] = useState('');
     const [options, setOptions] = useState(open?{}:null);
     const [loading, setLoading] = useState(false);
@@ -31,10 +32,10 @@ const Posting = ({open}) => {
                         onChangeText={setText}
                         multiline
                         value={text}
-                        numberOfLines={2}
+                        rows={2}
                         style={[{backgroundColor:'white',borderRadius:30,flexGrow:1,paddingLeft:20,paddingRight:50,paddingTop:17,fontSize:17,height:60,
                                 zIndex:0,marginHorizontal:10,fontWeight:'bold',color:'black',borderColor:'white'},
-                            options && {borderBottomLeftRadius:0,borderBottomRightRadius:0,}
+                            options && {borderBottomLeftRadius:0,borderBottomRightRadius:0,}
                         ]}
                     /></>
                     {options && <View style={{

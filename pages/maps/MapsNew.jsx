@@ -1,33 +1,34 @@
 
-import { AntDesign } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import Icon from '@expo/vector-icons/Ionicons';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { Auto, MyText, NewButton, Openable, Row, TextInput } from '../../components/Components';
+import { Pressable, ScrollView, View } from 'react-native';
+import { Auto, MyText, NewButton, Row, TextInput } from '../../components/Components';
 
 
+import BottomSheet from '@gorhom/bottom-sheet';
+import axios from 'axios';
 import * as Location from 'expo-location';
 import { get, push, ref, set } from 'firebase/database';
 import { useWindowDimensions } from 'react-native';
-import { FirebaseContext } from '../../firebase/firebase';
-import { getMaps, getPlaceById, getPlaces, LocationData } from "./mapService";
-import MapElement from './MapElementNew';
-import axios from 'axios';
-import { config } from '../../firebase/authConfig';
-import { Checkbox } from 'react-native-paper';
-import { categories } from '../../lib/categories';
-import { MapContext } from './MapContext';
+import { useSelector } from 'react-redux';
 import { MapList } from '../../components/MapList';
 import HelpModal from '../../components/help/Modal';
-import { useSelector } from 'react-redux';
-import { arraysEqual, deepEqual } from '../../lib/functions';
-import BottomSheet from '@gorhom/bottom-sheet';
+import { config } from '../../firebase/authConfig';
+import { FirebaseContext } from '../../firebase/firebase';
+import { categories } from '../../lib/categories';
+import { arraysEqual } from '../../lib/functions';
+import { MapContext } from './MapContext';
+
+import MapElement from './MapElementNew';
+
+import { LocationData, getMaps, getPlaceById } from './mapService';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 const Maps = ({navigation, route}) => {
     //#region state
+    const params = useLocalSearchParams();
     const uid = useSelector((state) => state.user.uid)
-    const {id,category} = route?.params || {}
+    const {id,category} = params || {}
     const {database} = useContext(FirebaseContext);
     const { width } = useWindowDimensions();
     const small = width < 900;
@@ -88,8 +89,8 @@ const Maps = ({navigation, route}) => {
           setCategoryList(await getMaps(database));
           const getL = (await get(ref(database,'users/'+uid+'/data/mapLikes'))).val()
           console.log('getL',getL)
-          setStarred(getL || [])
-          setOldStarred(getL || [])
+          setStarred(getL || [])
+          setOldStarred(getL || [])
         })()
 
       }, [])
@@ -101,7 +102,7 @@ const Maps = ({navigation, route}) => {
         getNearby()
     }, [myLocation,selected]);
 
-    const getNearby = () => {
+    const getNearby = () => {
       console.log('getNearby',myLocation);
       if (!myLocation) return;
 
@@ -142,7 +143,7 @@ const Maps = ({navigation, route}) => {
     
     useEffect(() => {
       console.log('setParams cat',selected,selectedPlace);
-      navigation.setParams({category:Number(selected?.id) || undefined,id:(selectedPlace?.id||selectedPlace?._id) || undefined})
+      //router.setParams({category:Number(selected?.id) || undefined,id:(selectedPlace?.id||selectedPlace?._id) || undefined})
     }, [selected,selectedPlace]);
 
     useEffect(() => {
@@ -151,7 +152,7 @@ const Maps = ({navigation, route}) => {
         key: search,
         secure: secure
       }}).then(res=>{
-        console.log("search",res);
+        console.log('search',res);
       })
     }, [search]);
 
@@ -178,7 +179,7 @@ const Maps = ({navigation, route}) => {
           {!myLocation && <NewButton onPress={getLocation} title="Közeli helyek keresése"/> }
           {nearby.map((place,index2) => {
             return <Pressable style={[localStyles.mapLink]} 
-                              key={"place"+index2} onPress={()=>{
+                              key={'place'+index2} onPress={()=>{
                                   console.log(selectedPlace,place._id);
                                   if (selectedPlace?.id==place._id) {
                                     setSelectedPlace(null)
@@ -193,7 +194,7 @@ const Maps = ({navigation, route}) => {
 
         </ScrollView>
       </>}
-        {false&&!selected.id && <NewButton title="Új kategória ajánlása"  style={{order:2}} onPress={()=>setNewCategory(true)} />}
+        {false&&!selected.id && <NewButton title="Új kategória ajánlása"  style={{order:2}} onPress={()=>setNewCategory(true)} />}
       
       {selectedPlace && <LocationData />}
     </View>
@@ -205,9 +206,9 @@ const Maps = ({navigation, route}) => {
                 style={[localStyles.side,{flex: width <= 900 ? 2 : 1,minWidth:300,backgroundColor:'#ffffd6'}]}
                 >{menu}</View>
                 }
-                <View style={{flex:3,backgroundColor:'#ffffd6'}}>
+                {true&&<View style={{flex:3,backgroundColor:'#ffffd6'}}>
                     <MapElement markers={placeList} center={{lat:selectedPlace?.lat,lng:selectedPlace?.lng}} index='0'/>
-                </View>
+                </View>}
 
                 {width <= 900 && <BottomSheet
                   ref={sheetRef}
@@ -248,7 +249,7 @@ const Maps = ({navigation, route}) => {
     )
 }
 
-const NewPlace = () => {
+const NewPlace = () => {
   const {selected,setSelected,newMarker, setSelectedPlace,setNewMarker,newPlace,setNewPlace} = useContext(MapContext);
   const open = !!newPlace;
   const [title, setTitle] = useState('');
@@ -276,7 +277,7 @@ const NewPlace = () => {
         title,
         lat: newMarker._latlng.lat,
         lng: newMarker._latlng.lng
-      },config()).then(e=> {
+      },config()).then(e=> {
         setTitle('');
         setDescription('')
         setLoading(false);
@@ -300,7 +301,7 @@ const NewPlace = () => {
       </Row>
       <TextInput style={localStyles.input} placeholder='Hely neve' onChangeText={setTitle} value={title} disabled={loading}/>
       <TextInput style={localStyles.input} placeholder='A helyről' onChangeText={setDescription} value={description} disabled={loading}/>
-      <MyText style={localStyles.input}>{selected ? "Kategória: "+(selected.name||'Válassz egyet') : "Válassz ki egy kategóriát fent"}</MyText>
+      <MyText style={localStyles.input}>{selected ? 'Kategória: '+(selected.name||'Válassz egyet') : 'Válassz ki egy kategóriát fent'}</MyText>
       <NewButton title={statusText} onPress={send} disabled={!(title && description && selected) || loading}/>
     </View>
   )
@@ -310,7 +311,7 @@ const NewPlace = () => {
 const localStyles = {
     text:{
       fontWeight: 'bold',
-      color: "black",
+      color: 'black',
       fontSize:18,
       paddingHorizontal: 16,
     },
@@ -321,7 +322,7 @@ const localStyles = {
       marginHorizontal: 20,
       paddingVertical:10,
       alignItems: 'center',
-      justifyContent: "center",
+      justifyContent: 'center',
       maxWidth: 500
     },
     verticleLine: {
@@ -335,10 +336,10 @@ const localStyles = {
     },
     searchInput: {
         margin: 5,
-        borderColor: "black",
-        backgroundColor: "#ffffff",
+        borderColor: 'black',
+        backgroundColor: '#ffffff',
         padding: 10,
-        fontWeight: "bold",
+        fontWeight: 'bold',
         maxWidth: 500,
         flexGrow:1,
         borderRadius:8,
@@ -369,7 +370,7 @@ const localStyles = {
       //borderWidth:2,
       marginTop: -2,
       cursor: 'default',
-      shadowColor: "#000",
+      shadowColor: '#000',
       shadowOffset: {width: 4, height: 4 },
       shadowOpacity: 0.2,shadowRadius: 1
     },
@@ -403,14 +404,13 @@ const localStyles = {
 
     },
     input: {
-      paddingVertical: 5,
       borderColor: 'black',
       borderWidth: 2,
       borderRadius: 0,
       marginBottom:5,
       color:'black',
       backgroundColor:'#ffffff',
-      fontWeight: "600",
+      fontWeight: '600',
       padding: 10,
       paddingVertical:10
     },
