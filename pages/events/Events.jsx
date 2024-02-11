@@ -66,8 +66,7 @@ const Events = () => {
                 <CalendarPicker
                 startFromMonday={true}
                 style={{backgroundColor:'white'}}
-                customDatesStyles=  
-                allowRangeSelection={false}
+                
                 selectedDayColor='#FFC27B'
                 previousTitle='előző'
                 nextTitle='kövi'

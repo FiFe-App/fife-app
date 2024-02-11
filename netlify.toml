@@ -2,6 +2,8 @@
   functions="functions"
 [dev]
   functions="functions"
+[base]
+  
 
 [[redirects]]
   from = "/*"
