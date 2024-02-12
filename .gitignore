@@ -14,3 +14,5 @@ npm-debug.*
 
 # Local Netlify folder
 .netlify
+functions/package-lock.json
+functions/yarn.lock
