@@ -1,0 +1,20 @@
+.title {
+    text-align: justify;
+    color: 'red';
+    text-align: center;
+    font-size: 100vw;
+}
+  
+.title:after {
+  content: "";
+  display: inline-block;
+  width: 100%;
+}
+
+.button {
+  font-size:7.6vw;
+  margin-top:-100;
+  font-family:'Raleway_800ExtraBold';
+  color:white;
+  align-items:center;
+}

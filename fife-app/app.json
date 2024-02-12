@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "FiFe App",
+    "description": "A biztonságos online tér.",
+    "slug": "fife-app",
+    "owner": "Kristóf Ákos",
+    "version": "1.0.1",
+    "scheme": "fifeapp",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#ffde7e",
+    "primaryColor": "#edeeda",
+    "splash": {
+      "image": "./assets/web_splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FCEFA2"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/b02f20b4-99d4-458f-b217-4b0d38f0b239"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kristofakos.fifeapp"
+    },
+    "android": {
+      "googleServicesFile": "./firebase/google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.kristofakos.fifeapp",
+      "versionCode": 2
+    },
+    "web": {
+      "favicon": "./assets/logo.png",
+      "output": "single",
+      "bundler":"metro" ,
+      "name": "FiFe App",
+      "lang": "hu",
+      "description": "A biztonságos online tér.",
+      "splash": {
+        "image": "./assets/web_splash.png"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b02f20b4-99d4-458f-b217-4b0d38f0b239"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    }
+  }
+}

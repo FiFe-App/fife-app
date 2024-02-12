@@ -1,0 +1,11 @@
+[build]
+  functions="functions"
+[dev]
+  functions="functions"
+[base]
+  
+
+[[redirects]]
+  from = "/*"
+  to = "/"
+  status = 200

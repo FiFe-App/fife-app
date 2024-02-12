@@ -1,0 +1,7 @@
+
+useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+      };
+    }, [])
+  );
