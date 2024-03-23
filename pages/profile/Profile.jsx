@@ -1,4 +1,4 @@
-import { Auto, Col, getNameOf, MyText, NewButton, Popup, ProfileImage, Row } from '../../components/Components';
+import { Auto, B, Col, getNameOf, MyText, NewButton, Popup, ProfileImage, Row, TextInput } from '../../components/Components';
 
 import Loading from '../../components/Loading';
 import { child, get, getDatabase, onValue, push, ref, set } from 'firebase/database';
@@ -21,16 +21,24 @@ import { useHover } from 'react-native-web-hooks';
 import HelpModal from '../../components/help/Modal';
 import BasePage from '../../components/BasePage'
 import { getAuth } from 'firebase/auth';
-import { setTempData } from '../../lib/userReducer';
 import { listToMatrix } from '../../lib/functions';
 import BuzinessModal from '../../components/BuzinessModal';
-import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { removeUnreadMessage, setSettings as setStoreSettings, setTempData, setUnreadMessage } from '../../lib/userReducer';
+import { Link, useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { Helmet } from 'react-helmet';
 import MapElement from '../maps/MapElementNew';
+import { useErrorBoundary } from 'react-error-boundary';
+import Error from '../../components/tools/Error';
+import BuzinessItem from '../buziness/BuzinessItem';
+import { categories } from '../../lib/categories';
+import CustomInput from '../../components/custom/CustomInput';
+import ProfileItem from '../../components/items/ProfileItem';
 
-const bgColor = '#FDEEA2'//'#ffd581dd'
+const bgColor = '#FCF3D4'//'#ffd581dd'
 
 const Profile = () => {
+	const { showBoundary } = useErrorBoundary();
+
 	const {database, api} = useContext(FirebaseContext);
 	const dispatch = useDispatch()
 	const { width } = useWindowDimensions();
@@ -46,8 +54,9 @@ const Profile = () => {
 	const myProfile = uid === myuid;
   
 	const [profile, setProfile] = React.useState(myProfile ? tempData : null);
+	const [selected, setSelected] = useState(params?.tab || 0);
 	const [saleList, setSaleList] = React.useState([]);
-	const maxSaleWidth = width > 1200 ? 2 : (width < 500 ? (width < 350 ? 1 : 2) : 4)
+	const maxSaleWidth = width > 1200 ? 6 : (width < 500 ? (width < 350 ? 2 : 3) : 4)
 	const [followButtonState, setFollowButtonState] = React.useState(false);
 	const [followers, setFollowers] = React.useState([]);
 	const [rates, setRates] = useState([]);
@@ -56,6 +65,11 @@ const Profile = () => {
 		uid:uid,
 		message:null
 	});
+
+	useEffect(() => {
+		if (selected != params?.tab)
+		router.setParams({tab:selected})
+	}, [selected]);
 
 
 	const report = (data) => {
@@ -107,9 +121,10 @@ const Profile = () => {
 					}
 				}).catch((error) => {
 					console.error('getDataError',error);
-					if (myuid == uid)
+					if (myuid == uid && error.message=='Not found')
 						router.push('profil-szerkesztese')
-					setProfile({})
+					else setProfile({error})
+					
 				});
 			}
 			axios.get('/sale',{...config(),params: {
@@ -147,118 +162,233 @@ const Profile = () => {
 		)
 	}
 
+	useEffect(() => {
+		console.log('profile',profile);
+	}, [profile]);
+
+
+    const [settings, setSettings] = useState(useSelector((state) => state.user.settings));
+
+    const [filterModal, setFilterModal] = useState(null);
+    const [filter, setFilter] = useState([]);
+
+
+
+    useFocusEffect(
+		useCallback(() => {
+		  const filterRef = ref(getDatabase(),'/users/'+uid+'/settings/homeFilter')
+		  get(filterRef).then(snapshot=>{
+			if (snapshot.exists())
+			setFilter(snapshot.val())
+			else 
+			setFilter({
+			  newPeople: true,
+			  news: true,
+			  places: true,
+			  saleSeek: true,
+			  saleGive: true,
+			  rentSeek: true,
+			  rentGive: true,
+			  workSeek: true,
+			  workGive: true,
+			  
+			})
+		  }).catch(err=>{
+			setFilter({
+			  sale: true,
+			  work: true,
+			  rent: false,
+			  places: true
+			})
+			
+		  }).finally(()=>{
+			setFilterModal(false)
+		  })
+  
+		}, [])
+	  );
+
+    useEffect(() => {
+        if (uid) {
+            if (database && settings) {
+                const dbRef = ref(database,'users/' + uid + '/settings/snowfall');
+                set(dbRef,settings?.snowfall||false)
+                dispatch(setStoreSettings (settings))
+                
+            }
+        }
+    }, [settings]);
+
+    const save = () => {
+		const saveRef = ref(getDatabase(),'users/'+uid+'/settings/homeFilter')
+		set(saveRef,filter).then(()=>{
+		  setFilterModal(false)
+		})
+	  }
+
+	console.log(profile);
+	if (profile?.error) return <BasePage>
+		<Error text={profile.error.message}/>
+	</BasePage>
 	if (profile)
 		return(
 			<>	
-				<Helmet>
-					<title>{profile.name} profilja</title>
-				</Helmet>
-
-				<GoBack breakPoint={10000} text={null}  style={{backgroundColor:'#FFC372',margin:20,position:'absolute'}} color='black'/>
-				<BasePage full style={{paddingBottom:20}}>
-					<Auto style={{flex:undefined}}>
-						<View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:small?5:25,alignSelf:'center'}]}>
+				<BasePage full style={{padding:0}}>
+					<Auto flex={0}>
+						<View style={[localStyles.container,{width:150,paddingLeft:0,marginLeft:5,alignSelf:'center'}]}>
 							<ProfileImage modal uid={uid} size={150} style={[{paddingHorizontal:0,borderRadius:8}]}/>
 						</View>
-						<View style={{flex:width <= 900 ? undefined : 1,zIndex:10,elevation: 10}}>
-							<View style={[localStyles.fcontainer,{marginLeft:small?5:25}]}>
+						<View style={{flex:width <= 900 ? undefined : 2,zIndex:10,elevation: 10}}>
+							<View style={[localStyles.fcontainer,{marginLeft:5}]}>
 								<MyText style={localStyles.text}>{profile.name} <MyText light>{profile?.title}</MyText></MyText>
 							</View>
 							<Row style={{flex:width <= 900 ? undefined : 1}}>
-								{profile.username && <View style={[localStyles.fcontainer,{marginLeft:small?5:25}]}><MyText style={localStyles.text}>{profile.username}</MyText></View>}
-								<Popup style={[localStyles.fcontainer,{marginLeft:small?5:25}]}
-									popup={!!followers.length && <ScrollView style={styles.popup} contentContainerStyle={[{backgroundColor:'white'}]}>
-										{followers.map((f,i)=>
-											<Pressable key={i} 
-												onPress={()=>router.push('profil',{uid:f.uid})}
-												style={{margin:5,alignItems:'center',flexDirection:'row'}}>
-												<ProfileImage uid={f.uid} size={35} style={[{marginRight:5,borderRadius:8}]}/>
-												<MyText style={{fontSize:18}}>{f.name}</MyText>
-											</Pressable>
-										)}
-									</ScrollView>}
-								>
-									<MyText style={localStyles.text}>Pajtásaim: {followers?.length}</MyText>
-								</Popup>
+								{profile.username && <View style={[localStyles.fcontainer,{marginLeft:5}]}><MyText style={localStyles.text}>{profile.username}</MyText></View>}
 							</Row>
 						</View>
-						{ !myProfile && <Auto breakPoint={500}>
-							<Col style={{flex:small?3:1}}>
-								<NewButton onPress={() => router.push('uzenetek',{uid})} 
-									title="Üzenetküldés" color='#ffde7e'
-									style={[localStyles.containerNoBg, {flex:width <= 900 ? undefined : 1,alignItems:'center' ,shadowOpacity:0.5,marginLeft:small?5:25}]}
+						{false && <View>
+							{ !myProfile && <Auto breakPoint={500}>
+								<Col style={{flex:small?3:1}}>
+									<NewButton onPress={() => router.push('uzenetek',{uid})}
+										title="Üzenetküldés" color='#ffde7e'
+										style={[localStyles.containerNoBg, {flex:width <= 900 ? undefined : 1,alignItems:'center' ,shadowOpacity:0.5,marginLeft:5}]}
+									/>
+									<NewButton onPress={follow}
+										title={(followButtonState ? 'Már a pajtásom ' : 'Legyen a pajtásom ')+profile.name}
+										color={!followButtonState ? '#ffde7e' : '#fff6dc'}
+										style={[localStyles.containerNoBg, {flex:width <= 900 ? undefined : 1,alignItems:'center',shadowOpacity:0.5,marginLeft:5}]}
+									/>
+								</Col>
+								<View>
+									<NewButton onPress={()=>setReportOpen(true)}
+										title={<Icon name='alert-circle-outline' size={50} style={{}}/>} color={'#ffde7e'}
+										style={[localStyles.containerNoBg, {flex:1,alignItems:'center',shadowOpacity:0.5,height:'80%',maxWidth:small?'none':100,marginLeft:0}]}
+									/>
+								</View>
+							</Auto>}
+							{myProfile &&
+								<NewButton onPress={() => router.push('profil-szerkesztese')}
+									title="Módosítás"
+									style={[localStyles.containerNoBg, {alignItems:'center',flex:1,shadowOpacity:0.5,height:20,marginLeft:5}]}
 								/>
-								<NewButton onPress={follow} 
-									title={(followButtonState ? 'Már a pajtásom ' : 'Legyen a pajtásom ')+profile.name} 
-									color={!followButtonState ? '#ffde7e' : '#fff6dc'}
-									style={[localStyles.containerNoBg, {flex:width <= 900 ? undefined : 1,alignItems:'center',shadowOpacity:0.5,marginLeft:small?5:25}]}
-								/>
-							</Col>
-        
-							<View>
-								<NewButton onPress={()=>setReportOpen(true)} 
-									title={<Icon name='alert-circle-outline' size={50} style={{}}/>} color={'#ffde7e'}
-									style={[localStyles.containerNoBg, {flex:1,alignItems:'center',shadowOpacity:0.5,height:'80%',maxWidth:small?'none':100,marginLeft:0}]}
-								/>
-
-							</View>
-						</Auto>}
-            
-
-						{myProfile && 
-          <NewButton onPress={() => router.push('profil-szerkesztese')}
-          	title="Módosítás" textStyle={{fontSize:30}}
-          	style={[localStyles.containerNoBg, {alignItems:'center',shadowOpacity:0.5,flex:1,height:'none',marginLeft:small?5:25}]}
-          />
-          
-						}
-
+							}
+						</View>}
 					</Auto>
-					<Auto style={{flex:1,zIndex:-1,elevation: -1}} breakPoint={900}>
-        
-						<View style={{flex:width <= 900 ? undefined : 1}}>
-          
-							<Section title="Helyzetem" flex={width <= 900 ? undefined : 2}>
-            
-								{/* eslint-disable-next-line no-constant-condition*/}
-								{profile.page?.location?.length ? (
-									<MapElement style={{flex: width <= 900 ? undefined : 1,height:300}} data={profile.page} index='1'/>)
-									: <View style={{justifyContent:'center',alignItems:'center'}}>
-										<MyText style={localStyles.subText}>Nincs megadva helyzeted</MyText>
-									</View>
-								}
-							</Section>
-						</View>
-						<View style={{flex:(width <= 900 ? undefined : 1)}}>
+					<Row>
+						<NewButton title="Adataim" color={selected!=0?'#ffffff90':undefined} onPress={()=>setSelected(0)} style={{borderBottomLeftRadius:0,borderBottomRightRadius:0,marginBottom:0}}/>
+						<NewButton title="Bizniszeim" color={selected!=1?'#ffffff90':undefined} onPress={()=>setSelected(1)} style={{borderBottomLeftRadius:0,borderBottomRightRadius:0,marginBottom:0}}/>
+						<NewButton title="Cserebere" color={selected!=2?'#ffffff90':undefined} onPress={()=>setSelected(2)} style={{borderBottomLeftRadius:0,borderBottomRightRadius:0,marginBottom:0}}/>
+						<NewButton title={'Pajtásaim ('+followers.length+')'} color={selected!=3?'#ffffff90':undefined} onPress={()=>setSelected(3)} style={{borderBottomLeftRadius:0,borderBottomRightRadius:0,marginBottom:0}}/>
+						{myProfile && <NewButton title="Beállítások" color={selected!=4?'#ffffff90':undefined} onPress={()=>setSelected(4)} style={{borderBottomLeftRadius:0,borderBottomRightRadius:0,marginBottom:0}}/>}
+						
+					</Row>
+					<View style={{backgroundColor:'#ffffff00'}} >
+						{selected==0&&<View style={{flex:width > 900 ? undefined : 1,backgroundColor:''}}>
 
-							<Section title="Bizniszeim" flex={1}>
-								<ScrollView style={{marginLeft:small?5:20}}>
-									{profile.page?.buziness && profile.page.buziness.map((prof,i,arr) =>
-										<View key={i+'prof'} >
-											<Buziness prof={prof} uid={uid} index={i} arr={arr} />
-											{arr.length <= i && <View style={{width:'100%',height:2,backgroundColor:'#dddddd'}} />}
+							<Auto>
+							
+								<Section flex={width <= 900 ? 'none' : 2} >
+									<MyText size={16} bold style={{marginTop:16}}>Publikus elérhetőségeim</MyText>
+									<View style={{paddingLeft:16}}>
+										<Auto style={{gap:8}} breakPoint={1100}>
+											<View>
+												<MyText>Email</MyText>
+												<TextInput
+													style={{fontSize:17,padding:10,margin:0,backgroundColor:'white',borderRadius:8}}
+													placeholder="fifeapp@gmail.com"
+													value={profile.email}
+													disabled={!myProfile}
+												/>
+											</View>
+											<View>
+												<MyText>Telefonszám</MyText>
+												<TextInput
+													style={{fontSize:17,padding:10,margin:0,backgroundColor:'white',borderRadius:8}}
+													placeholder="0620123456789"
+													disabled={!myProfile}
+													value={profile.email}
+												/>
+											</View>
+										</Auto>
+										<MyText>Egyéb fontos linkek</MyText>
+										<View>
+											{(profile?.linkList||['']).map((e,i)=><TextInput key={'link'+i}
+												style={{fontSize:17,padding:10,margin:0,backgroundColor:'white',borderRadius:8}}
+												placeholder="instagram.com/fifeapp"
+												value={e}
+												disabled={!myProfile}
+												onChangeText={(text)=>setProfile({linkList:(profile?.linkList||['']).map((l,li)=>i==li?text:l),...profile})}
+											/>)}
 										</View>
+									</View>
+									{myProfile && <View>
+										<MyText size={16} bold style={{marginTop:16}}>Hozzáférési adatok</MyText>
+										<MyText>kristofakos1229@gmail.com</MyText>
+										<Row>
+											<NewButton title="Email megváltoztatása"/>
+											<NewButton title="Jelszó megváltoztatása"/>
+										</Row>
+									</View>}
+								</Section>
+								<Section title="Helyzetem" flex={width <= 900 ? 'none' : 2}>
+									{/* eslint-disable-next-line no-constant-condition*/}
+									{profile?.page?.location?.length ? (
+										<MapElement style={{flex: width > 900 ? undefined : 1,height:300,width:'100%'}} data={profile?.page} index='1'/>)
+										: <View style={{justifyContent:'center',alignItems:'center'}}>
+											<MyText style={localStyles.subText}>Nincs megadva helyzeted</MyText>
+										</View>
+									}
+								</Section>
+							</Auto>
+						</View>}
+						{selected==1&&<View style={{flex:(width <= 900 ? undefined : 1)}}>
 
+							<Section title="Bizniszeim" link={myProfile?"Új feltöltése":null} flex={1} onPress={()=>router.push('biznisz/uj')}>
+								<Row style={{marginLeft:small?5:20,gap:16}}>
+									{profile.page?.buziness && profile.page.buziness.map((prof,i,arr) =>
+										<BuzinessItem data={prof} key={i+'prof'} />
 									)}
-								</ScrollView>
+								</Row>
 							</Section>
-						</View>
-						{!!saleList.length && 
-						<Section title="Cserebere" flex={width <= 1200 ? (width < 900 ? undefined : 1) : 2}>
-							<ScrollView style={[styles.label,{marginLeft:5}]}>
+						</View>}
+						{selected==2 && 
+						<Section title="Cserebere" link={myProfile?"Új feltöltése":null} flex={1} onPress={()=>router.push('cserebere/uj')}>
 								{listToMatrix(saleList,maxSaleWidth).map((row,i)=>{
 									return (
 										<Row key={'sale'+i}>
 											{row.map((el,ind,rowL)=>
-												<SaleListItem key={el._id} data={el}/>
+												<SaleListItem key={el._id} data={el} editable={myProfile}/>
 											)}
 											<View style={{flex:maxSaleWidth-row.length}}/>
 										</Row>
 									)
 								})}
-							</ScrollView>
 						</Section>}
-					</Auto>
+						{selected==3 && <Section title={'Pajtásaim'}>
+							<MyText>Ők azok, akik <B>{profile.name}t</B> megbízhatónak jelölték. <Link href={'cikk'} style={{color:'#fd8900'}}>Kik is azok a pajtások?</Link></MyText>
+							<Row style={{flexWrap:'wrap',marginTop:16}}>
+								{followers.map((f,i)=>
+									<ProfileItem key={'follower'+i} uid={f.uid} height={200}/>
+								)}
+							</Row>
+						</Section> }
+						{selected==4 && <Section title={"Mi érdekel?"}>
+							{<ScrollView style={{maxWidth:300}}>
+								{[
+								{type:'checkbox',attribute:'snowfall',label:'Hóesés',data:settings,setData:setSettings},
+								...categories.options.reduce((r, e) => r.push(
+								{type:'checkbox',attribute:e.key,label:e.name,data:filter,setData:setFilter},  
+								{type:'null',attribute:e.key+'key',placeholder:'kulcs',data:filter,setData:setFilter,render:e.key,style:{marginBottom:16}},
+								) && r, [])].map((input,ind)=>{
+									return (
+										<View style={{padding:0}} key={'helpModal-'+ind}>
+											<CustomInput {...input} style={[{padding:10},input.style]}/>
+										</View>
+									)
+								})}
+							</ScrollView>}
+						</Section> }
+					</View>
 				</BasePage>
 				<HelpModal 
 					title="Valami nem okés?"
@@ -280,17 +410,18 @@ const Profile = () => {
 function Section(props){
 	const { width } = useWindowDimensions();
 	const small = width <= 900;
-	if (props?.children)
-		return(
-			<View style={[props.style,localStyles.container,{flex:props?.flex,padding:small?5:20,marginLeft:small?5:25}]}>
-				<View style={[{height:50}]}>
-					<MyText style={localStyles.sectionText}>{props.title}</MyText>
-				</View>
-				<Animated.View style={[{ paddingHorizontal:0, flex: props?.flex, height: props.height }]} >
-					{props.children}
-				</Animated.View>
-			</View>
-		);
+	console.log(props?.link);
+	return(
+		<View style={[props.style,localStyles.container,{flex:props?.flex,padding:small?5:20,marginLeft:5}]}>
+			{props?.title && <Row style={[{height:50}]}>
+				<MyText style={localStyles.sectionText}>{props.title}</MyText>
+				{props?.link && <NewButton title={props?.link} onPress={props?.onPress} style={{marginTop:0,marginLeft:16,height:'auto'}}/> }
+			</Row>}
+			<Animated.View style={[{ paddingHorizontal:0, flex: props?.flex, height: props.height ,width:'100%'}]} >
+				{props?.children}
+			</Animated.View>
+		</View>
+	);
 }
 
 const Buziness = ({prof,uid,index,arr}) => {
@@ -361,40 +492,40 @@ const Buziness = ({prof,uid,index,arr}) => {
 const localStyles = {
 	fcontainer: {
 		flex:1,
-		marginTop: 25,
-		marginLeft: 25,
-		backgroundColor:'white',
-		fontSize:30,
-		paddingHorizontal:20,
+		marginTop: 5,
+		marginLeft: 5,
+		backgroundColor:'#ffffff90',
+		paddingHorizontal:15,
 		justifyContent:'center', 
 		zIndex:'auto', 
 		borderRadius:8
 	},
 	container: {
-		marginTop: 25,
-		marginLeft: 25,
-		backgroundColor:'white',
-		paddingHorizontal:10,
-		justifyContent:'center',
+		marginTop: 5,
+		marginLeft: 5,
+		paddingHorizontal:15,
+		paddingTop:0,
+		alignItems:'flex-start',
+		justifyContent:'flex-start',
 		zIndex:'auto' ,
 		borderRadius:8
 	},
 	containerNoBg: {
-		marginTop: 25,
-		marginLeft: 25,
-		paddingHorizontal:20,
-		justifyContent:'center',
+
+		marginTop: 5,
+		marginLeft: 5,
+		paddingHorizontal:5,
+		justifyContent:'flex-start',
 		zIndex:'auto' ,
 		borderRadius:8
 	},
 	text:{
 		fontWeight: 'bold',
+		fontSize: 20,
 		color: 'black',
-		fontSize:25,
 		paddingVertical: 8,
 	},
 	subText: {
-		fontSize: 20
 	},
 	verticleLine: {
 		width: 1,
@@ -416,7 +547,7 @@ const localStyles = {
 	},
 	sectionText:{
 		fontWeight: 'bold',
-		fontSize:26,
+		fontSize:18,
 
 	},
 	map: {

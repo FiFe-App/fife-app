@@ -11,6 +11,7 @@ import { FirebaseContext } from '../firebase/firebase';
 import { elapsedTime } from '../lib/textService/textService';
 import { styles } from '../styles/styles';
 import Chat from './Chat';
+import BasePage from '../components/BasePage';
 
 const Messages = () => {
     const { width } = useWindowDimensions();
@@ -130,7 +131,7 @@ const Messages = () => {
         });
       }, [selected]);
     return (
-    <View style={{flex:1, flexDirection:'row',backgroundColor:'#fdf6d1',zIndex:-1}}>
+    <BasePage full style={{flex:1, flexDirection:'row',zIndex:-1,padding:0,margin:0}} noFooter>
         <View style={{flex:1}}>
             <Row style={{}}>
                 <TextInput 
@@ -141,7 +142,7 @@ const Messages = () => {
                 style={{position:'absolute',right:0}} icon color="#fdf7d800"
                 onPress={()=>{setSearch('')}}/>
             </Row>
-            <ScrollView style={{flex:1}} contentContainerStyle={{}}>
+            <ScrollView style={{flex:1,msOverflowStyle: 'none'}} contentContainerStyle={{}}>
 
             {!!filteredList.length && <MyText style={{padding:8}}>korábbi beszélgetések</MyText>}
                 {!!filteredList.length && filteredList.map((e,i)=>{
@@ -169,7 +170,7 @@ const Messages = () => {
                 <Chat propUid={selected}/>
             </View>
         }
-    </View>
+    </BasePage>
     )
 }
 
@@ -192,8 +193,8 @@ function Item({title,text,last,uid,selected,setSelected,newMessageProp}) {
     }
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: 'row', backgroundColor: selected ? '#ffde7e' : '#fff'},
-            {shadowOffset: {width: 2, height: 4},shadowOpacity: 0.2,shadowRadius: 1,}]}>
+        <TouchableOpacity onPress={onPress} style={[styles.list, {flexDirection: 'row', backgroundColor: selected ? '#fff' : '#fcfbf7'},
+            ]}>
             <ProfileImage style={styles.listIcon} size={50} uid={uid}/>
             <View style={{marginLeft: 5,flexGrow:1}}>
               <MyText style={{ fontWeight: 'bold',flex: 1, }}>{title}</MyText>

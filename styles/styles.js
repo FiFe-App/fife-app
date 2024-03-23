@@ -1,6 +1,35 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+    p1: {
+        padding:4
+    },
+    p2: {
+        padding:8
+    },
+    justifyS: {
+        justifyContent:'flex-start'
+    },
+    justifyC: {
+        justifyContent:'center'
+    },
+    justifyE: {
+        justifyContent:'flex-end'
+    },
+    
+    alignS: {
+        alignItems:'flex-start'
+    },
+    alignC: {
+        alignItems:'center'
+    },
+    alignE: {
+        alignItems:'flex-end'
+    },
+
+    r8: {
+        borderRadius:8
+    },
     container: {
         flex: 1,
         fontFamily: 'Poppins_200ExtraLight',
@@ -24,7 +53,6 @@ export const styles = StyleSheet.create({
         backgroundColor: 'white'
     },
     text: {
-      fontSize:20,
       textAlign:'left',
     },
     title: {

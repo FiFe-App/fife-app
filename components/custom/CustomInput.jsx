@@ -1,10 +1,12 @@
-import { router } from "expo-router";
-import { useWindowDimensions } from "react-native";
-import { Checkbox, TouchableRipple } from "react-native-paper";
-import { Col, MyText, NewButton, ProfileImage, Row, TextInput } from "../Components";
-import UserElement from "../tools/UserElement";
+import { router } from 'expo-router';
+import { useWindowDimensions } from 'react-native';
+import { Checkbox, TouchableRipple } from 'react-native-paper';
+import { Col, MyText, NewButton, ProfileImage, Row, TextInput } from '../Components';
+import UserElement from '../tools/UserElement';
+import MyImagePicker from '../tools/MyImagePicker';
+import { forwardRef, useRef } from 'react';
 
-const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,placeholder,render,text,extra,extraAction}) => {
+const CustomInput = forwardRef(({type,attribute,label,data,setData,submit,lines=1,style,placeholder,render,text,extra,storagePath,databasePath},ref) => {
     const navigation = router
     const { width } = useWindowDimensions();
     const defStyle = {
@@ -51,17 +53,17 @@ const CustomInput = ({type,attribute,label,data,setData,submit,lines=1,style,pla
             </Row>
         </TouchableRipple>
     }
-    if (type=='image') return "image"//<MyImagePicker />
+    if (type=='image') return <MyImagePicker render={render} title={label} ref={ref} setData={setData} data={data} databasePath={databasePath} storagePath={storagePath} />
     if (type=='rate') return <Row>
-        {[0,1,2,3,4,5,6,7,8,9].map(e=>{
-            return <NewButton title={e} textStyle={{color:e+1==data[attribute]?'white':'black'}}
+        {[0,1,2,3,4,5,6,7,8,9].map((e,i)=>{
+            return <NewButton key={'rate'+i} title={e} textStyle={{color:e+1==data[attribute]?'white':'black'}}
             color={e+1==data[attribute]?'#000000':`hsl(${108-e*12},100%,75%)`} onPress={()=>setData({...data,[attribute]:e+1})}/>
         })}
     </Row>
     if (type=='null') return  null;
     return (<MyText>{LabelElement} Nincs ilyen típus {type}</MyText>)
-}
-
+})
+CustomInput.displayName = 'CustomInput'
 
 
 export default CustomInput;

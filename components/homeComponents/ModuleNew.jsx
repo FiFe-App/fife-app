@@ -1,5 +1,6 @@
 
-import { Animated, Easing, ImageBackground, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image'
 
 import { router } from 'expo-router';
 import homeDesign from '../../styles/homeDesign';
@@ -12,6 +13,8 @@ import { useWindowDimensions } from 'react-native';
 import { TouchableRipple } from 'react-native-paper';
 import { categories } from '../../lib/categories';
 import { TextFor } from '../../lib/textService/textService';
+//import ImageBlurLoading from 'react-native-image-blur-loading'
+
 
 function Module(props) {
     const { title, link, list, params, data, id, newLink } = props?.data || {};
@@ -73,18 +76,19 @@ function Module(props) {
                     
                     navigation.push({ pathname: `/${link}`, params: {id:one._id} })
                   }}>
-                      <><ImageBackground imageStyle={{borderTopLeftRadius:8,borderTopRightRadius:8,
-    top: undefined,}} 
-                      source={images?.[ind]!='def'?{uri:images?.[ind]}:require('../../assets/profile.jpeg')} resizeMode="cover" style={{height:100, width:'100%',borderRadius:8,justifyContent: 'flex-end'}}>
-                        <View style={{alignSelf: 'flex-end'}}>
-                          <MyText style={{margin:5,backgroundColor:('rgba(204, 255, 204,200)'),padding:5,borderRadius:8,fontSize:12}}>{category?.name}</MyText>
+                      <>
+                      <Image
+                    
+                      source={images?.[ind]!='def'?{uri:images?.[ind]}:require('../../assets/profile.jpeg')} resizeMode="cover" style={{height:100, width:'100%',borderTopLeftRadius:8,borderTopRightRadius:8,justifyContent: 'flex-end'}} />
+                        <View style={{position:'absolute',alignSelf: 'flex-end'}}>
+                          <MyText style={{margin:5,backgroundColor:(one?.color||'rgba(204, 255, 204,200)'),padding:5,borderRadius:8,fontSize:12}}>{category?.name}</MyText>
                         </View>
-                      </ImageBackground>
                       <View style={{}}>
-                        <MyText style={[homeDesign.moduleText,{fontWeight:'bold'}]}>{one.title}</MyText>
-                        {one.text && <MyText style={[homeDesign.moduleText,{height:50,overflow:'hidden',flex:1,borderBottomLeftRadius:8,borderBottomRightRadius:8}]}>
-                        {one.text}</MyText>}
-                      </View></>
+                        <MyText 
+                        numberOfLines={1} ellipsizeMode='tail' 
+                        style={[homeDesign.moduleText,{fontWeight:'bold'}]}>{one.title}</MyText>
+                      </View>
+                      </>
                   </TouchableRipple>
                 )
               }

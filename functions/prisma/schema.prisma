@@ -95,14 +95,14 @@ model page {
 }
 
 model buziness {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  page        page   @relation(fields: [pageId], references: [id])
-  pageId      String @db.ObjectId
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  page        page     @relation(fields: [pageId], references: [id])
+  pageId      String   @db.ObjectId
   uid         String
-  num         Int
   name        String
   description String
-  emoji       Int?
+  location    Float[]
+  images      String[]
 }
 
 model trade {

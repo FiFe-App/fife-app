@@ -16,7 +16,7 @@ export default function Root({ children }) {
         <meta property="og:url" content="https://metatags.io/"/>
         <meta property="og:title" content="fife alkalmazás"/>
         <meta property="og:description" content="A biztonságos online tér"/>
-        <meta property="og:image" content="https://fifeapp.hu/static/media/logo.d2acffec.png"/>
+        <meta property="og:image" content="../assets/logo.png"/>
 
         <meta property="twitter:card" content="summary_large_image"/>
         <meta property="twitter:url" content="https://metatags.io/"/>

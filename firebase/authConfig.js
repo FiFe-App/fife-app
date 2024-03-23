@@ -4,6 +4,8 @@ import { store } from '../lib/store';
 export const config = () => {
     const data = store.getState()
 
+    console.log('NODE_ENV',process.env.NODE_ENV);
+
     return ({
       baseURL: 
       (process.env.NODE_ENV=='development' && Platform.OS == 'web' 

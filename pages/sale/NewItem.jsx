@@ -1,19 +1,19 @@
 
 import * as ImagePicker from 'expo-image-picker';
-import { useCallback, useContext, useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import ImageModal from 'react-native-image-modal';
 import Icon from '@expo/vector-icons/Ionicons';
-import { useSelector } from "react-redux";
-import { B, MyText, NewButton, Row, TextInput, getUri } from "../../components/Components";
-import Loading from "../../components/Loading";
+import { useSelector } from 'react-redux';
+import { B, MyText, NewButton, Row, TextInput, getUri } from '../../components/Components';
+import Loading from '../../components/Loading';
 
-import { FirebaseContext } from "../../firebase/firebase";
+import { FirebaseContext } from '../../firebase/firebase';
 
-import axios from "axios";
-import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
-import Select from "../../components/Select";
-import { config } from "../../firebase/authConfig";
+import axios from 'axios';
+import { getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
+import Select from '../../components/Select';
+import { config } from '../../firebase/authConfig';
 import { categories as cats } from '../../lib/categories';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import GoBack from '../../components/Goback';
@@ -111,10 +111,10 @@ const NewItem = ({route,data,toEdit}) => {
               };
               xhr.onerror = function (e) {
                 console.log(e);
-              reject(new TypeError("Network request failed"));
+              reject(new TypeError('Network request failed'));
               };
-              xhr.responseType = "blob";
-              xhr.open("GET", localUri, true);
+              xhr.responseType = 'blob';
+              xhr.open('GET', localUri, true);
               xhr.send(null);
           });
 
@@ -128,7 +128,7 @@ const NewItem = ({route,data,toEdit}) => {
         const data = {
           descriptions: 
           uploadedImages.map((im)=>{
-            return imageTexts?.[im] || " "
+            return imageTexts?.[im] || ' '
           }),
           bookables: 
           uploadedImages.map((im)=>{
@@ -194,7 +194,7 @@ const NewItem = ({route,data,toEdit}) => {
             </MyText>
           </View>
         </Row>
-        <View style={[{flexDirection: "row"}]}>
+        <View style={[{flexDirection: 'row'}]}>
           <View style={{margin: 5,flex:1}}>
             <LabelInput 
               style={{fontSize:17, padding:5, borderRadius:8,
@@ -239,7 +239,7 @@ const NewItem = ({route,data,toEdit}) => {
         <View style={{alignItems:'flex-end',margin:8}}>
           <NewButton 
             style={{width:'100%'}}
-            title={toEdit ? "Mentés" : "Feltöltés"}
+            title={toEdit ? 'Mentés' : 'Feltöltés'}
             disabled={loading || (!title || category == -1)}
             onPress={save}/>
         </View>
@@ -309,12 +309,12 @@ const ImageAdder = ({editable,globalImages,setGlobalImages,globalImageTexts,setG
       {!!images.length && images.map((image,index)=>
       <View key={'image'+index} style={{flex:1}}>
         <View style={{flexDirection:'row',flex:1}}>
-          <ImageModal swipeToDismiss={true} modalImageResizeMode="contain" resizeMode="cover" style={styles.square} source={{ uri: image }}/>
+          <ImageModal swipeToDismiss={true} resizeMode="cover" style={styles.square} source={{ uri: image }}/>
           {editable&&<Pressable style={styles.close} onPress={()=>deleteImage(index)}><Icon name="close" size={20} color="white"/></Pressable>}
           <View style={{flex:1}}>
             <TextInput onChangeText={text=>handleTextChange(text,index)} value={texts[index]}
             style={{height:150,padding:10,marginRight:10,backgroundColor:'#fff', borderTopRightRadius:8, borderBottomRightRadius:8}} multiline rows={3} 
-            placeholder={"Mondj valamit erről a képről"}/>
+            placeholder={'Mondj valamit erről a képről'}/>
           </View>
         </View>
       </View>

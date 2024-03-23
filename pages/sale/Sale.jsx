@@ -87,6 +87,7 @@ const Sale = () => {
 
     useEffect(() => {
         setChanged(true);
+        console.log(settings);
     }, [settings]);
 
     useEffect(() => {
@@ -253,21 +254,21 @@ const Sale = () => {
                             }} />
                         </>}
                     </View>
-                    {(!hide || width > 600) && <View style={{margin:5,marginTop:-5}}>
-                        <View style={{flexDirection:'row', alignItems:'center',borderBottomWidth:5,borderColor:'#ffffff',marginHorizontal:5,minHeight:50}}>
+                    {( !hide || width > 600 ) && <View style={{margin:5,marginTop:-5}}>
+                        {!!uid &&<View style={{flexDirection:'row', alignItems:'center',borderBottomWidth:5,borderColor:'#ffffff',marginHorizontal:5,minHeight:50}}>
                             <NewButton color={settings.author ? '#d0c582dd' : '#ffffff'} onPress={(e)=>{setSettings({...settings, author: null})}}
                             style={{flex:1,marginBottom:0,marginLeft:0,borderBottomLeftRadius:0,borderBottomRightRadius:0,padding:10}}
                             title="Mindenki másé"/>
                             <NewButton color={!settings.author ? '#d0c582dd' : '#ffffff'} onPress={(e)=>{setSettings({...settings, author: uid})}}
                             style={{flex:1,marginBottom:0,marginRight:0,borderBottomLeftRadius:0,borderBottomRightRadius:0,padding:10}}
                             title="Sajátjaim" />
-                        </View>
+                        </View>}
                         <Row style={{flex:1}}>
                             <NewButton color={changed?'#FFC372':undefined} title="Keresés!" onPress={()=>{setList([]);search(0)}} textStyle={{fontSize:24}} style={{flex:5}}/>
                             <NewButton title={<Icon name="refresh" size={30} />} onPress={()=>{setList([]);search(0)}} style={{flex:1}}/>
                         </Row>
                     </View>}
-                    {changed && <MyText style={{textAlign:'center',padding:10,backgroundColor:'white'}}>Kattints a Keresésre, hogy frissítsd a találatokat!</MyText>}
+                    {changed && <MyText style={{textAlign:'center',padding:10,backgroundColor:'white',whiteSpace:'break'}}>Kattints a Keresésre, hogy frissítsd a találatokat!</MyText>}
                 </View>
                 
                 <ScrollView
@@ -318,10 +319,11 @@ const Sale = () => {
                     </View> }
                     {loading && <Loading color='#FFC372' height={10}/>}
                 </ScrollView>
-            </Auto>
+            </Auto>        
+            {scrollView.current?.top > 0 && <FAB color="#FFC372" size={80} icon="chevron-up" onPress={()=>scrollView.current.scrollTo(0,0)}/>}
+            {uid&&<FAB color="#FFC372" size={80} icon="add" onPress={()=> router.push('uj-cserebere')}/>}
+
         </BasePage>
-        <FAB color="#FFC372" size={80} icon="chevron-up" onPress={()=>scrollView.current.scrollTo(0,0)}/>
-        {uid&&<FAB color="#FFC372" size={80} icon="add" onPress={()=> router.push('uj-cserebere')}/>}
         {modals}
     </SaleContext.Provider>
     )

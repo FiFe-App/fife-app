@@ -51,7 +51,7 @@ const First = ({scrollView}) => {
     }, [page]);
 
   return (
-    <View style={{height:Dimensions.get('window').height,backgroundColor:'#fcf3d4'}}>
+    <View >
       <ScrollView 
         style={{ flex: 1 }} 
         contentContainerStyle={{flex:1}}

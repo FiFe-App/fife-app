@@ -100,41 +100,45 @@ const ctx = ({ children }) => {
         const db = getDatabase()
         console.log('msg init'); 
         
-        if (!('Notification' in window)) return;
-        
-        await Notification.requestPermission().then((permission) => {
-            console.log(permission);
-          if (permission !== 'granted') {
-            dispatch(removeUnreadMessage('notification'))
-          } else {
-            setMessaging(messaging);
-            getToken(messaging, { 
-                vapidKey: 'BInTt__OonGUhBNBdQA57cu-VRHBm6N7vcsJBe_Q3o1Ei_2UgPSfM0ZzxyXsxohdrV_qooAywYzRilIv5OJ6VQE' ,
-                //serviceWorkerRegistration: ''
-            }).then((currentToken) => {
-            if (currentToken) {
-                console.log(currentToken);
-                console.log(uid);
-                set(ref(db,'/users/'+uid+'/data/fcm'),{token:currentToken}).catch(err=>{
-                    console.log(err);
-                }).then(res=>{
-                    console.log(res);
-                })
+        try {
+            if (!('Notification' in window)) return;
+            
+            await Notification.requestPermission().then((permission) => {
+                console.log(permission);
+            if (permission !== 'granted') {
+                dispatch(removeUnreadMessage('notification'))
             } else {
-                // Show permission request UI
-                //alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
-                console.log('No registration token available. Request permission to generate one.');
+                setMessaging(messaging);
+                getToken(messaging, { 
+                    vapidKey: 'BInTt__OonGUhBNBdQA57cu-VRHBm6N7vcsJBe_Q3o1Ei_2UgPSfM0ZzxyXsxohdrV_qooAywYzRilIv5OJ6VQE' ,
+                    //serviceWorkerRegistration: ''
+                }).then((currentToken) => {
+                if (currentToken) {
+                    console.log(currentToken);
+                    console.log(uid);
+                    set(ref(db,'/users/'+uid+'/data/fcm'),{token:currentToken}).catch(err=>{
+                        console.log(err);
+                    }).then(res=>{
+                        console.log(res);
+                    })
+                } else {
+                    // Show permission request UI
+                    //alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
+                    console.log('No registration token available. Request permission to generate one.');
+                    // ...
+                }
+                }).catch((err) => {
+                    console.log('An error occurred while retrieving token. ', err);
+                    //alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
                 // ...
+                });
             }
-            }).catch((err) => {
-                console.log('An error occurred while retrieving token. ', err);
-                //alert('Valami miatt nem lehet neked üzeneteket küldeni, talán le van tiltva a szolgáltatás?')
-            // ...
-            });
-          }
-        }).catch(err=>{
-            console.error(err);
-        })
+            }).catch(err=>{
+                console.error(err);
+            })
+        } catch (e) {
+            console.log('notification error',e);
+        } 
     }
 
     const appCheck = () => {

@@ -17,7 +17,6 @@ import { Circle, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } 
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import ErrorBoundary from 'react-native-error-boundary';
 
 let DefaultIcon = L.icon({
     iconUrl: icon,
@@ -96,7 +95,6 @@ const MapElement = ({markers,center,index,editable,data,setData,style}) => {
               setCurrentMarkers(old=>[...old,marker])
           });
       }, [markers,selectedPlace]);
-
 
       return <>
           {location?.length && map &&
@@ -231,10 +229,8 @@ const MapElement = ({markers,center,index,editable,data,setData,style}) => {
 
     if (!quit)
     return (
-  
-      <ErrorBoundary
-      FallbackComponent={(e)=><><MyText>{e.error.message}</MyText></>}>
-        <View style={[{flex:1},style]}>
+
+        <View style={[style]}>
             {error && <MyText>erorr</MyText>}
             <MapContainer id={time} key={time} center={oldLocation||[47.498333,	19.040833]} zoom={13} scrollWheelZoom={true} style={{flex:1,zIndex:10}}
             ref={mapRef}>
@@ -272,7 +268,6 @@ const MapElement = ({markers,center,index,editable,data,setData,style}) => {
               <MapControl/>
           </MapContainer>
         </View>
-      </ErrorBoundary>
     )
 }
 

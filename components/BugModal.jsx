@@ -16,13 +16,14 @@ const BugModal = () => {
   const uid = useSelector((state) => state.user.uid)
   const data = useSelector((state) => state.user.bugData)
   const dispatch = useDispatch()
+  
   const report = async () => {
 
     if (!data.message) return
     let res = null
     console.log({
       uid,
-      //route: {path:route.name,params:params||null},
+      route: {path:route,params:params||null},
       time: Date.now(),
       message: data.message
   });
@@ -35,12 +36,15 @@ const BugModal = () => {
         time: Date.now(),
         message: data.message
     }).then(()=>{
+      console.log('sent');
         res = {
                 title: <MyText><Icon name='checkmark-circle' size={30}/> Sikeresen feltöltötted az észrevételed!</MyText>,
                 text: "Köszönjük a fifetársadalom nevében a munkádat!",
                 action: <NewButton title="Bezárom" onPress={()=>dispatch(setBugData(null))}/>
         }
     }).catch(err=>{
+
+      console.log('error',err);
       res = {
         title: <MyText>Hajaj valami elromlott, bocsi :(</MyText>,
         text: "Milyen kínos, nem? "+JSON.stringify(err),

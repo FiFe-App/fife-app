@@ -1,6 +1,6 @@
 import Icon from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
-import Image from 'expo-fast-image';
+import { Image } from 'expo-image';
 import { router, useFocusEffect } from 'expo-router';
 import { get, getDatabase, ref, set } from 'firebase/database';
 import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -17,10 +17,12 @@ import { FirebaseContext } from '../../firebase/firebase';
 import { categories } from '../../lib/categories';
 import { listToMatrix } from '../../lib/functions';
 import { TextFor, elapsedTime, getGreeting } from '../../lib/textService/textService';
-import { removeUnreadMessage, setSettings as setStoreSettings, setTempData, setUnreadMessage } from '../../lib/userReducer';
 import styles from '../../styles/homeDesign';
-import Blog from '../posts/Posts';
-import HomeBackground from './HomeBackground';
+import Blog from '../../pages/posts/Posts';
+import { removeUnreadMessage, setSettings as setStoreSettings, setTempData, setUnreadMessage } from '../../lib/userReducer';
+
+import HomeBackground from '../../pages//home/HomeBackground';
+import BasePage from '../../components/BasePage';
 
 
   const HomeScreen = () => {
@@ -37,24 +39,23 @@ import HomeBackground from './HomeBackground';
     const [greeting, setGreeting] = useState(getGreeting);
     const [docsList, setDocsList] = useState([]);
     const [mailModal, setMailModal] = useState(null);
-    const [filterModal, setFilterModal] = useState(null);
-    const [filter, setFilter] = useState([]);
-    const [list, setList] = useState([null,null,null,null]);
+    const [list, setList] = useState([null,null,null,null,null,null]);
     const [number, setNumber] = useState(0);
+    const [filter, setFilter] = useState({
+      newPeople: true,
+      news: true,
+      places: true,
+      saleSeek: true,
+      saleGive: true,
+      rentSeek: true,
+      rentGive: true,
+      workSeek: true,
+      workGive: true,
+      
+    });
 
-    const [settings, setSettings] = useState(useSelector((state) => state.user.settings));
 
     const {database} = useContext(FirebaseContext);
-    useEffect(() => {
-        if (uid) {
-            if (database && settings) {
-                const dbRef = ref(database,'users/' + uid + '/settings/snowfall');
-                set(dbRef,settings?.snowfall||false)
-                dispatch(setStoreSettings(settings))
-                
-            }
-        }
-    }, [settings]);
 
     useFocusEffect(
       useCallback(() => {
@@ -85,18 +86,12 @@ import HomeBackground from './HomeBackground';
           })
           
         }).finally(()=>{
-          setFilterModal(false)
           loadData();
         })
 
       }, [])
     );
 
-    useEffect(() => {
-      if (filterModal == false) {
-        loadData()
-      }
-    }, [filterModal]);
 
     useEffect(() => {
       console.log(list);
@@ -105,7 +100,7 @@ import HomeBackground from './HomeBackground';
     const loadData = () => {
       console.log('load latest', filter);
       if (!Object.entries(filter).length) return 
-      setList([null,null,null,null]);
+      setList([null,null,null,null,null,null]);
       axios.get('/all/latest',{...config(),params:filter}).then(res=>{
         setList(Object.values(res.data.latest))
         setNumber(res.data.notifications)
@@ -131,31 +126,10 @@ import HomeBackground from './HomeBackground';
       })
     }, [mailModal]);
 
-    const save = () => {
-      const saveRef = ref(getDatabase(),'users/'+uid+'/settings/homeFilter')
-      set(saveRef,filter).then(()=>{
-        setFilterModal(false)
-      })
-    }
 
     const modals = <>
 
-          <HelpModal 
-            title="Mi érdekel?"
-            text={`Válaszd ki hogy mi jelenjen meg a főoldalon!
-Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
-            actions={[
-              {title:'mégse',onPress:()=>setFilterModal(false)},
-              {title:'mentés',onPress:save,color:'#ff462b'}]}
-            open={filterModal}
-            setOpen={setFilterModal}
-            inputs={[
-              {type:'checkbox',attribute:'snowfall',label:'Hóesés',data:settings,setData:setSettings},
-            ...categories.options.reduce((r, e) => r.push(
-              {type:'checkbox',attribute:e.key,label:e.name,data:filter,setData:setFilter,style:{backgroundColor:e.color}},  
-              {type:'null',attribute:e.key+'key',placeholder:'kulcs',data:filter,setData:setFilter,render:e.key,style:{marginBottom:16}},
-            ) && r, [])]}
-          />
+          
           <HelpModal 
             title="Értesítések"
             actions={[
@@ -175,18 +149,17 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
     </>
 
     return (
-      <ScrollView style={{flex:1,backgroundColor:'#fdf6d1',zIndex:-1,elevation: 0,}} >
-
+      <BasePage full style={{paddingHorizontal:0,padding:0}}>
         <HomeBackground >
-          {!uid && <Row>
-            <NewButton title="Bejelentkezés" onPress={router.push('/bejelentkezes')}/>
-            <NewButton title="Regisztrálj!" onPress={router.push('/regisztracio')}/>
+          {!uid && !!small && <Row style={{alignItems:'center',justifyContent:'center',padding:12}}>
+            <NewButton title="Bejelentkezés" onPress={()=>router.push('/bejelentkezes')}/>
+            <NewButton title="Csatlakozz!" color="#ffffff" onPress={()=>router.push('/regisztracio')}/>
           </Row>}
-          {true&&<Stickers style={{flex:1}}/>}
-          <Row style={{flex:3,zIndex:0,elevation: 0,justifyContent:'center',alignItems:'center'}}>
+              {true&&<Stickers style={{flex:1}}/>}
+          <Row style={{flex:3,zIndex:0,elevation: 0,justifyContent:'center'}}>
             <Col style={{flex:width<=900?1:2,alignItems:'center',shadowOpacity:2,}}>
               <Animated.View style={{opacity:opacity,flex:opacity}}>
-                {<Row style={{alignItems:'center',textAlign:'center',paddingHorizontal:20,paddingVertical:20,opacity:textWidth}}>
+                {<Row style={{alignItems:'center',textAlign:'center',opacity:textWidth}}>
                   <MyText 
                   onLayout={e=>setTextWidth(e.nativeEvent.layout.width)}
                   style={{fontSize:small?14:20,marginRight:30,backgroundColor:'white',fontWeight:'300',borderRadius:100,padding:16,paddingHorizontal:32}} bold>
@@ -209,9 +182,6 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
                 {number}
                 </MyText>}
               </View>
-              <NewButton icon title={<Icon name="options-outline" size={30} />} onPress={()=>setFilterModal(true)}
-                info="Beállítások"
-              />
             </Auto>}
           </Row>
         </HomeBackground>
@@ -233,85 +203,92 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
                   {list.map((e,i)=><Module key={'modulerow'+i} data={e} />)}
             </View>}</>}
           </View>
-          <MyText>uid{uid}</MyText>
-          {list?.[0] && <View style={{alignItems:'center',flex:1,margin:32}}>
+          {list?.[0] && false && <View style={{alignItems:'center',flex:1,margin:32}}>
             <Smiley/>
             <MyText>Vége a találatoknak</MyText>
           </View>}
           {!!uid && modals}
-      </ScrollView>
+      </BasePage>
     );
   }
 
-  const Stickers = ({style}) => {
+const Stickers = ({style}) => {
 
-    const [notifications, setNotifications] = useState([
-    ]);
-    const {database, app, initMessaging} = useContext(FirebaseContext);
-    const navigator = router
-    const uid = useSelector((state) => state.user.uid)
-    const user = useSelector((state) => state.user)
-    console.log('user',user);
-    const allMessages = useSelector((state) => state.user.unreadMessage)
-    const dispatch = useDispatch()
+const [notifications, setNotifications] = useState([
+]);
+const {database, app, initMessaging} = useContext(FirebaseContext);
+const navigator = router
+const uid = useSelector((state) => state.user.uid)
+const user = useSelector((state) => state.user)
+console.log('user',user);
+const allMessages = useSelector((state) => state.user.unreadMessage)
+const dispatch = useDispatch()
 
-    const handleClose = (n) => {
-      if (n.link)
-        navigator.push(n.link,n.params)
-      if (n?.press) {
-        console.log('press');
-        n.press()
+const handleClose = (n) => {
+  if (n.link)
+    navigator.push(n.link,n.params)
+  if (n?.press) {
+    console.log('press');
+    n.press()
+  }
+    //setPopups(popups.filter((p,i)=>i!=index))
+  console.log('remove');
+}
+
+useEffect(() => {
+  
+  if (database) {
+    const dbRef = ref(database,`users/${uid}/messages`);
+    const userRef = ref(database,'users');
+
+    console.log('onChilAdded attatched');
+
+    const getMessages = () => {
+      //dispatch(emptyUnreadMessages())
+      console.log('allMessages',allMessages);
+      if (allMessages.includes('notifications')) {
+        setNotifications(old=>[...old,{
+          press: initMessaging,
+          title:'Értesítések',
+          key:'notifications',
+          text:'Hali! Ha szeretnéd, hogy értesülj a pajtásaid üzeneteiről, kapcsold be az értesítéseket, úgy, hogy rám kattintasz!'
+        }])
       }
-        //setPopups(popups.filter((p,i)=>i!=index))
-      console.log('remove');
+
+    } 
+    getMessages()
+  }
+  
+  try {
+    if (Platform.OS == 'web' && Notification.permission === 'default') {
+      dispatch(setUnreadMessage('notifications'))
+    } else {
+      dispatch(removeUnreadMessage('notifications'))
     }
+  } catch (error) {
+    console.log('Notification not working');
+  }
+}, []);
 
-    useEffect(() => {
-      
-      if (database) {
-        const dbRef = ref(database,`users/${uid}/messages`);
-        const userRef = ref(database,'users');
+useEffect(() => {
+  try {
+    if (Platform.OS == 'web' && Notification.permission !== 'default')
+    setNotifications(notifications.filter(n=>n.key!='notifications'))
+  } catch (error) {
+    console.log('Notification not working');
+  }
+}, [allMessages]);
 
-        console.log('onChilAdded attatched');
-
-        const getMessages = () => {
-          //dispatch(emptyUnreadMessages())
-          console.log('allMessages',allMessages);
-          if (allMessages.includes('notifications')) {
-            setNotifications(old=>[...old,{
-              press: initMessaging,
-              title:'Értesítések',
-              key:'notifications',
-              text:'Hali! Ha szeretnéd, hogy értesülj a pajtásaid üzeneteiről, kapcsold be az értesítéseket, úgy, hogy rám kattintasz!'
-            }])
-          }
-
-        } 
-        getMessages()
-      }
-
-      if (!('Notification' in window) && Platform.OS == 'web' && Notification.permission === 'default') {
-        dispatch(setUnreadMessage('notifications'))
-      } else {
-        dispatch(removeUnreadMessage('notifications'))
-      }
-    }, []);
-
-    useEffect(() => {
-      if (('Notification' in window) && Platform.OS == 'web' && Notification.permission !== 'default')
-        setNotifications(notifications.filter(n=>n.key!='notifications'))
-    }, [allMessages]);
-
-    return (
-      notifications.length && <View style={style}>
-          {notifications.map(
-            (n,i)=>
-              <Sticker key={'sticker'+i} onPress={()=>handleClose(n)}>
-                <B>{n.title}</B>
-                {' '+n?.text}
-              </Sticker>)}
-      </View>
-    )
+return (
+  !!notifications.length && <View style={style}>
+      {notifications.map(
+        (n,i)=>
+          <Sticker key={'sticker'+i} onPress={()=>handleClose(n)}>
+            <B>{n.title}</B>
+            {' '+n?.text}
+          </Sticker>)}
+  </View>
+)
 }
 
   const Sticker = ({children,onPress}) => {
@@ -371,7 +348,7 @@ Alatta megadhatsz kulcs-szavakat, melyek alapján kapsz majd posztokat`}
       },style]}
       >
       <Pressable onPress={handleGrow}>
-        <Image source={require('../../assets/logo.png')} style={{width:50,height:50,zIndex:10,elevation: 10}}/>
+        <Image source={require('../../assets/logo.png')} style={{width:50,height:50,zIndex:10}}/>
       </Pressable>
     </Animated.View>
     )

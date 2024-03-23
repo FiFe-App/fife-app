@@ -167,7 +167,7 @@ export const Item = ({data,toLoadId}) => {
                     <View style={{backgroundColor:'#00000066',width:'100%'}}>
                       <MyText style={{color:'white',fontSize:24}}>{imagesDesc[ind]}</MyText>
                     </View>
-                  } source={img} modalImageResizeMode="contain" resizeMode="cover" style={{height:200,width:200}}/>
+                  } source={img} resizeMode="cover" style={{height:200,width:200}}/>
                 </Pressable>
                 {!!imagesDesc?.[ind] && <MyText style={{margin:5}}>{imagesDesc[ind]}</MyText>}
                 {!!imagesInterestable?.[ind] && <NewButton title='Foglalható' />}

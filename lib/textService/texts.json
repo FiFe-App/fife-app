@@ -9,6 +9,8 @@
 
     "no_result": ["A manóba! Nincs találat","Bakfitty! Nem találtunk semmit.","Hinnye! Próbáld meg más megfogalmazásban!","Azt a hét meg a nyolcát!"],
     "sale": ["Cserebere","Adok-veszek"],
+    "buziness": ["Biznisz","Barter"],
+    "docs": ["Cikkek"],
     "buy_item": ["Megveszem","Kell nekem"],
     "item_header": ["Új cserebere poszt létrehozása","Adj el, vagy vegyél valamit!","Hirdess!"],
     "places": ["Térkép","Mi merre van","Hol vagyok"],

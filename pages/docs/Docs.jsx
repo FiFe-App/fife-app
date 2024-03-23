@@ -10,6 +10,7 @@ import homeDesign from '../../styles/homeDesign';
 import { router } from 'expo-router';
 import Loading from '../../components/Loading';
 import GoBack from '../../components/Goback';
+import { shorten } from '../../lib/textService/textService';
 
 const Docs = () => {
 
@@ -59,31 +60,28 @@ const Docs = () => {
                     <View style={{flex:4}}>
                         <MyText style={[homeDesign.moduleText,{fontWeight:'bold',borderRadius:small?0:8}]}>{item.title}</MyText>
                         <MyText style={[homeDesign.moduleText,{height:50,overflow:'hidden',flex:1,borderBottomLeftRadius:8,borderBottomRightRadius:8}]}>
-                        {item.text}</MyText>
+                        {shorten(item.text)}</MyText>
                     </View>
                 </Auto>
             </TouchableRipple>
     );
 
     return (
-        <BasePage left={
-            <View style={{backgroundColor:'white',flex:1,minHeight:50}}><MyText size={30}>Írj te is cikket!</MyText></View>
-        }>
-        <GoBack breakPoint={10000} text={null} style={{backgroundColor:'#FFC372',left:5,top:60,position:'absolute',marginRight:10}} color='black'/>
-        <Row style={{alignItems:'center'}}>
-            <TextInput
-              style={[{fontSize:16,padding:10,backgroundColor:'#ffffff',borderRadius:8,margin:4,flexGrow:1}]}
-              returnKeyType="search"
-              autoCapitalize='none'
-              onChangeText={setSearchText}
-              placeholder={'Keress a cikkek közt'}
-              placeholderTextColor="gray"
-              onSubmitEditing={() => firstSearch()}
-            />
-            <Pressable 
-            onPress={firstSearch}
-            style={{padding:10}}><Icon name='search' size={30}/></Pressable>
-        </Row>
+        <BasePage style={{width:'100%'}}>
+            <Row style={{alignItems:'center'}}>
+                <TextInput
+                style={[{fontSize:16,padding:10,backgroundColor:'#ffffff',borderRadius:8,margin:4,flexGrow:1}]}
+                returnKeyType="search"
+                autoCapitalize='none'
+                onChangeText={setSearchText}
+                placeholder={'Keress a cikkek közt'}
+                placeholderTextColor="gray"
+                onSubmitEditing={() => firstSearch()}
+                />
+                <Pressable 
+                onPress={firstSearch}
+                style={{padding:10}}><Icon name='search' size={30}/></Pressable>
+            </Row>
             <FlatList
                 renderItem={renderItem}
                 data={data}
@@ -92,7 +90,7 @@ const Docs = () => {
                 ListFooterComponent={
             <View style={{width:'100%',alignItems:'center'}}>
             {!data?.length&&!loading&&<MyText>Nincs találat</MyText>}
-                <TouchableRipple onPress={()=>navigation.push({pathname:'cikk',params:{id:'64bd12b7590741c9b1fae8d6'}})}>
+                <TouchableRipple onPress={()=>navigation.push({pathname:'uj-cikk'})}>
                     <MyText bold>Írj te is egy cikket!</MyText>
                 </TouchableRipple>
             </View>}

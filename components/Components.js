@@ -1,5 +1,5 @@
 import Icon from '@expo/vector-icons/Ionicons';
-import Image from 'expo-fast-image';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { getDownloadURL, getStorage, ref as sRef } from "firebase/storage";
 import React, { useEffect, useRef, useState } from 'react';
@@ -77,28 +77,19 @@ const ProfileImage = ({uid,size='100%',style,path,modal}) => {
   </View>
 
   if (!url) return loading
-  return modal ? <ImageModal style={[{width: size, height: size},style]}
+  if (modal) return <ImageModal style={[{width: size, height: size},style]}
       cachePolicy='memory-disk'
-      modalImageResizeMode='contain'
-      cacheKey={`${uid || path}-uid`}
+      source={url}  />
 
-      placeholderContent={( 
-        loading
-      )} 
-      source={url}  />:
-      <Image style={[{width: size, height: size},style]}
-      cachePolicy='memory-disk'
-      onError={()=>{
-        console.log('eerr')
-        setUrl(defaultUrl)
-        }
-      }
-      modalImageResizeMode='contain'
-      cacheKey={`${uid || path}-uid`}
-      placeholderContent={( 
-        loading
-      )} 
-      source={url}/>
+  return <View style={style}>
+    <Image style={[{width: size, height: size,borderRadius:8}]}
+          cachePolicy='memory-disk'
+          onError={()=>{
+            setUrl(defaultUrl)
+            }
+          }
+          source={url}/>
+  </View>
     
     
 }
@@ -116,7 +107,7 @@ const ProfileName = ({uid,style}) => {
   return <MyText style={style}>{name}</MyText>   
 }
 
-function NewButton({title,onPress,disabled,style,textStyle,floating,icon,color = "#ffde7e",info,loading=false}) {
+function NewButton({title,onPress,disabled,selected,style,textStyle,floating,icon,color = "#fdcf99",info,loading=false}) {
   const ref = useRef();
   const isHovered = useHover(ref);
   const [rect, setRect] = useState(null);
@@ -266,15 +257,17 @@ function Col(props) {
   );
 }
 
-function Auto({children,style,breakPoint=900,reverse}) {
+function Auto({children,style,flex,breakPoint=900,reverse,onLayout}) {
   
   const width = useWindowDimensions().width;
   return (
-    <View style={[{
+    <View 
+    onLayout={onLayout}
+    style={[{
       flexDirection: reverse ? 
       width > breakPoint ? 'column' : 'row':
       width <= breakPoint ? 'column' : 'row'
-      ,width:'100%',flex: width <= breakPoint ? undefined : 1},style]}>
+      ,width:'100%',flex: flex!=undefined ? (flex==0?undefined:flex) : (width <= breakPoint ? undefined : 1)},style]}>
       {children}
     </View>
   )
@@ -495,8 +488,8 @@ export const MyText = (props) => {
   return <Text  {...props} style={[{
     fontFamily:'SpaceMono_400Regular',
     letterSpacing:-1
-    },title && {fontSize:22,marginTop:14},
-    contained && {padding:8,borderRadius:8,backgroundColor:'white',fontSize:17,marginTop:14},
+    },title && {fontSize:22,marginTop:14,fontWeight:'bold'},
+    contained && {padding:8,borderRadius:8,backgroundColor:'#fcf3d4',fontSize:17,marginTop:14,padding:20},
     bold && {fontWeight:'bold'},
     light && {fontWeight:'200',color:'gray'},
     size && {fontSize:size},
@@ -514,8 +507,8 @@ const TextInput = React.forwardRef((props,ref) => {
       onLayout={props.onLayout}
       ref={ref}
       placeholderTextColor="#555"
-      style={[props.style,{fontFamily:'SpaceMono_400Regular'}, 
-      isFocused && {backgroundColor:'#fffbeb'},
+      style={[props.style,{fontFamily:'SpaceMono_400Regular',borderWidth:1,borderColor:'white'}, 
+      isFocused && {borderColor:'#969474'},
       Platform.OS === "web" && {outline: "none" }]}
       onBlur={() => {
         setIsFocused(false)

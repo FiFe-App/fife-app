@@ -130,7 +130,7 @@ const Search = () => {
     }, [array]);
 
     return(
-        <BasePage style={{backgroundColor:'#fdf6d1'}}>
+        <BasePage style={{}}>
             {width < 1340 && <SearchBar style={{flexGrow:0,flex:undefined,width:'100%',marginRight:40}}/>}
 
             <View style={{justifyContent:'center',width:'100%',flexWrap:small?'wrap':'none',flexDirection:'row',zIndex:-1}}>
@@ -144,7 +144,7 @@ const Search = () => {
                                 onPress={()=>setSelected(ind)}/>}
                         )}
             </View>
-            <ScrollView style={{backgroundColor:'#fdfbf0',borderRadius:8,padding:16,flex:1,zIndex:-1}}>
+            <ScrollView style={{borderRadius:8,padding:16,flex:1,zIndex:-1}}>
                 <View style={{marginHorizontal:25,width:'90%'}}>
                     {!params?.key &&
                         <MyText>Keress profilokra, bizniszre, helyekre, cserebere cikkekre</MyText>}

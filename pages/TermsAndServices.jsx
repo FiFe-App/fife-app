@@ -4,10 +4,7 @@ import { MyText } from "../components/Components";
 
 const TermsAndServices = () => {
     return (<>
-    
-    <View>
-        <ScrollView contentContainerStyle={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:'#fdf8de'}}>
-            <View style={{width:'70%',minWidth:500,margin:50,backgroundColor:'#fff',paddingVertical:8,paddingHorizontal:50}}>
+                <View style={{marginBottom:50,backgroundColor:'#fff',padding:50}}>
                 <MyText style={{fontSize:24,marginTop:32}}>Website Terms and Conditions of Use</MyText>
 
                 <MyText style={{fontSize:17,marginTop:32}}>1. Terms</MyText>
@@ -18,13 +15,15 @@ const TermsAndServices = () => {
 
                 <MyText>Permission is granted to temporarily download one copy of the materials on fifeapp.hu's Website for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:</MyText>
 
-                <ul>
-                    <li>modify or copy the materials;</li>
-                    <li>use the materials for any commercial purpose or for any public display;</li>
-                    <li>attempt to reverse engineer any software contained on fifeapp.hu's Website;</li>
-                    <li>remove any copyright or other proprietary notations from the materials; or</li>
-                    <li>transferring the materials to another person or "mirror" the materials on any other server.</li>
-                </ul>
+                <MyText>
+                    <ul>
+                        <li>modify or copy the materials;</li>
+                        <li>use the materials for any commercial purpose or for any public display;</li>
+                        <li>attempt to reverse engineer any software contained on fifeapp.hu's Website;</li>
+                        <li>remove any copyright or other proprietary notations from the materials; or</li>
+                        <li>transferring the materials to another person or "mirror" the materials on any other server.</li>
+                    </ul>
+                </MyText>
 
                 <MyText>This will let fifeapp.hu to terminate upon violations of any of these restrictions. Upon termination, your viewing right will also be terminated and you should destroy any downloaded materials in your possession whether it is printed or electronic format. These Terms of Service has been created with the help of the <a href="https://www.termsofservicegenerator.net">Terms Of Service Generator</a>.</MyText>
 
@@ -57,8 +56,6 @@ const TermsAndServices = () => {
                 <MyText>Any claim related to fifeapp.hu's Website shall be governed by the laws of hu without regards to its conflict of law provisions.</MyText>
 
             </View>
-        </ScrollView>
-    </View>
     </>)
 }
 

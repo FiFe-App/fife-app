@@ -52,7 +52,7 @@ router.get("/latest",checkAuthIf,async (req, res) => {
 
   console.log('filters',filters);
   const db = await adb
-  
+
   const results = {
     newPeople: 'true'=='true' ? {
       title: "Frissen regisztrált fifék!",
@@ -68,24 +68,14 @@ router.get("/latest",checkAuthIf,async (req, res) => {
       title: "Hírek, cikkek",
       link: 'cikk',
       id: 'docs',
-      newLink: 'cikkek?id=64bd12b7590741c9b1fae8d6',
+      newLink: 'uj-cikk',
       data: await (await db.collection("document")).aggregate([
-        {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1,"image":1,"color":1}},
-        {"$sort": {"created_at": -1}},
+        {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1,"image":1,"color":1,"active":1}},
+        {"$sort": {created_at: -1}},
+        {"$match": {'active': true}},
         {"$limit": 3}
       ]).toArray()
     } : undefined,
-    /*places: filters?.places=='true' ? {
-        title: "Helyek amiket megismerhetsz",
-        link: 'terkep',
-        id: 'places',
-        newLink: 'terkep',
-        data: await (await db.collection("place")).aggregate([
-        {"$project": {"title": 1, "category":1, "created_at": 1, "author": 1}},
-        {"$sort": {"created_at": -1}},
-        {"$limit": 3}
-      ]).toArray()
-    } : undefined,*/
     saleSeek: filters?.saleSeek=='true' ? {
       title: "Tárgyakat keresnek",
       link: 'cserebere',

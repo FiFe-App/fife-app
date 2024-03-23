@@ -1,6 +1,7 @@
 import { Pressable, View } from 'react-native';
 import { MyText, Row, TextInput } from '../Components';
 import { useEffect, useState } from 'react';
+import Icon from '@expo/vector-icons/Ionicons';
 
 const LabelInput = (props) => {
     const {onChange,defaultValue} = props 
@@ -34,19 +35,21 @@ const LabelInput = (props) => {
         }
     }
 
-    return (<Row style={[{backgroundColor:'white',flexWrap:'wrap',margin:4,marginLeft:0,marginRight:8,borderRadius:8},props.style]}>
+    return (<Row style={[{backgroundColor:'white',flexWrap:'wrap',marginLeft:0,borderRadius:8},props.style]}>
         {list.map((e,i)=>{
             if (e.length)
-            return <Row style={{backgroundColor:'#edeeda',margin:4,padding:4,paddingLeft:8,alignItems:'center',borderRadius:8}}>
-                <MyText>{e}</MyText>
+            return <Row style={{backgroundColor:'#edeeda',margin:4,padding:0,paddingLeft:8,alignItems:'center',borderRadius:8}}>
+                <MyText size={17}>{e}</MyText>
                 <Pressable onPress={()=>{
                     setList(list.filter((el,ind)=>ind!=i))
-                }}><MyText style={{fontSize:17}}>x</MyText></Pressable>
+                }}><View style={{fontSize:17,paddingHorizontal:8}}>
+                <Icon name="close" size={17}/>
+                </View></Pressable>
             </Row>
         })}
         <TextInput
         placeholder={props.placeholder}
-        style={{height: 40,padding:8,flexGrow:1}}
+        style={{flexGrow:1,fontSize:17,borderRadius:8,padding:4}}
         onChangeText={setText}
         onKeyPress={edit}
         value={text}

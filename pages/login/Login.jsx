@@ -97,7 +97,7 @@ const LoginScreen = () => {
         </View>
       </LinearGradient>
       {width > 900 &&
-        <View style={{height:'100%'}}>
+        <View style={{height:'100%',backgroundColor:'#fcf3d4'}}>
           <First scrollView={scrollView}/>
         </View>}
       </ScrollView>

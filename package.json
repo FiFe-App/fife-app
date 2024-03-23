@@ -4,14 +4,10 @@
   "main": "expo-router/entry",
   "scheme": "fife-app",
   "scripts": {
-    "start": "expo start",
-    "client": "npx expo start --web",
+    "start": "npx expo start",
+    "web": "npx expo start --web",
+    "web_prod": "NODE_ENV=production npx expo start --web",
     "server": "cd functions && netlify functions:serve --functions ./ -p 8888",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "eject": "expo eject",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": " npx expo export -p web && netlify functions:build -f dist/functions --src functions && netlify deploy --dir dist",
     "deploy": "netlify deploy --prod -d dist",
     "postinstall": "patch-package"
@@ -54,6 +50,7 @@
     "expo-file-system": "~16.0.5",
     "expo-font": "~11.10.2",
     "expo-gl": "~13.6.0",
+    "expo-image": "~1.10.6",
     "expo-image-picker": "~14.7.1",
     "expo-linear-gradient": "~12.7.1",
     "expo-linking": "~6.2.2",
@@ -72,6 +69,7 @@
     "react": "18.2.0",
     "react-datepicker": "4.8.0",
     "react-dom": "18.2.0",
+    "react-error-boundary": "^4.0.12",
     "react-helmet": "6.1.0",
     "react-hook-form": "7.33.1",
     "react-leaflet": "^4.2.1",
@@ -119,6 +117,10 @@
     "sharp-cli": "^2.1.0",
     "webpack-hot-middleware": "^2.25.2"
   },
+  "workspaces": [
+    "/functions",
+    "/"
+  ],
   "private": true,
   "volta": {
     "node": "18.19.0"

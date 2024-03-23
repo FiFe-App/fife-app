@@ -2,17 +2,18 @@
   import { AmaticSC_700Bold, useFonts } from '@expo-google-fonts/amatic-sc';
 import { Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Image from 'expo-fast-image';
+import { Image } from 'expo-image';
 import { getDatabase, push, ref, set } from 'firebase/database';
 import { useState } from 'react';
 import { Linking, View, useWindowDimensions } from 'react-native';
 import BasePage from '../components/BasePage';
-import { Auto, MyText, NewButton, Row, TextInput } from '../components/Components';
+import { Auto, B, MyText, NewButton, Row, TextInput } from '../components/Components';
 import AuthoredImage from '../components/tools/AuthoredImage';
 import Comments from '../components/tools/Comments';
 import styles from '../styles/aboutDesign';
 import { Smiley } from './home/HomeScreen';
 import { router } from 'expo-router';
+import { LogoTitle } from '../components/LogoTitle';
 
 const About = () => {
     const small = useWindowDimensions().width <= 900;
@@ -47,86 +48,97 @@ const About = () => {
     }
 
     return (
-    <BasePage style={styles.container} full>
-        <View style={{}}>
-            <Row style={{justifyContent:'center',alignItems:'center'}}>    
-                <MyText size={100} style={{margin:0,textAlign:'center',justifyContent:'center',fontFamily:'AmaticSC_700Bold'}}>fife app </MyText>
-                <Smiley size={1.5} style={{marginLeft:10}}/>
-            </Row>
-            <View style={{flex:1,alignItems:'center',justifyContent:'center',marginTop:10}}>
-                {true&&<NewButton title="Tovább a webalkalmazásba" color="#fdcf99" style={{padding:10}} onPress={next}/>}
-                <MyText style={{textAlign:'center'}}>Az appot jelenleg a böngészőben tudod megnyitni. Android és iOS alkalmazás a jövőben várható!</MyText>
+    <>
+    <BasePage style={{padding:0,paddingHorizontal:0}} full>
+        <LogoTitle style={{position:'relative',zIndex:10,backgroundColor:'#fcf9ef'}} noLogo={true}/>
+        <View style={{marginHorizontal:small?0:100}}>
+            <View style={[styles.container,{backgroundColor:'#fcf9ef'}]}>
+                    <Row style={{alignItems:'center',textAlign:'center'}}>
+                        <Smiley imageStyle={{width:90,height:90}} style={{margin:32}}/>
+                        <View style={{flex:1}}>
+                            <MyText size={50}>FiFe App</MyText>
+                            <MyText size={30} style={{marginTop:-8}}>A biztonságos online tér</MyText>
+                        </View>
+                    </Row>
+                    <MyText style={{textAlign:'left',fontSize:17}}>{'\n'}
+                        A mai elszigetelt világban szükség van egy olyan rendszerre, amely összehozza a jóérzésű embereket egy biztonságos közösségbe.
+                                        {'\n'}Ez a gondolat ihlette a <B>Fiatal Felnőttek applikációt</B>, amely sokrétű online felületet nyújt a nagyvárosban élőknek.
+                    </MyText>
             </View>
-        </View>
-        <View style={{marginHorizontal:small?0:100,flex:1}}>
-            <MyText contained>
-                    A mai elszigetelt világban szükség van egy olyan rendszerre, amely összehozza a jóérzésű embereket egy biztonságos közösségbe.
-                {'\n'}Ez a gondolat ihlette a Fiatal Felnőttek applikációt, amely sokrétű online felületet nyújt a nagyvárosban élőknek.
-            </MyText>
-            <Auto style={{flex:undefined}}>
-                <AuthoredImage authorName="Vitányi Regina"
-                 source={require('../assets/img-prof.jpg')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
-                <MyText contained stlye={{flexGrow:1}}>
+            <Auto style={{flex:undefined,alignItems:'center',justifyItems:'center'}}>
+                <MyText contained style={[{flexGrow:1,marginBottom:20},small&&{order:3}]}>
                     <MyText title>Cserebere</MyText>{'\n'}
                     Egy egyszerű adok-veszek oldal, ahol keresgélhetsz illetve hirdethetsz eladó tárgyak, munkák, kiadó lakások közt. Ezeket a cikkeket le tudod foglalni, és chatelni a hirdetővel.
-
+                    {'\n'}
+                    <View style={{width:'100%',alignItems:'center'}}>
+                        <NewButton  title='Megyek csereberélni!' color='#fdcf99' />
+                    </View>
                 </MyText>
-            </Auto>
-
-            <Auto style={{flex:undefined}}>
-                <MyText contained style={small&&{order:3}}>
-                <MyText title>Térkép</MyText>{'\n'}
-                Ezen az oldalon olyan hasznos helyeket fedezhetsz fel, mint turkálók, adományboltok, vásárok, kiskocsmák, csomagolásmentes boltok, vagy akár ingyenvécék.
-                Feltöltheted azokat a helyeket, amelyek a szívedhez nőttek, hogy mások is megismerhessék!</MyText>
-                <AuthoredImage authorName="Vitányi Regina" authorUid="26jl5FE5ZkRqP0Xysp89UBn0MHG3"
-                 source={require('../assets/img-map.jpg')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
-           </Auto>
-
-           <Auto style={{flex:undefined}}>
                 <AuthoredImage authorName="Vitányi Regina"
-                 source={require('../assets/img-main.jpg')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
-                <MyText contained>
-                <MyText title>Biznisz</MyText>{'\n'}
-                Kereshetsz a szakemberek, művészek és alkotók közt. Illetve megoszthatod másokkal, 
-                hogy miben vagy tehetséges. Akár kézműves termékeket készítesz, korrepetálsz, vagy tanácsot adsz, itt hirdetheted magad.
-                </MyText>
+                 source={require('../assets/img-prof.jpg')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
             </Auto>
+                <View style={[styles.container,{alignItems:'center'}]}>
+                    <MyText title>Bizniszelj!</MyText>
+                    <Auto style={[{flex:undefined,marginTop:10}]}>
+                        <View style={[{margin:4,padding:12,backgroundColor:'#fcf9ef',flex:small?undefined:1}]}>
+                            <MyText size={17} bold>1. Mihez értesz?</MyText>
+                            <MyText size={17}>Oszd meg másokkal, hogy miben vagy tehetséges! Akár kézműves termékeket készítesz, korrepetálsz vagy tanácsot adsz, itt hirdetheted magad.</MyText>
+                        </View>
+                        <View style={[{margin:4,padding:12,backgroundColor:'#fcf9ef',flex:small?undefined:1}]}>
+                            <MyText size={17} bold>2. Lépj kapcsolatba!</MyText>
+                            <MyText size={17}>Keress a szakemberek, művészek, alkotók közt! Fedezd fel a többiek bizniszeit!</MyText>
+                        </View>
+                        <View style={[{margin:4,padding:12,backgroundColor:'#fcf9ef',flex:small?undefined:1}]}>
+                            <MyText size={17} bold>3. Köss biznisz kapcsolatot!</MyText>
+                            <MyText size={17}>Keressétek meg egymásban a kereslet és kínálatot</MyText>
+                        </View>
+                        <View style={[{margin:4,padding:12,backgroundColor:'#fcf9ef',flex:small?undefined:1}]}>
+                            <MyText size={17} bold>4. Ajánlj be másokat!</MyText>
+                            <MyText size={17}>Jelezz vissza, kik azok akik valódi segitséget tudnak nyújtani.</MyText>
+                        </View>
+                    </Auto>
+                    <NewButton title="Irány Bizniszelni!"/>
+                </View>
             <Auto style={{flex:undefined}}>
-                
+                <Image source={require('../assets/logo.png')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,flexOrder:0,alignSelf:'center'}}/>
+
                 <MyText contained style={small&&{order:3}}>
                 <MyText title>Pajtások</MyText>{'\n'}Az oldal biztonságát az úgynevezett pajtásrendszerrel biztosítjuk. 
                 Pajtásodnak akkor jelölhetsz valakit, ha megbízol az illetőben.
                 Bizonyos funkciókat pedig csak akkor használhatsz, 
                 ha megfelelő mennyiségű ember már megbízhatónak jelölt téged.</MyText>
-                <Image source={require('../assets/logo.png')} resizeMode="contain" style={{height:200,width:200,margin:20,borderRadius:16,flexOrder:0,alignSelf:'center'}}/>
             </Auto>
 
-            <Auto style={{flex:undefined}}>
-                <Image source={require('../assets/en.jpeg')} resizeMode="cover" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
+            <View style={{}}>
+                <MyText contained style={{textAlign:'center'}}>
+                <MyText title>Csatlakozz a FiFék közösségéhez!</MyText>{'\n'}
+                    <MyText>Fifék így nyilatkoztak...</MyText>
+                    <Comments style={{marginLeft:small?0:50}} path="aboutComments" limit={9} justComments commentStyle={{backgroundColor:'#fcf9ef',padding:10,textAlign:'left',fontSize:13,borderRadius:8}}/>
+                </MyText>    
+            </View>
+            <Auto style={{flex:'none'}}>
                 <MyText contained>
                 <MyText title>Rólam</MyText>{'\n'}
                 Kristóf Ákos vagyok, én találtam ki és fejlesztem egyedül a fife appot. Ez egy olyan projekt, 
                 amibe szívemet-lelkemet bele tudom rakni, értetek, és egy jobb világért dolgozom rajta. 
                 Az oldal fenntartásához, fejlesztéséhez sok idő és pénz is kell, éppen ezért kérem a támogatásotokat. 
                 Ha neked is fontos a projekt célja, és szívesen használnád az appot, kérlek 
-                egy pár száz forinttal segítsd az elindulásunkat:)</MyText>
+                egy pár száz forinttal segítsd az elindulásunkat:){'\n'}
+                <NewButton onPress={()=>{ Linking.openURL('https://patreon.com/fifeapp') }} color="#fdcf99"
+            title="Itt tudsz adományozni!" style={{alignSelf:small?'center':'flex-end'}}/> 
+
+                </MyText>
+                <Image source={require('../assets/en.jpeg')} resizeMode="cover" style={{height:200,width:200,margin:20,borderRadius:16,alignSelf:'center'}}/>
+
+
             </Auto>
-            <NewButton onPress={()=>{ Linking.openURL('https://patreon.com/fifeapp') }} color="#4d9bff"
-            title="Itt tudsz adományozni!" style={{alignSelf:small?'center':'flex-end',paddingHorizontal:10}} textStyle={{fontSize:30}}/> 
-            <View style={{}}>
-                <MyText title>Küldjek emailt, ha elkészült az app?</MyText>
-                <Row>
-                    <TextInput style={{margin:5,padding:10,backgroundColor:'#ffffff',flexGrow:1}} 
-                    value={!sent ? email : 'Köszi, megkaptam az email-címed!'} onChangeText={setEmail} disabled={sent} placeholder="Email-címed"/>
-                    <NewButton title="Küldés" onPress={handleSend} disabled={!email || sent} style={{margin:5,minWidth:100}}/>
-                </Row>
-            </View>
-            <View style={{}}>
-                <MyText title>Kérlek mondd el a véleményed! <Image source={require('../assets/logo.png')} resizeMode="contain" style={{height:30,width:30}}/></MyText>    
-                <Comments style={{marginLeft:small?0:50}} path="aboutComments"/>
-            </View>
+            <MyText style={{fontSize:28,textAlign:'center',marginTop:30}}>Csatlakozz a fifékhez!</MyText>
+            <Row style={{alignItems:'center',justifyContent:'center',padding:12}}>
+                <NewButton title="Bejelentkezés" onPress={()=>router.push('/bejelentkezes')}/>
+                <NewButton title="Regisztrálj!" color="#FDEEA2" onPress={()=>router.push('/regisztracio')}/>
+            </Row>
         </View>
-    </BasePage>)
+    </BasePage></>)
 }
 
 export default About

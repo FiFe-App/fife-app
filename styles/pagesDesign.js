@@ -6,14 +6,12 @@ const styles = StyleSheet.create({
       flex: 1,
     },
     text: {
-      fontSize:20,
       textAlign:'left',
       padding:20,
       marginBottom: 10,
       backgroundColor:'#ffffff99',
     },
     list: {
-      fontSize:17,
       flexDirection:'column'
     },
     listItem: {
@@ -65,13 +63,11 @@ const styles = StyleSheet.create({
     input:{
       backgroundColor:'#ffffff',
       padding:10,
-      fontSize:22,
       letterSpacing:-1,
       color:'black'
     },
     absolute:{
       padding:10,
-      fontSize:22,
       position:'absolute',
       userSelect: "none",
       backgroundColor:'transparent',

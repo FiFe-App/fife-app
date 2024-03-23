@@ -143,8 +143,8 @@ const Chat = ({ propUid, global}) => {
     }, [database,uid2,navigation]);
     
     if (!uid2) return (
-        <View style={{flex:1,backgroundColor:'#fdf6d1'}}>
-            <View style={{flex:1,backgroundColor:'#FDEEA2',margin:10,borderRadius:30,justifyContent:'center',alignItems:'center'}}>
+        <View style={{flex:1}}>
+            <View style={{flex:1,backgroundColor:'#fdf6d1',margin:10,borderRadius:30,justifyContent:'center',alignItems:'center'}}>
                 <Image source={require('../assets/img-prof.jpg')} style={{height:200,width:200,borderRadius:20,marginBottom:20}}/>
                 <MyText size={20}>Válassz ki valakit, akivel beszélnél.</MyText>
             </View>
@@ -152,14 +152,14 @@ const Chat = ({ propUid, global}) => {
     )
 
     return (
-    <View style={{flex:1,backgroundColor:'#fdf6d1'}}>
-        <View style={[{flex:1,backgroundColor:'#FDEEA2'},small?{}:{margin:10,borderRadius:30}]}>
-            <View style={{flex:1,backgroundColor:'#fdf6d1'}}>
+    <View style={{flex:1}}>
+        <View style={[{flex:1},small?{}:{margin:10,borderRadius:30}]}>
+            <View style={{flex:1}}>
                 {!global && header}
                 <ScrollView
                 snapToEnd
                 ref={(scroll) => {setScrollView(scroll)}}
-                style={{flex:1,backgroundColor:global?'transparent':'#fff'}} contentContainerStyle={styles.messages}>
+                style={{flex:1,backgroundColor:global?'transparent':'#fff',}} contentContainerStyle={styles.messages}>
                     <View style={{flex:1}}>
                         {!loading ?
                         messages.length ?

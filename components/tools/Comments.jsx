@@ -1,5 +1,5 @@
 import Icon from '@expo/vector-icons/Ionicons';
-import { getDatabase, off, onChildAdded, push, ref, set } from 'firebase/database';
+import { getDatabase, limitToLast, off, onChildAdded, push, query, ref, set } from 'firebase/database';
 import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -8,7 +8,7 @@ import Loading from '../Loading';
 import UrlText from './UrlText';
 import { router } from 'expo-router';
 
-const Comments = ({style,path,placeholder}) => {
+const Comments = ({style,path,placeholder,limit,justComments,commentStyle}) => {
     const [list, setList] = useState([]);
     const navigation = router;
     const [width, setWidth] = useState(0);
@@ -40,8 +40,10 @@ const Comments = ({style,path,placeholder}) => {
 
     useEffect(() => {
         setList([])
+
+        const q = limit ? query(ref(db,path),limitToLast(limit)) : ref(db,path)
         
-        onChildAdded(ref(db,path), (data) => {
+        onChildAdded(q, (data) => {
             setList(old => [data.val(),...old])
             setDownloading(false)
         });
@@ -55,7 +57,7 @@ const Comments = ({style,path,placeholder}) => {
 
     return (
         <View style={[{flex:1},style]} onLayout={(e)=>setWidth(e.nativeEvent.layout.width)}>
-            <Row style={{flex:1}}>
+            {!justComments && <><Row style={{flex:1}}>
                 <View style={{flexGrow:1}}>
                     {!name && <TextInput style={{marginRight:5,marginBottom:5,padding:10,backgroundColor:'#ffffff'}} value={author} onChangeText={setAuthor} placeholder="Név"/>}
                     <TextInput style={{flex:1,marginRight:5,marginBottom:0,padding:10,backgroundColor:'#ffffff'}} multiline rows={2} value={text} 
@@ -67,12 +69,12 @@ const Comments = ({style,path,placeholder}) => {
                     loading={loading}
                 />
             </Row>
-            <MyText size={20} style={{marginLeft:10,marginTop:10}}>Kommentek:</MyText>
+            <MyText size={20} style={{marginLeft:10,marginTop:10}}>Kommentek:</MyText></>}
             {!!list?.length &&<View style={{flexWrap:'wrap',flexDirection:'row',margin:10,marginRight:15}}>
                 {list.map((comment,ind)=>{
 
                     return (
-                        <View key={'comment'+ind} style={{background:'white',padding:5,margin:5,maxWidth:'100%'}}>
+                        <View key={'comment'+ind} style={[{background:'white',padding:5,margin:5,maxWidth:'100%'},commentStyle]}>
                             <Pressable onPress={()=>{
                                 if (comment?.uid)
                                     navigation.push({pathname:'profil',params:{uid:comment.uid}})
